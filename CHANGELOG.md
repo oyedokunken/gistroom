@@ -19,3 +19,4 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 - Landing v1: the Voice Dock header (capsule with sliding highlight, live room pill, mic bubble with scroll reactive rings, radial menu, mobile thumb zone dock with More sheet), hero with parallax layers, speaking rings, sound bars and drifting sample gist, footer with oversized wordmark and scroll to top ring button.
 - `/api/public/stats` live room count (reports zero on any failure), `/api/csp-report`, Organization and WebSite JSON-LD.
 - Health endpoints and the realtime service skeleton.
+- GitHub Actions CI, Dependabot, Render blueprint, Vercel config, README architecture diagrams, security policy, contributing guide, license notice and the wiki skeleton.

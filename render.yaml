@@ -1,0 +1,36 @@
+# Render blueprint for the realtime service (CLAUDE.md Section 5.1).
+# Secrets marked sync: false are entered in the Render dashboard, never committed.
+services:
+  - type: web
+    name: gistroom-realtime
+    runtime: node
+    plan: free
+    region: frankfurt
+    rootDir: .
+    buildCommand: npm install && npm run build -w @gistroom/realtime
+    startCommand: npm run start -w @gistroom/realtime
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: LOG_LEVEL
+        value: info
+      - key: WEB_APP_URL
+        value: https://gistroom.ng
+      - key: ALLOWED_ORIGINS
+        value: https://gistroom.ng
+      - key: DATABASE_SCHEMA
+        value: public
+      - key: DATABASE_URL
+        sync: false
+      - key: REALTIME_PASS_SECRET
+        sync: false
+      - key: INTERNAL_SERVICE_TOKEN
+        sync: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        value: mailto:security@gistroom.ng

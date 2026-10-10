@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      HUSKY: "0"
+      SKIP_ENV_VALIDATION: "true"
+      # Placeholders so Prisma can generate the client. Tests that need a real database
+      # read DATABASE_URL from repository secrets once integration tests exist (Phase 1).
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      DIRECT_URL: postgresql://ci:ci@localhost:5432/ci
+      DATABASE_SCHEMA: gistroom_test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      # Playwright browsers are installed here once the browser suite lands in Phase 1:
+      #   npx playwright install --with-deps chromium
+
+      - name: Verify
+        run: npm run verify
+
+      # Dev tooling (the Prisma CLI) pulls in packages that never reach production, so the
+      # audit gate covers runtime dependencies only. See wiki/Decisions.md D21.
+      - name: Audit runtime dependencies
+        run: npm audit --omit=dev --audit-level=high

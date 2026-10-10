@@ -301,6 +301,15 @@ export function VideoCallScreen({ person = "Tunde" }: { person?: DemoPerson }) {
         />
       </motion.div>
 
+      <div
+        aria-hidden
+        className="absolute inset-x-0 top-0 z-0 h-24 bg-gradient-to-b from-ink-950/80 to-transparent"
+      />
+      <div
+        aria-hidden
+        className="absolute inset-x-0 bottom-0 z-0 h-24 bg-gradient-to-t from-ink-950/80 to-transparent"
+      />
+
       <div className="relative z-10 flex items-center justify-between px-3 pt-2">
         <div>
           <p className="text-sm font-semibold">{person}</p>

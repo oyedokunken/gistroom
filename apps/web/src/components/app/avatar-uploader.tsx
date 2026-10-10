@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { checkUpload, errors } from "@gistroom/shared";
+import { checkUpload, errors, isDefaultAvatar } from "@gistroom/shared";
 import { useFeedback } from "@/components/feedback/feedback-provider";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,8 @@ export function AvatarUploader({
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState<string | null>(avatarUrl);
+  // The illustrated default is not a photo the person uploaded.
+  const hasPhoto = Boolean(preview) && !isDefaultAvatar(preview);
 
   async function pick(file: File) {
     const verdict = checkUpload({
@@ -88,9 +90,9 @@ export function AvatarUploader({
             loading={busy}
             onClick={() => input.current?.click()}
           >
-            {preview ? copy.change : copy.add}
+            {hasPhoto ? copy.change : copy.add}
           </Button>
-          {preview ? (
+          {hasPhoto ? (
             <Button type="button" variant="ghost" disabled={busy} onClick={() => void remove()}>
               {copy.remove}
             </Button>

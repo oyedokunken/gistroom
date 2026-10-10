@@ -1,4 +1,5 @@
 import type { Call, Prisma, User } from "./generated/client";
+import { defaultAvatarSrc } from "@gistroom/shared";
 import type { AttachmentDto, CallDto, MessageDto, PublicUser, ReactionDto } from "@gistroom/shared";
 
 /** Public avatar URL from the public bucket. Null when none is set or storage is not configured. */
@@ -20,7 +21,7 @@ export function toPublicUser(user: PublicFields): PublicUser {
     id: user.id,
     name: user.name,
     username: user.username,
-    avatarUrl: avatarUrl(user.avatarPath),
+    avatarUrl: avatarUrl(user.avatarPath) ?? defaultAvatarSrc(user.id),
     bio: user.bio,
   };
 }

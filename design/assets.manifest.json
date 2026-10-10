@@ -594,6 +594,278 @@
       "prompt": "A stylised phone showing an install card with a green tile glowing, no text.",
       "status": "PLACEHOLDER",
       "createdAt": "2026-10-10T04:07:38.746Z"
+    },
+    {
+      "id": "avatar-01",
+      "placement": "Illustrated avatar for Ada, used on the landing page, public pages and as the default profile picture",
+      "master": "design/masters/avatars/avatar-01.svg",
+      "sizes": [
+        {
+          "width": 256,
+          "height": 256,
+          "file": "avatars/avatar-01.png"
+        }
+      ],
+      "alt": "Illustrated portrait of Ada",
+      "decorative": false,
+      "prompt": "Drawn in code by scripts/graphics/avatars.mjs: flat vector portrait, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:14:55.768Z"
+    },
+    {
+      "id": "avatar-02",
+      "placement": "Illustrated avatar for Tunde, used on the landing page, public pages and as the default profile picture",
+      "master": "design/masters/avatars/avatar-02.svg",
+      "sizes": [
+        {
+          "width": 256,
+          "height": 256,
+          "file": "avatars/avatar-02.png"
+        }
+      ],
+      "alt": "Illustrated portrait of Tunde",
+      "decorative": false,
+      "prompt": "Drawn in code by scripts/graphics/avatars.mjs: flat vector portrait, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:14:55.768Z"
+    },
+    {
+      "id": "avatar-03",
+      "placement": "Illustrated avatar for Emeka, used on the landing page, public pages and as the default profile picture",
+      "master": "design/masters/avatars/avatar-03.svg",
+      "sizes": [
+        {
+          "width": 256,
+          "height": 256,
+          "file": "avatars/avatar-03.png"
+        }
+      ],
+      "alt": "Illustrated portrait of Emeka",
+      "decorative": false,
+      "prompt": "Drawn in code by scripts/graphics/avatars.mjs: flat vector portrait, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:14:55.768Z"
+    },
+    {
+      "id": "avatar-04",
+      "placement": "Illustrated avatar for Zainab, used on the landing page, public pages and as the default profile picture",
+      "master": "design/masters/avatars/avatar-04.svg",
+      "sizes": [
+        {
+          "width": 256,
+          "height": 256,
+          "file": "avatars/avatar-04.png"
+        }
+      ],
+      "alt": "Illustrated portrait of Zainab",
+      "decorative": false,
+      "prompt": "Drawn in code by scripts/graphics/avatars.mjs: flat vector portrait, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:14:55.768Z"
+    },
+    {
+      "id": "avatar-05",
+      "placement": "Illustrated avatar for Chidi, used on the landing page, public pages and as the default profile picture",
+      "master": "design/masters/avatars/avatar-05.svg",
+      "sizes": [
+        {
+          "width": 256,
+          "height": 256,
+          "file": "avatars/avatar-05.png"
+        }
+      ],
+      "alt": "Illustrated portrait of Chidi",
+      "decorative": false,
+      "prompt": "Drawn in code by scripts/graphics/avatars.mjs: flat vector portrait, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:14:55.768Z"
+    },
+    {
+      "id": "avatar-06",
+      "placement": "Illustrated avatar for Ngozi, used on the landing page, public pages and as the default profile picture",
+      "master": "design/masters/avatars/avatar-06.svg",
+      "sizes": [
+        {
+          "width": 256,
+          "height": 256,
+          "file": "avatars/avatar-06.png"
+        }
+      ],
+      "alt": "Illustrated portrait of Ngozi",
+      "decorative": false,
+      "prompt": "Drawn in code by scripts/graphics/avatars.mjs: flat vector portrait, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:14:55.768Z"
+    },
+    {
+      "id": "avatar-07",
+      "placement": "Illustrated avatar for Bayo, used on the landing page, public pages and as the default profile picture",
+      "master": "design/masters/avatars/avatar-07.svg",
+      "sizes": [
+        {
+          "width": 256,
+          "height": 256,
+          "file": "avatars/avatar-07.png"
+        }
+      ],
+      "alt": "Illustrated portrait of Bayo",
+      "decorative": false,
+      "prompt": "Drawn in code by scripts/graphics/avatars.mjs: flat vector portrait, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:14:55.768Z"
+    },
+    {
+      "id": "avatar-08",
+      "placement": "Illustrated avatar for Hauwa, used on the landing page, public pages and as the default profile picture",
+      "master": "design/masters/avatars/avatar-08.svg",
+      "sizes": [
+        {
+          "width": 256,
+          "height": 256,
+          "file": "avatars/avatar-08.png"
+        }
+      ],
+      "alt": "Illustrated portrait of Hauwa",
+      "decorative": false,
+      "prompt": "Drawn in code by scripts/graphics/avatars.mjs: flat vector portrait, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:14:55.768Z"
+    },
+    {
+      "id": "avatar-09",
+      "placement": "Illustrated avatar for Kemi, used on the landing page, public pages and as the default profile picture",
+      "master": "design/masters/avatars/avatar-09.svg",
+      "sizes": [
+        {
+          "width": 256,
+          "height": 256,
+          "file": "avatars/avatar-09.png"
+        }
+      ],
+      "alt": "Illustrated portrait of Kemi",
+      "decorative": false,
+      "prompt": "Drawn in code by scripts/graphics/avatars.mjs: flat vector portrait, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:14:55.768Z"
+    },
+    {
+      "id": "avatar-10",
+      "placement": "Illustrated avatar for Ifeanyi, used on the landing page, public pages and as the default profile picture",
+      "master": "design/masters/avatars/avatar-10.svg",
+      "sizes": [
+        {
+          "width": 256,
+          "height": 256,
+          "file": "avatars/avatar-10.png"
+        }
+      ],
+      "alt": "Illustrated portrait of Ifeanyi",
+      "decorative": false,
+      "prompt": "Drawn in code by scripts/graphics/avatars.mjs: flat vector portrait, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:14:55.768Z"
+    },
+    {
+      "id": "avatar-11",
+      "placement": "Illustrated avatar for Funke, used on the landing page, public pages and as the default profile picture",
+      "master": "design/masters/avatars/avatar-11.svg",
+      "sizes": [
+        {
+          "width": 256,
+          "height": 256,
+          "file": "avatars/avatar-11.png"
+        }
+      ],
+      "alt": "Illustrated portrait of Funke",
+      "decorative": false,
+      "prompt": "Drawn in code by scripts/graphics/avatars.mjs: flat vector portrait, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:14:55.768Z"
+    },
+    {
+      "id": "avatar-12",
+      "placement": "Illustrated avatar for Musa, used on the landing page, public pages and as the default profile picture",
+      "master": "design/masters/avatars/avatar-12.svg",
+      "sizes": [
+        {
+          "width": 256,
+          "height": 256,
+          "file": "avatars/avatar-12.png"
+        }
+      ],
+      "alt": "Illustrated portrait of Musa",
+      "decorative": false,
+      "prompt": "Drawn in code by scripts/graphics/avatars.mjs: flat vector portrait, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:14:55.768Z"
+    },
+    {
+      "id": "avatar-13",
+      "placement": "Illustrated avatar for Amaka, used on the landing page, public pages and as the default profile picture",
+      "master": "design/masters/avatars/avatar-13.svg",
+      "sizes": [
+        {
+          "width": 256,
+          "height": 256,
+          "file": "avatars/avatar-13.png"
+        }
+      ],
+      "alt": "Illustrated portrait of Amaka",
+      "decorative": false,
+      "prompt": "Drawn in code by scripts/graphics/avatars.mjs: flat vector portrait, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:14:55.768Z"
+    },
+    {
+      "id": "avatar-14",
+      "placement": "Illustrated avatar for Seun, used on the landing page, public pages and as the default profile picture",
+      "master": "design/masters/avatars/avatar-14.svg",
+      "sizes": [
+        {
+          "width": 256,
+          "height": 256,
+          "file": "avatars/avatar-14.png"
+        }
+      ],
+      "alt": "Illustrated portrait of Seun",
+      "decorative": false,
+      "prompt": "Drawn in code by scripts/graphics/avatars.mjs: flat vector portrait, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:14:55.768Z"
+    },
+    {
+      "id": "avatar-15",
+      "placement": "Illustrated avatar for Halima, used on the landing page, public pages and as the default profile picture",
+      "master": "design/masters/avatars/avatar-15.svg",
+      "sizes": [
+        {
+          "width": 256,
+          "height": 256,
+          "file": "avatars/avatar-15.png"
+        }
+      ],
+      "alt": "Illustrated portrait of Halima",
+      "decorative": false,
+      "prompt": "Drawn in code by scripts/graphics/avatars.mjs: flat vector portrait, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:14:55.768Z"
+    },
+    {
+      "id": "avatar-16",
+      "placement": "Illustrated avatar for Obinna, used on the landing page, public pages and as the default profile picture",
+      "master": "design/masters/avatars/avatar-16.svg",
+      "sizes": [
+        {
+          "width": 256,
+          "height": 256,
+          "file": "avatars/avatar-16.png"
+        }
+      ],
+      "alt": "Illustrated portrait of Obinna",
+      "decorative": false,
+      "prompt": "Drawn in code by scripts/graphics/avatars.mjs: flat vector portrait, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:14:55.768Z"
     }
   ]
 }

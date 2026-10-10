@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useState } from "react";
 import { Mic } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { ui } from "@/content/ui";
@@ -21,6 +24,9 @@ function initials(name: string): string {
 }
 
 export function Avatar({ name, src, size = 44, online, speaking, className }: AvatarProps) {
+  // If the picture cannot load, the person still gets their initials.
+  const [broken, setBroken] = useState(false);
+  const showImage = Boolean(src) && !broken;
   return (
     <span
       className={cn("relative inline-flex shrink-0", className)}
@@ -33,8 +39,15 @@ export function Avatar({ name, src, size = 44, online, speaking, className }: Av
         )}
         style={{ fontSize: Math.max(12, size * 0.38) }}
       >
-        {src ? (
-          <Image src={src} alt="" width={size} height={size} className="size-full object-cover" />
+        {showImage && src ? (
+          <Image
+            src={src}
+            alt=""
+            width={size}
+            height={size}
+            onError={() => setBroken(true)}
+            className="size-full object-cover"
+          />
         ) : (
           <span aria-hidden>{initials(name)}</span>
         )}

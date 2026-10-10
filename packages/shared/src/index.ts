@@ -12,3 +12,6 @@ export * from "./content/errors";
 export * from "./chat";
 export * from "./content/push";
 export * from "./chat-preview";
+export * from "./contact";
+export * from "./password";
+export * from "./topics";

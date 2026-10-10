@@ -32,6 +32,8 @@ enum AuthProvider {
 
 enum OtpPurpose {
   SIGN_IN
+  SIGN_UP
+  RESET_PASSWORD
   DELETE_ACCOUNT
 }
 
@@ -175,6 +177,8 @@ model User {
   id               String          @id @default(cuid(2))
   email            String          @unique @db.Citext
   emailVerifiedAt  DateTime?
+  passwordHash     String?
+  passwordUpdatedAt DateTime?
   name             String
   username         String          @unique
   avatarPath       String?
@@ -288,11 +292,15 @@ model Friendship {
   id         String   @id @default(cuid(2))
   userLowId  String
   userHighId String
+  /** Next friendship anniversary. Set to one year after the friendship starts and moved on a year each time it is celebrated. */
+  nextAnniversaryAt DateTime?
+  celebratedYears   Int      @default(0)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
   @@unique([userLowId, userHighId])
   @@index([userHighId])
+  @@index([nextAnniversaryAt])
 }
 
 model Block {

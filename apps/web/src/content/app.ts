@@ -51,6 +51,12 @@ export const settings = {
       href: "/app/settings/privacy",
     },
     {
+      id: "password",
+      label: "Password",
+      description: "Change or set your password",
+      href: "/app/settings/password",
+    },
+    {
       id: "notifications",
       label: "Notifications",
       description: "Alerts, email and do not disturb",
@@ -237,4 +243,19 @@ export const notifySettings = {
   timeInvalid: "Use a time like 22:00.",
   installHeading: "Install app",
   installIntro: "Installing gives you alerts when Gistroom is closed and a faster start.",
+} as const;
+
+export const passwordSettings = {
+  heading: "Password",
+  introSet: "Change your password. Your other devices are signed out when you do.",
+  introNone:
+    "You signed up with Google. Set a password if you also want to sign in with your email.",
+  current: "Current password",
+  next: "New password",
+  confirm: "Type the new password again",
+  help: "At least 8 characters. A longer phrase is stronger.",
+  save: "Save password",
+  saving: "Saving",
+  saved: "Your password is updated.",
+  forgot: "Forgot your current password?",
 } as const;

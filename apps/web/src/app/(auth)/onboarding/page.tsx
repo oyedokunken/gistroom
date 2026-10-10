@@ -5,6 +5,8 @@ import { OnboardingForm } from "@/components/auth/onboarding-form";
 import { auth, authArt } from "@/content/auth";
 import { getSessionContext } from "@/server/auth/session";
 import { safeNext } from "@/server/auth/google";
+import { passwordRequiredAtOnboarding } from "@/server/auth/rules";
+import { getDb } from "@gistroom/db";
 
 export const metadata: Metadata = {
   title: auth.onboarding.metaTitle,
@@ -20,9 +22,14 @@ export default async function OnboardingPage({
   const ctx = await getSessionContext();
   if (!ctx) redirect(`/login?next=${encodeURIComponent(next)}`);
   if (ctx.user.onboardedAt) redirect(next);
+  const googleLinked = (await getDb().authAccount.count({ where: { userId: ctx.user.id } })) > 0;
+  const needsPassword = passwordRequiredAtOnboarding({
+    googleLinked,
+    hasPassword: ctx.user.passwordHash !== null,
+  });
   return (
     <AuthShell artId={authArt.onboarding}>
-      <OnboardingForm defaultName={ctx.user.name} next={next} />
+      <OnboardingForm defaultName={ctx.user.name} next={next} needsPassword={needsPassword} />
     </AuthShell>
   );
 }

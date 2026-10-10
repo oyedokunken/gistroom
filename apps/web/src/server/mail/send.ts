@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import { templates, type TemplateId } from "./templates";
+import { templates, type Template, type TemplateId } from "./templates";
 import { deliver, mailConfigFromEnv, type MailConfig } from "./transport";
 
 export type PropsFor<T extends TemplateId> = z.infer<(typeof templates)[T]["schema"]>;
@@ -14,7 +14,7 @@ export async function sendTemplate<T extends TemplateId>(
   props: PropsFor<T>,
   options: { appUrl?: string; config?: MailConfig } = {},
 ): Promise<void> {
-  const template = templates[id];
+  const template = templates[id] as unknown as Template<z.ZodTypeAny>;
   const parsed = template.schema.parse(props);
   const appUrl = options.appUrl ?? process.env.APP_URL ?? "http://localhost:3000";
   const rendered = template.render(parsed, { appUrl });

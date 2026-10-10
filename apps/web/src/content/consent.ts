@@ -1,0 +1,17 @@
+export const consent = {
+  title: "Cookies on Gistroom",
+  body: "We use cookies that keep you signed in and remember your choices. We do not load analytics unless you say yes.",
+  essential: "Essential",
+  essentialHelp: "Needed to sign in and stay secure. Always on.",
+  functional: "Functional",
+  functionalHelp: "Remember your theme, drafts and recent emoji.",
+  analytics: "Analytics",
+  analyticsHelp: "Help us see what to improve. Off until you choose.",
+  acceptAll: "Accept all",
+  essentialOnly: "Essential only",
+  save: "Save my choices",
+  customise: "Choose",
+  settings: "Cookie settings",
+  learnMore: "Read the cookie page",
+  saveFailed: "We could not save that. Try again.",
+} as const;

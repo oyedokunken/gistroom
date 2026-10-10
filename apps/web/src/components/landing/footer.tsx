@@ -6,7 +6,9 @@ import { motion, useInView, useReducedMotion } from "motion/react";
 import { ExternalLink } from "lucide-react";
 import { ScrollWave } from "@/components/ui/scroll-wave";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { consent } from "@/content/consent";
 import { footer, social } from "@/content/landing";
+import { OPEN_CONSENT_EVENT } from "@/components/system/consent-banner";
 
 const BARS = [0.35, 0.7, 0.5, 0.95, 0.6, 0.85, 0.45, 0.75, 0.55, 0.9, 0.4, 0.7];
 
@@ -102,7 +104,16 @@ export function Footer() {
         <p className="mt-2 text-center text-sm text-text-muted">{footer.replayHint}</p>
 
         <div className="mt-6 grid grid-cols-1 items-center gap-y-3 text-sm text-text-muted md:flex md:justify-between">
-          <ThemeToggle className="order-first justify-self-center md:order-2" />
+          <div className="order-first flex flex-wrap items-center justify-center gap-3 md:order-2">
+            <ThemeToggle />
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new Event(OPEN_CONSENT_EVENT))}
+              className="inline-flex min-h-11 items-center text-sm font-semibold text-green-700 underline-offset-4 hover:underline"
+            >
+              {consent.settings}
+            </button>
+          </div>
           {/* One centered row with a dot on phones. From tablet up the two sit at either end. */}
           <div className="flex items-center justify-center gap-2 md:contents">
             <p className="md:order-1">{footer.madeIn}</p>

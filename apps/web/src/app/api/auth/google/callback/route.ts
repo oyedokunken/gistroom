@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getEnv } from "@/server/env";
 import { AppError, userAgent } from "@/server/http";
+import { announceNewDevice } from "@/server/auth/auth-service";
 import { createSession, setSessionCookie } from "@/server/auth/session";
 import { signInWithGoogle } from "@/server/auth/google-service";
 import { OAUTH_COOKIE, exchangeCode, mockIdentity, openState } from "@/server/auth/google";
@@ -41,7 +42,9 @@ export async function GET(request: Request) {
       });
     }
     const { user } = await signInWithGoogle(identity);
-    await setSessionCookie(await createSession(user.id, await userAgent()));
+    const created = await createSession(user.id, await userAgent());
+    await setSessionCookie(created.token);
+    if (created.isNewDevice) void announceNewDevice(user, created.sessionId, created.device);
     const target = user.onboardedAt
       ? state.next
       : `/onboarding?next=${encodeURIComponent(state.next)}`;

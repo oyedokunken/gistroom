@@ -35,9 +35,9 @@ describe("templates", () => {
       const out = t.render(t.sample as never, ctx);
 
       it("has a plain subject, html and a text alternative", () => {
-        expect(out.subject).toBe("Your Gistroom code");
+        expect(out.subject.length).toBeGreaterThan(5);
         expect(out.html).toContain("<!doctype html>");
-        expect(out.text).toContain("042917");
+        expect(out.text).toContain(t.check(t.sample as never));
       });
       it("passes the copy linter in html and text", () => {
         expect(checkText(out.html)).toEqual([]);
@@ -56,7 +56,9 @@ describe("templates", () => {
         expect(out.html).not.toMatch(/style="[^"]*"[A-Za-z]/);
       });
       it("rejects bad props", () => {
-        expect(t.schema.safeParse({ code: "12" }).success).toBe(false);
+        expect(
+          t.schema.safeParse({ nonsense: 1, code: "12", name: "", email: "x", path: "x" }).success,
+        ).toBe(false);
       });
     });
   }
@@ -82,7 +84,7 @@ describe("deliver", () => {
     const dir = await mkdtemp(path.join(os.tmpdir(), "gr-mail-"));
     try {
       await sendTemplate(
-        "login-otp",
+        "verify-otp",
         "t@example.com",
         { code: "123456" },
         { config: { ...base, captureDir: dir } },

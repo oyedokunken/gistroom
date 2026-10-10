@@ -24,7 +24,7 @@ export default async function LoginPage({
   if (ctx) redirect(`/onboarding?next=${encodeURIComponent(next)}`);
   return (
     <AuthShell artId={authArt.login}>
-      <LoginForm mode="login" next={next} error={params.error} />
+      <LoginForm next={next} error={params.error} />
     </AuthShell>
   );
 }

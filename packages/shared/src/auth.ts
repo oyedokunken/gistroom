@@ -2,6 +2,7 @@ import { z } from "zod";
 import { LIMITS } from "./limits";
 import { validation } from "./content/validation";
 import { RESERVED_USERNAMES } from "./reserved-usernames";
+import { loginPasswordSchema, newPasswordSchema } from "./password";
 
 export const emailSchema = z
   .string({ required_error: validation.emailRequired })
@@ -35,10 +36,31 @@ export type RequestOtpInput = z.infer<typeof requestOtpSchema>;
 export const verifyOtpSchema = z.object({ email: emailSchema, code: otpCodeSchema });
 export type VerifyOtpInput = z.infer<typeof verifyOtpSchema>;
 
-/** Onboarding checks (Section 6.4). The checkboxes are validated by Zod, not by HTML. */
+export const loginSchema = z.object({ email: emailSchema, password: loginPasswordSchema });
+export type LoginInput = z.infer<typeof loginSchema>;
+
+export const resetStartSchema = z.object({ email: emailSchema });
+export const resetCompleteSchema = z.object({
+  email: emailSchema,
+  code: otpCodeSchema,
+  password: newPasswordSchema,
+});
+export type ResetCompleteInput = z.infer<typeof resetCompleteSchema>;
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().max(128).optional(),
+  newPassword: newPasswordSchema,
+});
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+
+/**
+ * Onboarding checks (Section 6.4). The checkboxes are validated by Zod, not by HTML.
+ * The password is required for accounts that did not come from Google. The server enforces that.
+ */
 export const onboardingSchema = z.object({
   name: nameSchema,
   username: usernameSchema,
+  password: newPasswordSchema.optional(),
   ageConfirmed: z.literal(true, { errorMap: () => ({ message: validation.ageRequired }) }),
   termsAccepted: z.literal(true, { errorMap: () => ({ message: validation.termsRequired }) }),
 });

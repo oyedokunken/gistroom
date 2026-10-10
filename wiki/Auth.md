@@ -15,3 +15,7 @@ Passwordless by default (D1): email OTP and Google OAuth, database backed sessio
 - `apps/web/src/server/auth/otp.ts`: code generation, HMAC hashing bound to email and purpose, verify decisions (wrong, locked, expired, used), send cooldown and hourly cap.
 - `apps/web/src/server/auth/tokens.ts`: session tokens, cookie attributes, sliding expiry, realtime pass (HS256, 15 minutes), origin check.
 - `packages/shared/src/auth.ts`: email, code, username, name, onboarding and search schemas. Reserved usernames are in `reserved-usernames.ts`.
+
+## Update 2026-10-10: passwords
+
+Sign in is email and password (two steps) or Google. A one time code appears only at sign up, in forgot password and when deleting an account. Hashing: scrypt (N 16384, r 8, p 1) from Node, parameters stored in the hash so they can be raised later. Login is rate limited per email (8 per 15 minutes) and per address (30 per 15 minutes). An unknown email costs the same time as a wrong password. A sign in from a device the person has not used before creates a security notification and an email.

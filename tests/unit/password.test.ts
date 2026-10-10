@@ -1,0 +1,135 @@
+import { describe, expect, it } from "vitest";
+import {
+  PASSWORD_MAX,
+  PASSWORD_MIN,
+  loginSchema,
+  newPasswordSchema,
+  onboardingSchema,
+  passwordIssue,
+  passwordMessages,
+  resetCompleteSchema,
+} from "../../packages/shared/src";
+import {
+  dummyHash,
+  hashPassword,
+  needsRehash,
+  verifyPassword,
+} from "../../apps/web/src/server/auth/password";
+import {
+  isCompleteAccount,
+  isNewDevice,
+  passwordRequiredAtOnboarding,
+} from "../../apps/web/src/server/auth/rules";
+
+describe("password hashing", () => {
+  it("round trips, salts every hash and never stores the password", async () => {
+    const a = await hashPassword("correct horse battery");
+    const b = await hashPassword("correct horse battery");
+    expect(a).not.toBe(b);
+    expect(a).not.toContain("correct horse");
+    expect(a.startsWith("scrypt$")).toBe(true);
+    expect(await verifyPassword("correct horse battery", a)).toBe(true);
+    expect(await verifyPassword("correct horse batterY", a)).toBe(false);
+    expect(await verifyPassword("", a)).toBe(false);
+  });
+  it("treats composed and decomposed characters as the same password", async () => {
+    const h = await hashPassword("café-gist-2026");
+    expect(await verifyPassword("café-gist-2026", h)).toBe(true);
+  });
+  it("returns false for malformed stored values instead of throwing", async () => {
+    for (const bad of [
+      "",
+      "nonsense",
+      "scrypt$1$2$3",
+      "bcrypt$x$y$z$a$b",
+      "scrypt$0$8$1$AAAA$AAAA",
+    ]) {
+      expect(await verifyPassword("whatever", bad)).toBe(false);
+    }
+  });
+  it("flags hashes that use weaker settings for an upgrade", async () => {
+    expect(needsRehash(await hashPassword("some long password"))).toBe(false);
+    expect(needsRehash("scrypt$1024$8$1$AAAA$AAAA")).toBe(true);
+    expect(needsRehash("legacy$hash")).toBe(true);
+  });
+  it("has a dummy hash for unknown emails", async () => {
+    expect(await verifyPassword("anything", await dummyHash())).toBe(false);
+  });
+});
+
+describe("password rules", () => {
+  it("applies length, repetition and common password rules", () => {
+    expect(passwordIssue("a".repeat(PASSWORD_MIN - 1))).toBe("TOO_SHORT");
+    expect(passwordIssue("a".repeat(PASSWORD_MAX + 1))).toBe("TOO_LONG");
+    expect(passwordIssue("aaaaaaaaaa")).toBe("ONE_CHARACTER");
+    expect(passwordIssue("Password123")).toBe("COMMON");
+    expect(passwordIssue("a sensible passphrase here")).toBeNull();
+  });
+  it("refuses the email or the name as the password", () => {
+    expect(passwordIssue("kenny@example.com", { email: "kenny@example.com" })).toBe(
+      "SAME_AS_EMAIL",
+    );
+    expect(passwordIssue("kennyoye", { email: "kennyoye@example.com" })).toBe("SAME_AS_EMAIL");
+    expect(passwordIssue("Tunde Bakare", { name: "tunde bakare" })).toBe("SAME_AS_NAME");
+  });
+  it("gives the form the same messages", () => {
+    const r = newPasswordSchema.safeParse("short");
+    expect(r.success).toBe(false);
+    expect(r.success ? "" : r.error.issues[0]?.message).toBe(passwordMessages.TOO_SHORT);
+  });
+});
+
+describe("auth schemas", () => {
+  it("login only needs something to check, not a strong password", () => {
+    expect(loginSchema.safeParse({ email: "A@Example.com", password: "x" }).success).toBe(true);
+    expect(loginSchema.safeParse({ email: "a@example.com", password: "" }).success).toBe(false);
+  });
+  it("reset needs the code and a good new password", () => {
+    expect(
+      resetCompleteSchema.safeParse({
+        email: "a@example.com",
+        code: "123456",
+        password: "a long enough one",
+      }).success,
+    ).toBe(true);
+    expect(
+      resetCompleteSchema.safeParse({
+        email: "a@example.com",
+        code: "12",
+        password: "a long enough one",
+      }).success,
+    ).toBe(false);
+    expect(
+      resetCompleteSchema.safeParse({ email: "a@example.com", code: "123456", password: "short" })
+        .success,
+    ).toBe(false);
+  });
+  it("onboarding takes an optional password that must still be good", () => {
+    const base = { name: "Kenny", username: "kenny", ageConfirmed: true, termsAccepted: true };
+    expect(onboardingSchema.safeParse(base).success).toBe(true);
+    expect(onboardingSchema.safeParse({ ...base, password: "a long enough one" }).success).toBe(
+      true,
+    );
+    expect(onboardingSchema.safeParse({ ...base, password: "short" }).success).toBe(false);
+  });
+});
+
+describe("account rules", () => {
+  it("counts a password, a Google link or a profile as a finished account", () => {
+    const none = { passwordHash: null, onboardedAt: null, googleLinked: false };
+    expect(isCompleteAccount(none)).toBe(false);
+    expect(isCompleteAccount({ ...none, passwordHash: "x" })).toBe(true);
+    expect(isCompleteAccount({ ...none, onboardedAt: new Date() })).toBe(true);
+    expect(isCompleteAccount({ ...none, googleLinked: true })).toBe(true);
+  });
+  it("only calls a device new after a first sign in elsewhere", () => {
+    expect(isNewDevice([], "Chrome on Windows")).toBe(false);
+    expect(isNewDevice(["Chrome on Windows", null], "Chrome on Windows")).toBe(false);
+    expect(isNewDevice(["Chrome on Windows"], "Safari on iOS")).toBe(true);
+  });
+  it("asks Google people for no password at onboarding", () => {
+    expect(passwordRequiredAtOnboarding({ googleLinked: false, hasPassword: false })).toBe(true);
+    expect(passwordRequiredAtOnboarding({ googleLinked: true, hasPassword: false })).toBe(false);
+    expect(passwordRequiredAtOnboarding({ googleLinked: false, hasPassword: true })).toBe(false);
+  });
+});

@@ -1,3 +1,4 @@
+import type { Language } from "./limits";
 import type { PublicUser } from "./profile";
 
 export type MessageType = "TEXT" | "IMAGE" | "VIDEO" | "VOICE" | "FILE" | "ROOM_INVITE" | "SYSTEM";
@@ -92,4 +93,19 @@ export interface NotificationDto {
 export interface Page<T> {
   items: T[];
   nextCursor: string | null;
+}
+
+export interface PublicRoomCard {
+  slug: string;
+  title: string;
+  description: string | null;
+  topicSlug: string | null;
+  topicName: string | null;
+  language: Language;
+  status: "LIVE" | "SCHEDULED";
+  scheduledFor: string | null;
+  startedAt: string | null;
+  host: PublicUser;
+  /** People currently in the room. */
+  listeners: number;
 }

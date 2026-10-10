@@ -4,6 +4,7 @@ import { getDb, type Session, type User } from "@gistroom/db";
 import { errors } from "@gistroom/shared";
 import { deviceLabel } from "@/lib/device-label";
 import { getEnv } from "../env";
+import { isNewDevice } from "./rules";
 import { AppError, forbidden, unauthorized } from "../http";
 import { SESSION_COOKIE, hashToken, newSessionToken, sessionExpiry, shouldSlide } from "./tokens";
 
@@ -12,20 +13,44 @@ export interface SessionContext {
   user: User;
 }
 
-export async function createSession(userId: string, userAgent: string): Promise<string> {
+export interface CreatedSession {
+  token: string;
+  sessionId: string;
+  device: string;
+  /** True when the person has signed in before, but never from a device like this one. */
+  isNewDevice: boolean;
+}
+
+export async function createSession(userId: string, userAgent: string): Promise<CreatedSession> {
   const token = newSessionToken();
   const now = new Date();
-  await getDb().session.create({
+  const device = deviceLabel(userAgent);
+  const earlier = await getDb().session.findMany({
+    where: { userId },
+    select: { deviceLabel: true },
+    take: 50,
+    orderBy: { createdAt: "desc" },
+  });
+  const row = await getDb().session.create({
     data: {
       tokenHash: hashToken(token),
       userId,
       userAgent: userAgent.slice(0, 400),
-      deviceLabel: deviceLabel(userAgent),
+      deviceLabel: device,
       lastSeenAt: now,
       expiresAt: sessionExpiry(now),
     },
+    select: { id: true },
   });
-  return token;
+  return {
+    token,
+    sessionId: row.id,
+    device,
+    isNewDevice: isNewDevice(
+      earlier.map((e) => e.deviceLabel),
+      device,
+    ),
+  };
 }
 
 export async function setSessionCookie(token: string): Promise<void> {

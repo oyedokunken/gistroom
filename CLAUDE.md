@@ -90,7 +90,7 @@ Each rule has an ID. The verify pipeline enforces most of them. Cite the ID in c
 | Audio and video  | LiveKit Cloud (`livekit-client`, `@livekit/components-react`, `livekit-server-sdk`)                                                        |
 | Database         | PostgreSQL on Supabase, Prisma ORM                                                                                                         |
 | File storage     | Supabase Storage (private bucket for media, public bucket for avatars only)                                                                |
-| Auth             | Passwordless email OTP plus Google OAuth, DB-backed sessions                                                                               |
+| Auth             | Email and password (a one time code confirms the email at sign up and for resets) plus Google OAuth, DB-backed sessions                    |
 | Email            | Nodemailer (Gmail SMTP for now), sends only from the web app                                                                               |
 | PWA              | Serwist for the service worker (`@serwist/next`), Web App Manifest, Web Push (VAPID)                                                       |
 | Charts           | Recharts (admin only)                                                                                                                      |
@@ -101,7 +101,7 @@ Each rule has an ID. The verify pipeline enforces most of them. Cite the ID in c
 
 Use the latest stable versions at install time and let `package-lock.json` pin them. Do not add Python anywhere.
 
-Auth is passwordless by default (decision D1, Section 27). There are no passwords, no reset flows and no argon2.
+Auth is email and password plus Google (decision D1, Section 27). A one time code is used only to confirm the email at sign up, to reset a password and to confirm account deletion, never to sign in. Passwords are hashed with scrypt from Node, so there is no native dependency.
 
 ---
 
@@ -219,11 +219,13 @@ LiveKit API secrets live on web only. Realtime never talks to LiveKit.
 - It connects with `io(REALTIME_URL, { auth: { token } })`. Cookies are never used across the two domains.
 - Before expiry (or on an `auth_expired` error) the client fetches a fresh pass and reconnects. The server re-checks that the session is not revoked every 5 minutes and before sensitive events.
 
-### 6.4 Email OTP
+### 6.4 Sign up, sign in and codes
 
-- 6 digits, HMAC-hashed with a pepper, expires in 10 minutes, 60 second resend cooldown, 5 sends per hour per email, 5 verify attempts then a 15 minute lock.
-- Responses never reveal whether an email already has an account.
-- First verification creates the account, then onboarding collects: name, unique username (`^[a-z0-9_]{3,20}$`, reserved words blocked, live availability check with its own rate limit), optional avatar, confirmation that the person is 18 or older, consent to Terms and Privacy (validated by Zod, not HTML).
+- **Sign up:** email, then one 6 digit code, then onboarding where the person sets a password. **Sign in:** email, then password, in two steps. No code on any sign in. **Forgot password:** a code plus a new password, which signs every other device out. Google people can add a password later in Settings.
+- Wrong email and wrong password give the same answer in about the same time. Login attempts are rate limited per email and per address.
+- Codes: 6 digits, HMAC-hashed with a pepper, expires in 10 minutes, 60 second resend cooldown, 5 sends per hour per email, 5 verify attempts then a 15 minute lock.
+- Responses never reveal whether an email already has an account. Signing up with the email of a finished account sends an "you already have an account" email instead of a code.
+- Confirming the code creates an unfinished account and a session. Onboarding collects: name, password (not for Google sign ups), unique username (`^[a-z0-9_]{3,20}$`, reserved words blocked, live availability check with its own rate limit), optional avatar, confirmation that the person is 18 or older, consent to Terms and Privacy (validated by Zod, not HTML).
 
 ### 6.5 Google OAuth (from day one)
 
@@ -726,7 +728,7 @@ Sent only from the web app through Nodemailer. Realtime requests sends through t
 - Transport modes: `console` (default in dev), `capture` (tests, writes to a file, no network), `smtp` (needs `MAIL_ENABLE_REAL=true`). A mailer guard blocks any recipient outside `MAIL_ALLOWED_DOMAINS` in non-production environments. Tests never send real email.
 - Gmail SMTP caps daily volume. The `EmailOutbox` retries failed non-sensitive emails. OTP and security emails are never queued for later (an expired code is useless), they fail loudly and the UI says so.
 - Layout: single column table-based HTML, inline CSS, 600px, brand header with the PNG logo, big readable code block for OTP, preheader text, footer with support address and legal links, dark mode friendly, plain-text alternative for every template, system font fallback stack.
-- Templates (registry with ID, Zod props schema, defaults): `verify-otp`, `login-otp`, `welcome`, `new-device-sign-in`, `missed-call`, `friend-request` (throttled), `room-invite`, `room-starting-soon`, `data-export-ready`, `account-deleted`, `report-received`, `report-resolved`, `contact-received`, `contact-inbox`.
+- Templates (registry with ID, Zod props schema, defaults): `verify-otp`, `reset-otp`, `delete-account-otp`, `account-exists`, `welcome`, `new-device-sign-in`, `missed-call`, `friend-request` (throttled), `room-invite`, `room-starting-soon`, `data-export-ready`, `account-deleted`, `report-received`, `report-resolved`, `contact-received`, `contact-inbox`.
 - `npm run mail:preview` renders every template to `.mail-preview/` (git-ignored). A unit test renders every template with sample props and runs the copy linter over the output.
 
 ---
@@ -945,7 +947,7 @@ Defaults are chosen so work never blocks. The owner can change any of them; upda
 
 | ID  | Decision                                                                                                                                                                                                 | Status                                                          |
 | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| D1  | Passwordless: email OTP plus Google. No passwords.                                                                                                                                                       | Default, owner may switch to password plus OTP like Job Central |
+| D1  | Email and password plus Google. A code only at sign up, password reset and account deletion. Changed by the owner on 2026-10-10 from the passwordless default.                                           | Default, owner may switch to password plus OTP like Job Central |
 | D2  | One Supabase project, schemas `gistroom_dev` and `gistroom_test`, production gets its own project later                                                                                                  | Default                                                         |
 | D3  | Archived chats stay archived when new messages arrive                                                                                                                                                    | Default                                                         |
 | D4  | Delete for everyone allowed for 60 minutes                                                                                                                                                               | Default                                                         |

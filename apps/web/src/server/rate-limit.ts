@@ -12,6 +12,10 @@ export interface Policy {
 export const policies = {
   otpSendIp: { name: "otp-ip", limit: 20, windowSec: 3600 },
   otpVerifyIp: { name: "otp-verify-ip", limit: 60, windowSec: 3600 },
+  loginIp: { name: "login-ip", limit: 30, windowSec: 900 },
+  loginEmail: { name: "login-email", limit: 8, windowSec: 900 },
+  accountExists: { name: "account-exists", limit: 3, windowSec: 3600 },
+  passwordChange: { name: "password-change", limit: 10, windowSec: 3600 },
   usernameCheck: { name: "username-check", limit: 60, windowSec: 60 },
   peopleSearch: { name: "search", limit: 30, windowSec: 60 },
   friendRequestHour: { name: "fr-hour", limit: 10, windowSec: 3600 },

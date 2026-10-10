@@ -108,3 +108,8 @@ export function codeBlock(code: string): string {
     margin: "8px 0 20px",
   })}">${escapeHtml(code)}</div>`;
 }
+
+/** A bulletproof call to action button for email clients: a table cell with a link inside. */
+export function button(href: string, label: string): string {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 20px"><tr><td style="${css({ backgroundColor: colors.green600, borderRadius: "999px" })}"><a href="${escapeHtml(href)}" style="${css({ display: "inline-block", padding: "14px 28px", fontFamily: emailFontStack, fontSize: "16px", fontWeight: 700, color: colors.white, textDecoration: "none" })}">${escapeHtml(label)}</a></td></tr></table>`;
+}

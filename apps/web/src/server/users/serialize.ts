@@ -10,6 +10,7 @@ export function toMe(user: User): MeUser {
     email: user.email,
     role: user.role,
     onboarded: user.onboardedAt !== null,
+    hasPassword: user.passwordHash !== null,
     discoverable: user.discoverable,
     showPresence: user.showPresence,
     sendReadReceipts: user.sendReadReceipts,

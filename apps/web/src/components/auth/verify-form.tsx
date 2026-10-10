@@ -31,7 +31,7 @@ export function VerifyForm({ email, next }: { email: string; next: string }) {
     setBusy(true);
     setError(null);
     try {
-      const res = await apiFetch<{ needsOnboarding: boolean }>("/api/auth/otp/verify", {
+      const res = await apiFetch<{ needsOnboarding: boolean }>("/api/auth/signup/verify", {
         body: { email, code: value },
       });
       const target = res.needsOnboarding ? `/onboarding?next=${encodeURIComponent(next)}` : next;
@@ -52,7 +52,7 @@ export function VerifyForm({ email, next }: { email: string; next: string }) {
 
   async function resend() {
     try {
-      await apiFetch("/api/auth/otp/request", { body: { email } });
+      await apiFetch("/api/auth/signup/start", { body: { email } });
       setWait(RESEND_SECONDS);
       setError(null);
       setCode("");

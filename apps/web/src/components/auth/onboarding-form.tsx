@@ -9,12 +9,21 @@ import { useFeedback } from "@/components/feedback/feedback-provider";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field, Input } from "@/components/ui/field";
+import { PasswordInput } from "@/components/ui/password-input";
 import { auth } from "@/content/auth";
 import { ApiClientError, apiFetch } from "@/lib/api";
 
 type Availability = "idle" | "checking" | "free" | "taken";
 
-export function OnboardingForm({ defaultName, next }: { defaultName: string; next: string }) {
+export function OnboardingForm({
+  defaultName,
+  next,
+  needsPassword,
+}: {
+  defaultName: string;
+  next: string;
+  needsPassword: boolean;
+}) {
   const router = useRouter();
   const { showError } = useFeedback();
   const copy = auth.onboarding;
@@ -24,6 +33,7 @@ export function OnboardingForm({ defaultName, next }: { defaultName: string; nex
     defaultValues: {
       name: defaultName,
       username: "",
+      password: "",
       ageConfirmed: false as unknown as true,
       termsAccepted: false as unknown as true,
     },
@@ -58,11 +68,15 @@ export function OnboardingForm({ defaultName, next }: { defaultName: string; nex
 
   async function onSubmit(values: OnboardingInput) {
     try {
-      await apiFetch("/api/onboarding", { body: values });
+      await apiFetch("/api/onboarding", {
+        body: { ...values, password: values.password || undefined },
+      });
       router.replace(`${next}${next.includes("?") ? "&" : "?"}welcome=1`);
       router.refresh();
     } catch (e) {
-      if (e instanceof ApiClientError && e.fields.username) {
+      if (e instanceof ApiClientError && e.fields.password) {
+        form.setError("password", { message: e.fields.password });
+      } else if (e instanceof ApiClientError && e.fields.username) {
         form.setError("username", { message: e.fields.username });
         setAvailability("taken");
       } else if (e instanceof ApiClientError) {
@@ -116,6 +130,21 @@ export function OnboardingForm({ defaultName, next }: { defaultName: string; nex
             />
           )}
         </Field>
+        {needsPassword ? (
+          <Field
+            label={copy.passwordLabel}
+            help={copy.passwordHelp}
+            error={errors.password?.message}
+          >
+            {(props) => (
+              <PasswordInput
+                {...props}
+                autoComplete="new-password"
+                {...form.register("password")}
+              />
+            )}
+          </Field>
+        ) : null}
         <Checkbox
           label={copy.ageLabel}
           error={errors.ageConfirmed?.message}

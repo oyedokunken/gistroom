@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { MotionConfig } from "motion/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ConsentBanner } from "@/components/system/consent-banner";
 import { FeedbackProvider } from "@/components/feedback/feedback-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -17,7 +18,10 @@ export function Providers({ children }: { children: ReactNode }) {
     <MotionConfig reducedMotion="user">
       <QueryClientProvider client={client}>
         <TooltipProvider delayDuration={200}>
-          <FeedbackProvider>{children}</FeedbackProvider>
+          <FeedbackProvider>
+            {children}
+            <ConsentBanner />
+          </FeedbackProvider>
         </TooltipProvider>
       </QueryClientProvider>
     </MotionConfig>

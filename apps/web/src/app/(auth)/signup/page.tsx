@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AuthShell } from "@/components/auth/auth-shell";
-import { LoginForm } from "@/components/auth/login-form";
+import { SignupForm } from "@/components/auth/login-form";
 import { auth, authArt } from "@/content/auth";
 import { getSessionContext } from "@/server/auth/session";
 import { safeNext } from "@/server/auth/google";
@@ -24,7 +24,7 @@ export default async function SignupPage({
   if (ctx) redirect(`/onboarding?next=${encodeURIComponent(next)}`);
   return (
     <AuthShell artId={authArt.signup}>
-      <LoginForm mode="signup" next={next} error={params.error} />
+      <SignupForm next={next} error={params.error} />
     </AuthShell>
   );
 }

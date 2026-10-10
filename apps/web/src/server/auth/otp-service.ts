@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { getDb, type User } from "@gistroom/db";
+import { getDb, type OtpPurpose, type User } from "@gistroom/db";
 import { LIMITS, errors } from "@gistroom/shared";
 import { getEnv } from "../env";
 import { AppError } from "../http";
@@ -16,25 +16,32 @@ import {
   otpExpiry,
 } from "./otp";
 
-const PURPOSE = "SIGN_IN" as const;
-
 export interface RequestOtpResult {
   resendAfterSec: number;
 }
 
+export type CodeTemplate = "verify-otp" | "reset-otp" | "delete-account-otp";
+
 /**
- * Create and email a code. The response never says whether the email has an account.
+ * Create and email a one time code for a purpose. Codes are only used to confirm a new email at sign up,
+ * to reset a password, and to confirm account deletion. They are never a sign in method.
  * A mail failure is loud (Section 19): the challenge is removed and the person is told plainly.
  */
-export async function requestOtp(email: string, ip: string): Promise<RequestOtpResult> {
+export async function sendCode(input: {
+  email: string;
+  ip: string;
+  purpose: OtpPurpose;
+  template: CodeTemplate;
+}): Promise<RequestOtpResult> {
+  const { email, purpose } = input;
   const db = getDb();
   const pepper = getEnv().SESSION_SECRET;
-  await enforce(policies.otpSendIp, ip);
+  await enforce(policies.otpSendIp, input.ip);
 
   const now = new Date();
   const emailHash = hashEmail(email, pepper);
   const recent = await db.otpChallenge.findMany({
-    where: { emailHash, purpose: PURPOSE, createdAt: { gte: new Date(now.getTime() - 3_600_000) } },
+    where: { emailHash, purpose, createdAt: { gte: new Date(now.getTime() - 3_600_000) } },
     orderBy: { createdAt: "desc" },
   });
 
@@ -66,20 +73,19 @@ export async function requestOtp(email: string, ip: string): Promise<RequestOtpR
   const challenge = await db.otpChallenge.create({
     data: {
       emailHash,
-      purpose: PURPOSE,
-      codeHash: hashOtp(code, email, pepper, PURPOSE),
+      purpose,
+      codeHash: hashOtp(code, email, pepper, purpose),
       expiresAt: otpExpiry(now),
       lastSentAt: now,
     },
   });
   await db.otpChallenge.updateMany({
-    where: { emailHash, purpose: PURPOSE, consumedAt: null, id: { not: challenge.id } },
+    where: { emailHash, purpose, consumedAt: null, id: { not: challenge.id } },
     data: { consumedAt: now },
   });
 
-  const existing = await db.user.findUnique({ where: { email }, select: { id: true } });
   try {
-    await sendTemplate(existing ? "login-otp" : "verify-otp", email, { code });
+    await sendTemplate(input.template, email, { code });
   } catch {
     await db.otpChallenge.delete({ where: { id: challenge.id } });
     throw new AppError(502, "MAIL_FAILED", errors.mailFailed);
@@ -87,21 +93,25 @@ export async function requestOtp(email: string, ip: string): Promise<RequestOtpR
   return { resendAfterSec: LIMITS.OTP_RESEND_COOLDOWN_SEC };
 }
 
-export interface VerifyResult {
-  user: User;
-  isNew: boolean;
-}
-
-/** Check a code. On success the challenge is consumed and the account is found or created. */
-export async function verifyOtp(email: string, code: string, ip: string): Promise<VerifyResult> {
+/**
+ * Check a code for a purpose and use it up. Throws a plain error for a wrong, expired, used or locked code.
+ * Resolves when the code is good and has been consumed, so it can only work once.
+ */
+export async function checkCode(input: {
+  email: string;
+  code: string;
+  ip: string;
+  purpose: OtpPurpose;
+}): Promise<void> {
+  const { email, code, purpose } = input;
   const db = getDb();
   const pepper = getEnv().SESSION_SECRET;
-  await enforce(policies.otpVerifyIp, ip);
+  await enforce(policies.otpVerifyIp, input.ip);
 
   const now = new Date();
   const emailHash = hashEmail(email, pepper);
   const challenge = await db.otpChallenge.findFirst({
-    where: { emailHash, purpose: PURPOSE },
+    where: { emailHash, purpose },
     orderBy: { createdAt: "desc" },
   });
   if (!challenge) {
@@ -117,7 +127,7 @@ export async function verifyOtp(email: string, code: string, ip: string): Promis
       lockedUntil: challenge.lockedUntil,
       lastSentAt: challenge.lastSentAt,
     },
-    hashOtp(code, email, pepper, PURPOSE),
+    hashOtp(code, email, pepper, purpose),
     now,
   );
 
@@ -162,20 +172,21 @@ export async function verifyOtp(email: string, code: string, ip: string): Promis
     data: { consumedAt: now },
   });
   if (consumed.count === 0) throw fail(errors.otpUsed);
-
-  return findOrCreateUser(email, now);
 }
 
-export async function findOrCreateUser(email: string, now: Date): Promise<VerifyResult> {
+export interface FoundUser {
+  user: User;
+  isNew: boolean;
+}
+
+/** An existing person by email, or a new unfinished account (no name yet, no password, not onboarded). */
+export async function findOrCreateUser(email: string, now: Date): Promise<FoundUser> {
   const db = getDb();
   const existing = await db.user.findUnique({ where: { email } });
   if (existing) {
-    if (existing.status === "SUSPENDED") {
+    if (existing.status === "SUSPENDED")
       throw new AppError(403, "FORBIDDEN", errors.accountSuspended);
-    }
-    if (existing.status === "DELETED") {
-      throw new AppError(403, "FORBIDDEN", errors.accountDeleted);
-    }
+    if (existing.status === "DELETED") throw new AppError(403, "FORBIDDEN", errors.accountDeleted);
     const user = existing.emailVerifiedAt
       ? existing
       : await db.user.update({ where: { id: existing.id }, data: { emailVerifiedAt: now } });

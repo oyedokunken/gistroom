@@ -32,6 +32,7 @@ export interface MeUser extends PublicUser {
   email: string;
   role: "USER" | "ADMIN";
   onboarded: boolean;
+  hasPassword: boolean;
   discoverable: boolean;
   showPresence: boolean;
   sendReadReceipts: boolean;

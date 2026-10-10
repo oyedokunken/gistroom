@@ -77,7 +77,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </>
         ) : null}
       </head>
-      <body>
+      <body suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
     </html>

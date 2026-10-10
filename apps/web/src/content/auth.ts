@@ -34,6 +34,10 @@ export const auth = {
   sendingCode: "Sending code",
   or: "or",
   google: "Continue with Google",
+  googleOff: {
+    title: "Google sign in is not available yet",
+    body: "Use your email and password for now. We will turn Google sign in on soon.",
+  },
   haveAccount: "Already have an account?",
   noAccount: "New here?",
   signInLink: "Sign in",

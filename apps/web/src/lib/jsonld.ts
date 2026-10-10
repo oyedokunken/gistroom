@@ -7,7 +7,6 @@ export function organizationJsonLd() {
     name: site.name,
     url: site.url,
     logo: `${site.url}/brand/icon-512.png`,
-    creator: { "@type": "Person", name: "oyedokunken", url: "https://www.oyedokun.dev/" },
   };
 }
 

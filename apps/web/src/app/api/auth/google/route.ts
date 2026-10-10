@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getEnv } from "@/server/env";
+import { googleOffResponse, isGoogleEnabled } from "@/server/auth/google-flag";
 import { clientIp } from "@/server/http";
 import { enforce, policies } from "@/server/rate-limit";
 import {
@@ -16,6 +17,7 @@ export const dynamic = "force-dynamic";
 
 /** Start of the Google flow: authorization code with PKCE, state and nonce (Section 6.5). */
 export async function GET(request: Request) {
+  if (!isGoogleEnabled()) return googleOffResponse();
   const env = getEnv();
   const url = new URL(request.url);
   const next = safeNext(url.searchParams.get("next"));

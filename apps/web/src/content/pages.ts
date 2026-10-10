@@ -135,7 +135,7 @@ export const features = {
 export const about = {
   title: "About",
   description:
-    "Gistroom is a place to talk about Nigeria out loud, built in Nigeria by @oyedokunken.",
+    "Gistroom is a place to talk about Nigeria out loud, built in Nigeria.",
   lead: "Nigerians have a lot to say. Gistroom gives it somewhere to go.",
   sections: [
     {
@@ -351,7 +351,7 @@ export const privacy = {
       id: "who",
       heading: "Who we are",
       body: [
-        "Gistroom is built and run by @oyedokunken. For privacy questions or to use your rights, write to support@gistroom.ng.",
+        "Gistroom is run from Nigeria. For privacy questions or to use your rights, write to support@gistroom.ng.",
       ],
     },
     {

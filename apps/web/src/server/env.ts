@@ -17,6 +17,7 @@ const schema = z
     REALTIME_PASS_SECRET: z.string().min(32),
     INTERNAL_SERVICE_TOKEN: z.string().min(32),
     CRON_SECRET: z.string().min(16),
+    GOOGLE_AUTH_ENABLED: bool,
     GOOGLE_MODE: z.enum(["real", "mock"]).default("mock"),
     GOOGLE_CLIENT_ID: z.string().optional(),
     GOOGLE_CLIENT_SECRET: z.string().optional(),

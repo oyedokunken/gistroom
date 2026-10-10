@@ -1,6 +1,6 @@
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { checkText, stripCoAuthor } from "./lib/copy-rules.mjs";
+import { checkBuilderHandle, checkText, stripCoAuthor } from "./lib/copy-rules.mjs";
 
 const root = process.cwd();
 const SKIP_DIRS = new Set([
@@ -75,7 +75,12 @@ if (args[0] === "--commit-msg") {
   for (const file of files) {
     const rel = path.relative(root, file);
     if (SKIP_FILES.has(rel) || !TEXT_EXT.has(path.extname(file))) continue;
-    report(file, readFileSync(file, "utf8"));
+    const text = readFileSync(file, "utf8");
+    report(file, text);
+    for (const p of checkBuilderHandle(rel, text)) {
+      failures += 1;
+      console.error(`${rel}:${p.line}:${p.column} ${p.message}`);
+    }
   }
 }
 

@@ -64,3 +64,31 @@ export function stripCoAuthor(text) {
     .filter((l) => !/^co-authored-by:/i.test(l.trim()))
     .join("\n");
 }
+
+/**
+ * Sell the platform, not the builder. The builder's name and handle may appear in public copy only through these
+ * files: the footer credit constant and the maker section of the About page. Everything else in content,
+ * pages, components and email templates must stay clear of it.
+ */
+export const BUILDER_ALLOWED_FILES = ["content/site.ts", "content/maker.ts"];
+const BUILDER_SCOPE = /^apps\/web\/src\/(content|components|app|lib|server\/mail)\//;
+const BUILDER_NAME = /oyedokun|\bkenny\b/i;
+
+export function checkBuilderHandle(relativePath, text) {
+  const rel = relativePath.split(path_sep).join("/");
+  if (!BUILDER_SCOPE.test(rel)) return [];
+  if (BUILDER_ALLOWED_FILES.some((f) => rel.endsWith(f))) return [];
+  const problems = [];
+  text.split(/\r?\n/).forEach((line, i) => {
+    const m = BUILDER_NAME.exec(line);
+    if (m) {
+      problems.push({
+        line: i + 1,
+        column: m.index + 1,
+        message: "builder name or handle outside the footer credit and the maker section",
+      });
+    }
+  });
+  return problems;
+}
+const path_sep = "\\";

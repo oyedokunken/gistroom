@@ -1,3 +1,5 @@
+import { maker } from "./maker";
+
 /**
  * Copy for the designed public pages (R10). Every number here is a real product setting, not a claim about
  * users. Sample names in the device mocks are labeled as sample on the page.
@@ -152,7 +154,7 @@ export const featuresPage = {
 export const aboutPage = {
   hero: {
     title: "Nigerians have a lot to say. Gistroom gives it somewhere to go.",
-    lead: "Gistroom is a place to talk about Nigeria out loud, built in Nigeria by @oyedokunken.",
+    lead: "Gistroom is a place to talk about Nigeria out loud, built in Nigeria.",
   },
   story: {
     title: "Why it exists",
@@ -182,12 +184,7 @@ export const aboutPage = {
       },
     ],
   },
-  maker: {
-    title: "Who makes it",
-    body: "Gistroom is built by @oyedokunken, one developer who wanted this to exist. You can see the rest of the work at oyedokun.dev.",
-    link: { label: "Visit oyedokun.dev", href: "https://www.oyedokun.dev/" },
-    photosAlt: "Portraits of Oyedokun Ken, who builds Gistroom",
-  },
+  maker,
   closing: {
     title: "Come and gist.",
     body: "Start a room, call a friend, or drop into a conversation already going on.",

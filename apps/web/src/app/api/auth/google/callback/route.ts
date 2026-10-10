@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getEnv } from "@/server/env";
+import { googleOffResponse, isGoogleEnabled } from "@/server/auth/google-flag";
 import { AppError, userAgent } from "@/server/http";
 import { announceNewDevice } from "@/server/auth/auth-service";
 import { createSession, setSessionCookie } from "@/server/auth/session";
@@ -14,6 +15,7 @@ function fail(reason: string) {
 }
 
 export async function GET(request: Request) {
+  if (!isGoogleEnabled()) return googleOffResponse();
   const env = getEnv();
   const url = new URL(request.url);
   const jar = await cookies();

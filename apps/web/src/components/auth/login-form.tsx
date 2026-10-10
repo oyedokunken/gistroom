@@ -19,6 +19,7 @@ import { Field, Input } from "@/components/ui/field";
 import { PasswordInput } from "@/components/ui/password-input";
 import { auth } from "@/content/auth";
 import { ApiClientError, apiFetch } from "@/lib/api";
+import { googleAuthEnabled } from "@/lib/google-flag";
 
 export interface AuthFormProps {
   next: string;
@@ -48,6 +49,21 @@ function Divider() {
 }
 
 function GoogleButton({ next }: { next: string }) {
+  const { showInfo } = useFeedback();
+  const className = buttonStyles("secondary", "min-h-12 gap-3 border border-border bg-surface");
+  // Built and switched off: the button stays, and says so plainly instead of starting anything.
+  if (!googleAuthEnabled) {
+    return (
+      <button
+        type="button"
+        onClick={() => showInfo(auth.googleOff.body, auth.googleOff.title)}
+        className={className}
+      >
+        <GoogleMark />
+        {auth.google}
+      </button>
+    );
+  }
   return (
     <a
       href={`/api/auth/google?next=${encodeURIComponent(next)}`}

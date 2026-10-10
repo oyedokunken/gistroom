@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { LogoMark } from "@/components/brand/logo-mark";
 import { buttonStyles } from "@/components/ui/button";
+import { ScrollGauge, ScrollWave } from "@/components/ui/scroll-wave";
 import { Sheet } from "@/components/ui/sheet";
 import { nav } from "@/content/landing";
 import { cn } from "@/lib/cn";
@@ -356,6 +357,7 @@ function MobileDock() {
                   className="relative -mt-6 flex size-14 items-center justify-center rounded-full bg-green-600 text-white shadow-lift"
                 >
                   <MessageCircle aria-hidden className="size-6" />
+                  <ScrollGauge />
                 </Link>
               </motion.div>
             </li>
@@ -401,6 +403,7 @@ export function VoiceDock() {
     <>
       <DesktopDock />
       <MobileDock />
+      <ScrollWave />
     </>
   );
 }

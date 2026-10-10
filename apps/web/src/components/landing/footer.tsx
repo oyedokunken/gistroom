@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRef } from "react";
 import { motion, useInView, useReducedMotion } from "motion/react";
 import { ExternalLink } from "lucide-react";
-import { ScrollWave } from "@/components/ui/scroll-wave";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { consent } from "@/content/consent";
 import { footer, social } from "@/content/landing";
@@ -134,7 +133,6 @@ export function Footer() {
           </div>
         </div>
       </div>
-      <ScrollWave />
     </footer>
   );
 }

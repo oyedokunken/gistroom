@@ -542,7 +542,7 @@ Rules:
 
 Core components (build once, reuse): Button (variants, loading, icon), IconButton, Input, Textarea, Field (label, help, error), OtpInput, Select, Combobox, Modal, Sheet (bottom sheet on mobile), Tooltip, Popover, DropdownMenu, Tabs and SegmentedTabs, Avatar (presence dot, speaking ring), AvatarStack, Badge, Skeleton, EmptyState (takes a PNG id, title, body, action), Pagination, ChatBubble, MessageList (virtualized), Composer, VoiceNotePlayer, MediaGrid and Lightbox, ParticipantTile, RoomStage, CallControls, DevicePickerModal, PermissionPrimerModal, InstallCard, NotificationItem, NotificationBell, ConnectionBanner, ScrollWave, FeedbackProvider.
 
-Scroll to top (D27): there is no floating back to top button. The page is a voice note. A waveform scrubber (`ScrollWave`) shows how far you have played and you drag, tap or use the keys to seek (vertical on the right edge from tablet up, a strip above the dock on phones, fading when idle). The footer wordmark is the replay control and scrolls to the top.
+Scroll to top (D27): there is no floating back to top button. The page is a voice note. A waveform scrubber (`ScrollWave`) shows how far you have played and you drag, tap or use the keys to seek (a horizontal waveform fixed at the bottom centre of the page on desktop, and on phones a speedometer style gauge with a needle around the centre chat button of the dock). The footer wordmark is the replay control and scrolls to the top.
 
 Cookie consent: a small banner that stores consent via `/api/consent` with categories (essential, functional, analytics). Do not load analytics before consent.
 

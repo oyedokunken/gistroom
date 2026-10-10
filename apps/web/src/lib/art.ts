@@ -1,3 +1,5 @@
+import { artMap } from "./art.generated";
+
 export interface Art {
   src: string;
   alt: string;
@@ -5,9 +7,7 @@ export interface Art {
   height: number;
 }
 
-/** Approved illustrations by manifest id. Filled in as PNG art is approved (Section 17). */
-const art: Record<string, Art> = {};
-
+/** Illustration by manifest id. Placeholders and approved art share the same lookup (Section 17). */
 export function getArt(id: string): Art | undefined {
-  return art[id];
+  return artMap[id];
 }

@@ -187,6 +187,7 @@ model User {
   sendReadReceipts Boolean         @default(true)
   roomInvitesFrom  RoomInvitesFrom @default(FRIENDS)
   dataSaver        Boolean         @default(true)
+  onboardedAt      DateTime?
   ageConfirmedAt   DateTime?
   termsAcceptedAt  DateTime?
   deletedAt        DateTime?

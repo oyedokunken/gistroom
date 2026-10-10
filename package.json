@@ -33,6 +33,7 @@
     "brand": "node scripts/brand.mjs",
     "mail:preview": "tsx --tsconfig apps/web/tsconfig.json scripts/mail-preview.ts",
     "graphics:placeholders": "node scripts/graphics/placeholders.mjs",
+    "db:diff": "node scripts/db-diff.mjs",
     "db:migrate": "node scripts/assert-safe-db.mjs prisma migrate dev",
     "db:seed": "node scripts/assert-safe-db.mjs prisma db seed",
     "db:reset": "node scripts/assert-safe-db.mjs prisma migrate reset --force",

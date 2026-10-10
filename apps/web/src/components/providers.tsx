@@ -1,16 +1,25 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { MotionConfig } from "motion/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { FeedbackProvider } from "@/components/feedback/feedback-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 export function Providers({ children }: { children: ReactNode }) {
+  const [client] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: { queries: { staleTime: 15_000, retry: 1, refetchOnWindowFocus: true } },
+      }),
+  );
   return (
     <MotionConfig reducedMotion="user">
-      <TooltipProvider delayDuration={200}>
-        <FeedbackProvider>{children}</FeedbackProvider>
-      </TooltipProvider>
+      <QueryClientProvider client={client}>
+        <TooltipProvider delayDuration={200}>
+          <FeedbackProvider>{children}</FeedbackProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
     </MotionConfig>
   );
 }

@@ -6,6 +6,8 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ### Changed
 
+- Phase 1 identity (built without a database, integration tests skip until Supabase exists): OTP request and verify routes, sessions and devices, Google sign in with a mock mode, onboarding with live username check, people search (name and username trigram), realtime pass, DB backed rate limiter, login, signup, verify and onboarding pages, the signed in app shell (rail and tab bar) and settings (profile, privacy, devices, appearance, data saver).
+
 - Back to top is now ScrollWave: the page is a voice note with a waveform scrubber (drag, tap or keys) and the footer wordmark replays from the top (D27).
 - Footer on phones: Made in Nigeria and the builder link share one row, separated by a dot.
 

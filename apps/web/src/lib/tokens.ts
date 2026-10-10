@@ -16,6 +16,14 @@ export const colors = {
   darkSurface2: "#171B18",
 } as const;
 
+/** Google brand colors for the sign in mark (R3 exception). */
+export const googleBrand = {
+  blue: "#4285F4",
+  green: "#34A853",
+  yellow: "#FBBC05",
+  red: "#EA4335",
+} as const;
+
 export const radii = { input: 10, button: 9999, bubble: 18, card: 24, hero: 32 } as const;
 
 export const fontStack =

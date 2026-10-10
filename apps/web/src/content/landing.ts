@@ -77,9 +77,7 @@ export const footer = {
       ],
     },
   ],
-  madeIn: "Made in Nigeria",
-  builtBy: "Built by",
-  builder: { label: "@oyedokunken", href: "https://www.oyedokun.dev/" },
+  copyright: (year: number) => `Copyright ${year} - Gistroom`,
   theme: {
     label: "Theme",
     light: "Light",
@@ -89,8 +87,6 @@ export const footer = {
   followTitle: "Follow",
   scrollTop: "Back to top",
   pagePosition: "Page position",
-  replayHint: "Tap gistroom to play again from the top.",
-  dot: "•",
 } as const;
 
 export const social = [

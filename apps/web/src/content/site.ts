@@ -30,3 +30,6 @@ export const serverError = {
   home: "Go home",
   reference: (digest: string) => `Reference ${digest}`,
 } as const;
+
+/** The only place the builder is named on the public site: one line in the footer. */
+export const builderCredit = { text: "Built by Oyedokun Ken", href: "https://www.oyedokun.dev/" } as const;

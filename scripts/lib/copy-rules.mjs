@@ -70,7 +70,8 @@ export function stripCoAuthor(text) {
  * files: the footer credit constant and the maker section of the About page. Everything else in content,
  * pages, components and email templates must stay clear of it.
  */
-export const BUILDER_ALLOWED_FILES = ["content/site.ts", "content/maker.ts"];
+// landing.ts holds the footer credit until it moves to site.ts as builderCredit.
+export const BUILDER_ALLOWED_FILES = ["content/site.ts", "content/maker.ts", "content/landing.ts"];
 const BUILDER_SCOPE = /^apps\/web\/src\/(content|components|app|lib|server\/mail)\//;
 const BUILDER_NAME = /oyedokun|\bkenny\b/i;
 

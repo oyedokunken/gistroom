@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 // @ts-expect-error plain mjs module without types
-import { checkText, stripCoAuthor } from "../../scripts/lib/copy-rules.mjs";
+import { checkBuilderHandle, checkText, stripCoAuthor } from "../../scripts/lib/copy-rules.mjs";
 
 const cp = (n: number) => String.fromCodePoint(n);
 
@@ -29,5 +29,22 @@ describe("copy checker", () => {
   });
   it("strips co-author trailers", () => {
     expect(stripCoAuthor("Add thing\n\nCo-Authored-By: Someone <a@b.c>")).toBe("Add thing\n");
+  });
+});
+
+describe("builder handle rule", () => {
+  const rule = (rel: string, text: string) => checkBuilderHandle(rel, text);
+  it("flags the handle in page copy and email templates", () => {
+    expect(rule("apps/web/src/content/pages.ts", "built by @oyedokunken").length).toBe(1);
+    expect(rule("apps/web/src/server/mail/templates.ts", "from Kenny").length).toBe(1);
+    expect(rule("apps/web/src/components/public/x.tsx", "oyedokun.dev").length).toBe(1);
+  });
+  it("allows the footer credit and the maker section files", () => {
+    expect(rule("apps/web/src/content/site.ts", "Built by Oyedokun Ken")).toEqual([]);
+    expect(rule("apps/web/src/content/maker.ts", "@oyedokunken")).toEqual([]);
+  });
+  it("ignores files outside public copy", () => {
+    expect(rule("README.md", "Kenny")).toEqual([]);
+    expect(rule("packages/db/prisma/seed.ts", "oyedokunken")).toEqual([]);
   });
 });

@@ -188,6 +188,7 @@ model User {
   roomInvitesFrom  RoomInvitesFrom @default(FRIENDS)
   dataSaver        Boolean         @default(true)
   onboardedAt      DateTime?
+  lastSeenAt       DateTime?
   ageConfirmedAt   DateTime?
   termsAcceptedAt  DateTime?
   deletedAt        DateTime?

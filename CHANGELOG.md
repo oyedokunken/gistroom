@@ -6,6 +6,8 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ### Changed
 
+- Phase 2 backend: friends (requests, auto accept on mutual requests, 7 day rejection cooldown that never says rejected, unfriend, block), DMs (idempotent send, delete for me and for everyone, star, react, archive, clear, receipts), notifications (aggregated DMs, preferences, quiet hours, read, clear), Web Push subscriptions, and the realtime service (pass auth, per event authorization, presence with privacy, typing, receipts, rate limits, internal event fan out, push delivery with TTLs, scheduler). 42 socket tests run against an in memory store.
+
 - Phase 1 identity (built without a database, integration tests skip until Supabase exists): OTP request and verify routes, sessions and devices, Google sign in with a mock mode, onboarding with live username check, people search (name and username trigram), realtime pass, DB backed rate limiter, login, signup, verify and onboarding pages, the signed in app shell (rail and tab bar) and settings (profile, privacy, devices, appearance, data saver).
 
 - Back to top is now ScrollWave: the page is a voice note with a waveform scrubber (drag, tap or keys) and the footer wordmark replays from the top (D27).

@@ -19,7 +19,8 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
-    "pg": "^8.23.1"
+    "pg": "^8.23.1",
+    "@gistroom/shared": "*"
   },
   "devDependencies": {
     "@types/pg": "^8.23.1",

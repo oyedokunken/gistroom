@@ -54,3 +54,6 @@ export interface SessionInfo {
   createdAt: string;
   current: boolean;
 }
+
+export const userIdSchema = z.object({ userId: z.string().trim().min(1).max(64) });
+export type UserIdInput = z.infer<typeof userIdSchema>;

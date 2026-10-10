@@ -1,0 +1,30 @@
+/** Copy for notifications and pushes. The realtime service sends these strings, so they live in shared (R10). */
+export const pushCopy = {
+  friendRequestTitle: "New friend request",
+  friendRequestBody: (name: string, username: string) =>
+    `${name} (@${username}) wants to be your friend.`,
+  friendAcceptedTitle: "Friend request accepted",
+  friendAcceptedBody: (name: string) => `${name} accepted your request. Say hello.`,
+  dmTitle: (name: string) => name,
+  dmMany: (count: number) => `${count} new messages`,
+  missedCallTitle: "Missed call",
+  missedCallBody: (name: string) => `Missed call from ${name}.`,
+  callIncomingTitle: (name: string) => `${name} is calling`,
+  callAudio: "Audio call",
+  callVideo: "Video call",
+  roomInviteTitle: "Room invite",
+  roomInviteBody: (name: string, title: string) => `${name} invited you to ${title}.`,
+  roomStartingTitle: "Room starting soon",
+  roomStartingBody: (title: string) => `${title} starts in a few minutes.`,
+  roleChangedTitle: "Your role changed",
+  roleChangedBody: (role: string, title: string) => `You are now ${role} in ${title}.`,
+  securityTitle: "New sign in",
+  securityBody: (device: string) =>
+    `Your account was signed in on ${device}. If it was not you, sign out that device in Settings.`,
+  reportTitle: "Report update",
+  reportBody: "We looked at your report. Open Gistroom for the outcome.",
+  systemTitle: "Gistroom",
+  systemBody: "You have a new notice.",
+  genericTitle: "Gistroom",
+  genericBody: "You have a new notification.",
+} as const;

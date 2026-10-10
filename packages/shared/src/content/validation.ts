@@ -10,5 +10,7 @@ export const validation = {
   usernameReserved: "That username is not available. Try another one.",
   ageRequired: "Confirm that you are 18 or older to continue.",
   termsRequired: "Accept the Terms and the Privacy Policy to continue.",
+  messageRequired: "Type a message first.",
+  messageTooLong: (max: number) => `Messages can be up to ${max} characters.`,
   searchTooShort: (min: number) => `Type at least ${min} characters to search.`,
 } as const;

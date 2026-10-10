@@ -2,6 +2,9 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "./generated/client";
 
 export * from "./generated/client";
+export * from "./dto";
+export * from "./receipts";
+export * from "./unread";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 

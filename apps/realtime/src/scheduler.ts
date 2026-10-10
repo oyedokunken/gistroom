@@ -36,7 +36,7 @@ export function createScheduler(deps: SchedulerDeps) {
           const payload = (job.payload ?? {}) as { notificationId?: string };
           if (job.kind === "notify" && payload.notificationId) {
             await delivery.deliverNotification(payload.notificationId);
-          } else if (job.kind === "call-timeout") {
+          } else if (job.kind === "call-timeout" || job.kind === "room-empty") {
             await deps.expireCalls?.();
           } else {
             log.warn({ kind: job.kind }, "no handler for scheduled job");

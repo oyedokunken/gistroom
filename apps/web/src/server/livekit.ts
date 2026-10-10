@@ -20,6 +20,8 @@ export interface TokenInput {
   ttlSec: number;
   now?: Date;
   canPublish?: boolean;
+  /** Server to server grant for moderation calls. Never given to a browser. */
+  admin?: boolean;
 }
 
 export function signLiveKitToken(input: TokenInput): string {
@@ -31,13 +33,15 @@ export function signLiveKitToken(input: TokenInput): string {
     name: input.name,
     nbf: now - 5,
     exp: now + input.ttlSec,
-    video: {
-      room: input.room,
-      roomJoin: true,
-      canPublish: input.canPublish ?? true,
-      canSubscribe: true,
-      canPublishData: true,
-    },
+    video: input.admin
+      ? { room: input.room, roomAdmin: true }
+      : {
+          room: input.room,
+          roomJoin: true,
+          canPublish: input.canPublish ?? true,
+          canSubscribe: true,
+          canPublishData: true,
+        },
   };
   const body = `${b64(header)}.${b64(payload)}`;
   const sig = createHmac("sha256", input.apiSecret).update(body).digest();
@@ -71,4 +75,71 @@ export function mintJoin(input: {
       ttlSec: input.ttlSec ?? 2 * 3600,
     }),
   };
+}
+
+const httpUrl = (url: string) =>
+  url.replace(/^wss:/, "https:").replace(/^ws:/, "http:").replace(/\/$/, "");
+
+/**
+ * LiveKit room service calls (mute, remove, close). They use a short admin token and never reach the browser.
+ * A failure is not fatal: Postgres already holds the decision, and the person is blocked from rejoining.
+ */
+async function roomService<T>(room: string, method: string, body: object): Promise<T | null> {
+  const env = getEnv();
+  if (!env.LIVEKIT_URL || !env.LIVEKIT_API_KEY || !env.LIVEKIT_API_SECRET) return null;
+  const token = signLiveKitToken({
+    apiKey: env.LIVEKIT_API_KEY,
+    apiSecret: env.LIVEKIT_API_SECRET,
+    identity: "gistroom-server",
+    name: "Gistroom",
+    room,
+    ttlSec: 60,
+    admin: true,
+  });
+  try {
+    const res = await fetch(`${httpUrl(env.LIVEKIT_URL)}/twirp/livekit.RoomService/${method}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(5000),
+    });
+    return res.ok ? ((await res.json().catch(() => ({}))) as T) : null;
+  } catch {
+    return null;
+  }
+}
+
+export const removeFromLiveKit = (room: string, identity: string) =>
+  roomService(room, "RemoveParticipant", { room, identity });
+
+export const closeLiveKitRoom = (room: string) => roomService(room, "DeleteRoom", { room });
+
+interface Participant {
+  identity: string;
+  tracks?: { sid: string; type?: string | number; muted?: boolean }[];
+}
+
+/** Mute one person's microphone, or everyone's except the people listed. */
+export async function muteInLiveKit(
+  room: string,
+  only: string | null,
+  except: readonly string[] = [],
+): Promise<void> {
+  const list = await roomService<{ participants?: Participant[] }>(room, "ListParticipants", {
+    room,
+  });
+  for (const p of list?.participants ?? []) {
+    if (only ? p.identity !== only : except.includes(p.identity)) continue;
+    for (const t of p.tracks ?? []) {
+      const audio = t.type === "AUDIO" || t.type === 0;
+      if (audio && !t.muted) {
+        await roomService(room, "MutePublishedTrack", {
+          room,
+          identity: p.identity,
+          track_sid: t.sid,
+          muted: true,
+        });
+      }
+    }
+  }
 }

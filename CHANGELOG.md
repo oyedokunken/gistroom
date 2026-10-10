@@ -6,6 +6,7 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ### Added
 
+- Rooms: start or schedule a room, public and private, join with the 32 person cap, lock, mute and mute all, remove, ban, promote and demote, transfer host, host leaves handoff, 120 second rejoin grace, empty rooms end after 60 seconds, invite friends, invite links (1 hour, 24 hours, 7 days, use limits, revoke), forward to chats, room chat kept 24 hours, and a moderator log for the host. Needs LiveKit keys.
 - Calls: 1:1 audio and video with a full screen call, an incoming call ring on every screen, answering, declining, cancelling, ring timeout, glare merging, busy handling, switching between audio and video in the call, a weak network banner, wake lock, and a call log with filters, search and pagination. Needs LiveKit keys.
 - Friendship anniversaries: on the day two friends reach a year, a card appears in their chat with confetti (not shown when the visitor prefers reduced motion).
 - Attachments and voice notes: private Supabase uploads with magic byte checks, photos compressed on the phone with location removed, previews, a lightbox, video player, voice notes with a recorded waveform and 1x, 1.5x and 2x playback, and file cards for PDF, Word, Excel, PowerPoint, text and CSV. Profile photo upload in Settings. Run `npm run storage:setup` once to create the buckets.

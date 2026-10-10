@@ -12,6 +12,7 @@ export * from "./content/errors";
 export * from "./chat";
 export * from "./media";
 export * from "./calls";
+export * from "./rooms";
 export * from "./content/push";
 export * from "./chat-preview";
 export * from "./contact";

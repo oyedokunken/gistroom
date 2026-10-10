@@ -165,6 +165,39 @@ export function createPrismaStore(): Store {
       return { notifications, chats };
     },
 
+    async roomForDelivery({ roomId, userId, messageId }) {
+      const room = await db.room.findUnique({
+        where: { id: roomId },
+        include: { host: true, members: true },
+      });
+      if (!room) return null;
+      const member = userId ? room.members.find((m) => m.userId === userId) : undefined;
+      let chat = null;
+      if (messageId) {
+        const row = await db.roomMessage.findUnique({ where: { id: messageId } });
+        const sender = row ? await db.user.findUnique({ where: { id: row.senderId } }) : null;
+        if (row && sender) {
+          chat = {
+            id: row.id,
+            clientId: row.clientId,
+            sender: toPublicUser(sender),
+            body: row.body,
+            createdAt: row.createdAt.toISOString(),
+          };
+        }
+      }
+      return {
+        slug: room.slug,
+        title: room.title,
+        locked: room.locked,
+        hostName: room.host.name,
+        joinedIds: room.members.filter((m) => m.state === "JOINED").map((m) => m.userId),
+        allIds: room.members.map((m) => m.userId),
+        member: member ? { userId: member.userId, role: member.role, state: member.state } : null,
+        chat,
+      };
+    },
+
     async callForDelivery(callId) {
       const call = await db.call.findUnique({
         where: { id: callId },

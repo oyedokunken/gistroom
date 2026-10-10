@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { io, type Socket } from "socket.io-client";
 import type { CallDto, ConversationDto, ServerEvents } from "@gistroom/shared";
 import { useCallStore } from "@/lib/calls/store";
+import { useRoomStore } from "@/lib/rooms/store";
 import { apiFetch } from "@/lib/api";
 import {
   advancePeerCursor,
@@ -192,6 +193,36 @@ export function RealtimeProvider({ userId, children }: { userId: string; childre
     on("call:accepted", callMoved);
     on("call:cancelled", callMoved);
     on("call:ended", callMoved);
+    on("room:invite", () => {
+      void queryClient.invalidateQueries({ queryKey: ["my-rooms"] });
+      void queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    });
+    on("room:started", ({ roomSlug }) => {
+      void queryClient.invalidateQueries({ queryKey: ["room", roomSlug] });
+      void queryClient.invalidateQueries({ queryKey: ["my-rooms"] });
+    });
+    on("room:ended", ({ roomSlug }) => {
+      useRoomStore.getState().markEnded(roomSlug);
+      void queryClient.invalidateQueries({ queryKey: ["room", roomSlug] });
+      void queryClient.invalidateQueries({ queryKey: ["my-rooms"] });
+      void queryClient.invalidateQueries({ queryKey: ["calls"] });
+    });
+    on("room:member_updated", ({ roomSlug, userId: who, state }) => {
+      if (who === userId && (state === "REMOVED" || state === "BANNED")) {
+        useRoomStore.getState().markKicked(roomSlug, state);
+      }
+      void queryClient.invalidateQueries({ queryKey: ["room", roomSlug] });
+      void queryClient.invalidateQueries({ queryKey: ["room-members", roomSlug] });
+    });
+    on("room:chat:new", ({ roomSlug }) => {
+      void queryClient.invalidateQueries({ queryKey: ["room-chat", roomSlug] });
+    });
+    on("room:chat:deleted", ({ roomSlug }) => {
+      void queryClient.invalidateQueries({ queryKey: ["room-chat", roomSlug] });
+    });
+    on("room:locked", ({ roomSlug }) => {
+      void queryClient.invalidateQueries({ queryKey: ["room", roomSlug] });
+    });
     on("session:revoked", () => {
       socket.disconnect();
       router.replace("/login?error=session_expired");

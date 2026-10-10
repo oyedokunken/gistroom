@@ -13,12 +13,19 @@ const when = new Intl.DateTimeFormat("en-NG", {
   minute: "2-digit",
 });
 
-export function RoomCard({ room }: { room: PublicRoomCard }) {
+export function RoomCard({
+  room,
+  hrefBase = "/rooms",
+}: {
+  room: PublicRoomCard;
+  /** Where the card opens. Signed in screens use /app/rooms. */
+  hrefBase?: string;
+}) {
   const live = room.status === "LIVE";
   return (
     <li>
       <Link
-        href={`/rooms/${room.slug}`}
+        href={`${hrefBase}/${room.slug}`}
         className="flex h-full flex-col gap-3 rounded-card border border-border bg-surface p-5 transition-shadow hover:shadow-lift"
       >
         <div className="flex flex-wrap items-center gap-2">

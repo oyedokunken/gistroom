@@ -1,6 +1,7 @@
 // Event names and payloads shared by web and realtime (Section 8). Zod only, safe for the browser.
 import { z } from "zod";
 import type { CallDto } from "./calls";
+import type { RoomChatDto, RoomRole, RoomMemberState } from "./rooms";
 import type { FriendRequestDto, MessageDto, NotificationDto } from "./dto";
 import type { PublicUser } from "./profile";
 
@@ -45,6 +46,18 @@ export interface ServerEvents {
   /** Declined, cancelled or not answered in time. Stops the ring on every device. */
   "call:cancelled": { call: CallDto };
   "call:ended": { call: CallDto };
+  "room:invite": { roomSlug: string; title: string; fromName: string };
+  "room:started": { roomSlug: string; title: string };
+  "room:ended": { roomSlug: string };
+  "room:member_updated": {
+    roomSlug: string;
+    userId: string;
+    role: RoomRole;
+    state: RoomMemberState;
+  };
+  "room:chat:new": { roomSlug: string; message: RoomChatDto };
+  "room:chat:deleted": { roomSlug: string; messageId: string };
+  "room:locked": { roomSlug: string; locked: boolean };
   "session:revoked": { sessionId: string };
   "auth:expired": Record<string, never>;
 }
@@ -71,6 +84,13 @@ export const internalEventSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("friend:accepted"), requestId: id }),
   z.object({ type: z.literal("session:revoked"), userId: id, sessionId: id }),
   z.object({ type: z.literal("badge"), userId: id }),
+  z.object({
+    type: z.literal("room"),
+    roomId: id,
+    change: z.enum(["started", "ended", "member", "chat", "chat-deleted", "locked", "invite"]),
+    userId: id.optional(),
+    messageId: id.optional(),
+  }),
   z.object({
     type: z.literal("call"),
     callId: id,

@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { api, json } from "@/server/http";
 import { getEnv } from "@/server/env";
 import { expireDueCalls } from "@/server/calls/service";
+import { endEmptyRooms, purgeExpiredRoomChat } from "@/server/rooms/service";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,11 @@ function allowed(request: Request): boolean {
  */
 async function run(request: Request): Promise<Response> {
   if (!allowed(request)) return json({ error: "unauthorized" }, { status: 401 });
-  return json({ expiredCalls: await expireDueCalls() });
+  return json({
+    expiredCalls: await expireDueCalls(),
+    endedRooms: await endEmptyRooms(),
+    purgedRoomChat: await purgeExpiredRoomChat(),
+  });
 }
 
 export const POST = api(run);

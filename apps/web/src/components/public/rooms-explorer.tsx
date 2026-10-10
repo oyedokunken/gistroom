@@ -18,10 +18,15 @@ export function RoomsExplorer({
   initialRooms,
   initialQuery,
   initialFailed,
+  hrefBase,
+  bare,
 }: {
   initialRooms: PublicRoomCard[];
   initialQuery: string;
   initialFailed: boolean;
+  hrefBase?: string;
+  /** Drop the wide page padding when it sits inside the app. */
+  bare?: boolean;
 }) {
   const [query, setQuery] = useState(initialQuery);
   const [rooms, setRooms] = useState(initialRooms);
@@ -68,7 +73,12 @@ export function RoomsExplorer({
   const term = query.trim();
 
   return (
-    <div className="mx-auto w-full max-w-[1200px] px-6 py-12 md:py-16">
+    <div
+      className={cn(
+        "mx-auto w-full",
+        bare ? "px-4 py-6 md:px-6" : "max-w-[1200px] px-6 py-12 md:py-16",
+      )}
+    >
       <form role="search" noValidate onSubmit={(e) => e.preventDefault()} className="relative">
         <label htmlFor="rooms-search" className="sr-only">
           {copy.label}
@@ -158,7 +168,7 @@ export function RoomsExplorer({
               </h2>
               <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {live.map((r) => (
-                  <RoomCard key={r.slug} room={r} />
+                  <RoomCard key={r.slug} room={r} hrefBase={hrefBase} />
                 ))}
               </ul>
             </section>
@@ -170,7 +180,7 @@ export function RoomsExplorer({
               </h2>
               <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {soon.map((r) => (
-                  <RoomCard key={r.slug} room={r} />
+                  <RoomCard key={r.slug} room={r} hrefBase={hrefBase} />
                 ))}
               </ul>
             </section>

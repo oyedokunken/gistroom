@@ -1,6 +1,6 @@
 # Rooms
 
-Status: Planned, Phase 5.
+Status: Built (Phase 5). Needs LiveKit keys for real audio and video.
 
 Group calls created on the fly or scheduled, public or private, 32 participants, with moderators (D10).
 

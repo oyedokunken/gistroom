@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
-import { PageHeader } from "@/components/app/page-header";
-import { EmptyState } from "@/components/ui/empty-state";
+import { Suspense } from "react";
+import { RoomsHome } from "@/components/room/rooms-home";
 import { pages } from "@/content/app";
+import { listPublicRooms } from "@/server/rooms/public";
 
 export const metadata: Metadata = { title: pages.rooms.title };
 
-export default function Page() {
+export default async function Page() {
+  const { rooms, failed } = await listPublicRooms();
   return (
-    <>
-      <PageHeader title={pages.rooms.title} />
-      <EmptyState artId="empty-rooms" title={pages.rooms.emptyTitle} body={pages.rooms.emptyBody} />
-    </>
+    <Suspense>
+      <RoomsHome initialRooms={rooms} initialFailed={failed} />
+    </Suspense>
   );
 }

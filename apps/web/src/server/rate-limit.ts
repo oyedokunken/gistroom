@@ -26,6 +26,9 @@ export const policies = {
   callStart: { name: "call-start", limit: 10, windowSec: 60 },
   reports: { name: "reports", limit: 10, windowSec: 3600 },
   contact: { name: "contact", limit: 5, windowSec: 3600 },
+  roomChat: { name: "room-chat", limit: 30, windowSec: 60 },
+  roomInvite: { name: "room-invite", limit: 40, windowSec: 3600 },
+  roomMod: { name: "room-mod", limit: 120, windowSec: 60 },
 } as const satisfies Record<string, Policy>;
 
 /** Start of the fixed window that contains `now`. */

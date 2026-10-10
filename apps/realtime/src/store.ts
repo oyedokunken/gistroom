@@ -7,6 +7,9 @@ import type {
   NotificationDto,
   NotificationPrefs,
   PublicUser,
+  RoomChatDto,
+  RoomMemberState,
+  RoomRole,
 } from "@gistroom/shared";
 
 /** One stored push subscription. */
@@ -39,6 +42,19 @@ export interface CallDelivery {
   dtoFor: Map<string, CallDto>;
   /** What the callee needs to be pushed when no tab is open. */
   calleePush: { subscriptions: PushSub[]; previews: boolean; unread: number };
+}
+
+export interface RoomDelivery {
+  slug: string;
+  title: string;
+  locked: boolean;
+  hostName: string;
+  /** People in the room right now. */
+  joinedIds: string[];
+  /** Everyone with a seat or an invite, including people who left. */
+  allIds: string[];
+  member: { userId: string; role: RoomRole; state: RoomMemberState } | null;
+  chat: RoomChatDto | null;
 }
 
 export interface AckResult {
@@ -83,6 +99,11 @@ export interface Store {
   counts(userId: string): Promise<{ notifications: number; chats: number }>;
 
   callForDelivery(callId: string): Promise<CallDelivery | null>;
+  roomForDelivery(input: {
+    roomId: string;
+    userId?: string;
+    messageId?: string;
+  }): Promise<RoomDelivery | null>;
   notificationBundle(notificationId: string): Promise<NotificationBundle | null>;
   recordPushResult(input: { subscriptionId: string; ok: boolean; revoke: boolean }): Promise<void>;
 

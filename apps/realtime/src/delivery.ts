@@ -135,6 +135,8 @@ export function createDelivery(deps: DeliveryDeps) {
       }
       case "call":
         return handleCall(event.callId, event.change);
+      case "room":
+        return handleRoom(event);
       case "badge": {
         const counts = await store.counts(event.userId);
         emitTo(io, event.userId, "badge:update", counts);
@@ -213,6 +215,62 @@ export function createDelivery(deps: DeliveryDeps) {
           data: { callId: loaded.callId, ...(missed ? {} : { reason: "dismiss" }) },
         }),
       );
+    }
+  }
+
+  /** Room changes are hints. Clients refetch the room, so a missed one only delays the screen by a refresh. */
+  async function handleRoom(event: Extract<InternalEvent, { type: "room" }>): Promise<void> {
+    const room = await store.roomForDelivery({
+      roomId: event.roomId,
+      userId: event.userId,
+      messageId: event.messageId,
+    });
+    if (!room) return;
+    switch (event.change) {
+      case "invite":
+        if (event.userId)
+          emitTo(io, event.userId, "room:invite", {
+            roomSlug: room.slug,
+            title: room.title,
+            fromName: room.hostName,
+          });
+        return;
+      case "started":
+        for (const id of room.allIds)
+          emitTo(io, id, "room:started", { roomSlug: room.slug, title: room.title });
+        return;
+      case "ended":
+        for (const id of room.allIds) emitTo(io, id, "room:ended", { roomSlug: room.slug });
+        return;
+      case "member": {
+        if (!room.member) return;
+        const payload = {
+          roomSlug: room.slug,
+          userId: room.member.userId,
+          role: room.member.role,
+          state: room.member.state,
+        };
+        const audience = new Set([...room.joinedIds, room.member.userId]);
+        for (const id of audience) emitTo(io, id, "room:member_updated", payload);
+        return;
+      }
+      case "chat":
+        if (!room.chat) return;
+        for (const id of room.joinedIds)
+          emitTo(io, id, "room:chat:new", { roomSlug: room.slug, message: room.chat });
+        return;
+      case "chat-deleted":
+        if (!event.messageId) return;
+        for (const id of room.joinedIds)
+          emitTo(io, id, "room:chat:deleted", {
+            roomSlug: room.slug,
+            messageId: event.messageId,
+          });
+        return;
+      case "locked":
+        for (const id of room.joinedIds)
+          emitTo(io, id, "room:locked", { roomSlug: room.slug, locked: room.locked });
+        return;
     }
   }
 

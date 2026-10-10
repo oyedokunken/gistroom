@@ -2,14 +2,17 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { motion, useInView, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion, useInView, useReducedMotion } from "motion/react";
 import {
   BellRing,
   Check,
   CheckCheck,
+  EllipsisVertical,
   Hand,
   Mic,
   MicOff,
+  NotebookPen,
+  Phone,
   PhoneOff,
   Play,
   RefreshCcw,
@@ -17,6 +20,7 @@ import {
   Video,
   VideoOff,
   Wifi,
+  X,
 } from "lucide-react";
 import { DEMO_PEOPLE, demoAvatarSrc, type DemoPerson, type ReactionDto } from "@gistroom/shared";
 import { ReactionChips } from "@/components/chat/reaction-chips";
@@ -114,7 +118,12 @@ function Bubble({
         )}
       >
         {children}
-        <span className="mt-0.5 flex items-center justify-end gap-1 text-[0.625rem] opacity-80">
+        <span
+          className={cn(
+            "mt-0.5 flex items-center justify-end gap-1 text-[0.625rem]",
+            me ? "text-green-100" : "opacity-80",
+          )}
+        >
           <span className="tabular">{time}</span>
           {me ? (
             ticks === "sent" ? (
@@ -162,10 +171,15 @@ export function ChatScreen() {
     <div ref={ref} className="flex min-h-0 flex-1 flex-col">
       <div className="flex items-center gap-2.5 border-b border-border px-3 py-2">
         <PersonAvatar name="Ada" size={34} />
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold">Ada</p>
           <p className="text-[0.6875rem] font-medium text-green-700">{L.typing}...</p>
         </div>
+        <span aria-hidden className="flex items-center gap-2 text-text-muted">
+          <Video className="size-4" />
+          <Phone className="size-4" />
+          <EllipsisVertical className="size-4" />
+        </span>
       </div>
       <div className="flex min-h-0 flex-1 flex-col justify-end gap-2 overflow-hidden px-2.5 py-2">
         <Bubble time="9:38">Did you watch the match last night?</Bubble>
@@ -399,10 +413,19 @@ export function AudioCallScreen({ person = "Tunde" }: { person?: DemoPerson }) {
 export function RoomScreen() {
   const { ref, run } = useRunning();
   const [speaker, setSpeaker] = useState(0);
+  const [video, setVideo] = useState(false);
+  const [noting, setNoting] = useState(false);
+  const [hand, setHand] = useState(false);
   useEffect(() => {
     if (!run) return;
     const id = window.setInterval(() => setSpeaker((s) => (s + 1) % 4), 2200);
-    return () => window.clearInterval(id);
+    const vid = window.setInterval(() => setVideo((v) => !v), 5200);
+    const note = window.setInterval(() => setNoting((v) => !v), 8400);
+    return () => {
+      window.clearInterval(id);
+      window.clearInterval(vid);
+      window.clearInterval(note);
+    };
   }, [run]);
   const people: { name: DemoPerson; badge?: string; muted?: boolean; hand?: boolean }[] = [
     { name: "Chidi", badge: L.host },
@@ -413,39 +436,171 @@ export function RoomScreen() {
     { name: "Funke" },
   ];
   return (
-    <div ref={ref} className="flex min-h-0 flex-1 flex-col">
-      <div className="border-b border-border px-3 py-2">
-        <p className="text-sm font-semibold">Jollof or no jollof</p>
-        <p className="text-[0.6875rem] text-text-muted">Food and chop, English</p>
+    <div ref={ref} className="relative flex min-h-0 flex-1 flex-col">
+      <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold">Jollof or no jollof</p>
+          <p className="text-[0.6875rem] text-text-muted">Food and chop, English</p>
+        </div>
+        <div
+          role="group"
+          aria-label={L.view}
+          className="flex shrink-0 gap-0.5 rounded-full bg-surface-2 p-0.5"
+        >
+          {[L.audio, L.video].map((label, i) => {
+            const on = video === (i === 1);
+            return (
+              <button
+                key={label}
+                type="button"
+                aria-pressed={on}
+                onClick={() => setVideo(i === 1)}
+                className={cn(
+                  "rounded-full px-2 py-0.5 text-[0.625rem] font-semibold transition-colors",
+                  on ? "bg-surface text-green-700 shadow-soft" : "text-text-muted",
+                )}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
       </div>
-      <ul className="grid flex-1 grid-cols-3 content-center gap-x-1.5 gap-y-3 px-3 py-3">
-        {people.map((p, i) => (
-          <li key={p.name} className="flex flex-col items-center gap-1">
-            <span className="relative">
-              <PersonAvatar name={p.name} size={50} ring={i === speaker} />
-              {p.hand ? (
-                <span className="absolute -right-2 -top-2 flex size-6 items-center justify-center rounded-full bg-yellow-400 text-ink-950">
-                  <Hand aria-hidden className="size-3.5" />
-                </span>
-              ) : null}
-              {i === speaker ? (
-                <span className="absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-full bg-green-600 text-white">
-                  <Mic aria-hidden className="size-3" />
-                </span>
-              ) : null}
-            </span>
-            <span className="flex items-center gap-1 text-[0.6875rem] font-medium">
-              {p.muted ? <MicOff aria-hidden className="size-3 text-text-muted" /> : null}
-              {p.name}
-            </span>
-            {p.badge ? (
-              <span className="rounded-full bg-yellow-400 px-1.5 text-[0.5625rem] font-bold text-ink-950">
-                {p.badge}
+      <ul
+        className={cn(
+          "grid flex-1 content-center gap-x-1.5 gap-y-3 px-3 py-3",
+          video ? "grid-cols-2 gap-2" : "grid-cols-3",
+        )}
+      >
+        {people.map((p, i) =>
+          video ? (
+            <li key={p.name} className="relative aspect-[4/3] overflow-hidden rounded-lg">
+              <LitRoom className="absolute inset-0 size-full" />
+              <Image
+                src={demoAvatarSrc(p.name)}
+                alt=""
+                fill
+                sizes="130px"
+                className="object-contain object-bottom p-1"
+              />
+              <span className="absolute bottom-1 left-1 flex items-center gap-1 rounded-full bg-ink-950/70 px-1.5 py-0.5 text-[0.5625rem] font-medium text-white">
+                {p.muted ? (
+                  <MicOff aria-hidden className="size-2.5" />
+                ) : (
+                  <Mic aria-hidden className="size-2.5" />
+                )}
+                {p.name}
               </span>
-            ) : null}
-          </li>
-        ))}
+              {i === speaker ? (
+                <span
+                  aria-hidden
+                  className="absolute inset-0 rounded-lg border-2 border-green-500"
+                />
+              ) : null}
+              {p.hand || (hand && i === people.length - 1) ? (
+                <span className="absolute right-1 top-1 flex size-4 items-center justify-center rounded-full bg-yellow-400 text-ink-950">
+                  <Hand aria-hidden className="size-2.5" />
+                </span>
+              ) : null}
+            </li>
+          ) : (
+            <li key={p.name} className="flex flex-col items-center gap-1">
+              <span className="relative">
+                <PersonAvatar name={p.name} size={50} ring={i === speaker} />
+                {p.hand || (hand && i === people.length - 1) ? (
+                  <span className="absolute -right-2 -top-2 flex size-6 items-center justify-center rounded-full bg-yellow-400 text-ink-950">
+                    <Hand aria-hidden className="size-3.5" />
+                  </span>
+                ) : null}
+                {i === speaker ? (
+                  <span className="absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-full bg-green-600 text-white">
+                    <Mic aria-hidden className="size-3" />
+                  </span>
+                ) : null}
+              </span>
+              <span className="flex items-center gap-1 text-[0.6875rem] font-medium">
+                {p.muted ? <MicOff aria-hidden className="size-3 text-text-muted" /> : null}
+                {p.name}
+              </span>
+              {p.badge ? (
+                <span className="rounded-full bg-yellow-400 px-1.5 text-[0.5625rem] font-bold text-ink-950">
+                  {p.badge}
+                </span>
+              ) : null}
+            </li>
+          ),
+        )}
       </ul>
+      <AnimatePresence>
+        {noting ? (
+          <motion.aside
+            key="room-notes"
+            aria-label={L.notes}
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={run ? { duration: 0.25 } : { duration: 0 }}
+            className="absolute inset-y-0 right-0 z-10 flex w-[64%] flex-col border-l border-border bg-surface-2"
+          >
+            <div className="flex items-center justify-between gap-1 border-b border-border px-2 py-1.5">
+              <p className="min-w-0 truncate text-[0.6875rem] font-bold">{L.notes}</p>
+              <button
+                type="button"
+                aria-label={L.close}
+                onClick={() => setNoting(false)}
+                className="flex size-5 shrink-0 items-center justify-center rounded-full text-text-muted hover:bg-surface"
+              >
+                <X aria-hidden className="size-3" />
+              </button>
+            </div>
+            <ul className="flex-1 space-y-1.5 overflow-y-auto p-2">
+              <li className="rounded-lg bg-yellow-400 p-2 text-[0.625rem] leading-snug text-ink-950">
+                Balogun market on Saturday, who dey go?
+                <span className="tabular mt-1 block text-[0.5625rem] text-ink-700">
+                  {L.you} · 9:41
+                </span>
+              </li>
+              <li className="rounded-lg bg-yellow-400 p-2 text-[0.625rem] leading-snug text-ink-950">
+                Peppered chicken wins, no debate.
+                <span className="tabular mt-1 block text-[0.5625rem] text-ink-700">
+                  {L.you} · 9:44
+                </span>
+              </li>
+            </ul>
+            <div className="border-t border-border p-1.5">
+              <p className="rounded-full border border-border bg-surface px-2 py-1 text-[0.5625rem] text-text-muted">
+                Write a note
+              </p>
+            </div>
+          </motion.aside>
+        ) : null}
+      </AnimatePresence>
+      <div className="flex items-center justify-center gap-1.5 px-3 pb-1">
+        <button
+          type="button"
+          aria-pressed={hand}
+          aria-label={L.raiseHand}
+          onClick={() => setHand((h) => !h)}
+          className={cn(
+            "flex size-7 items-center justify-center rounded-full transition-colors",
+            hand ? "bg-yellow-400 text-ink-950" : "bg-surface-2 text-text",
+          )}
+        >
+          <Hand aria-hidden className="size-3.5" />
+        </button>
+        <button
+          type="button"
+          aria-pressed={noting}
+          aria-label={L.notes}
+          onClick={() => setNoting((v) => !v)}
+          className={cn(
+            "flex size-7 items-center justify-center rounded-full transition-colors",
+            noting ? "bg-yellow-400 text-ink-950" : "bg-surface-2 text-text",
+          )}
+        >
+          <NotebookPen aria-hidden className="size-3.5" />
+        </button>
+      </div>
       <div className="px-2.5 pb-1">
         <p className="inline-block rounded-bubble bg-surface-2 px-2.5 py-1 text-[0.6875rem]">
           Ngozi: jollof party is the answer {CLAP}
@@ -579,14 +734,14 @@ export function AudioCallMock() {
 }
 export function RoomMock() {
   return (
-    <PhoneFrame label={L.sampleRoom}>
+    <PhoneFrame>
       <RoomScreen />
     </PhoneFrame>
   );
 }
 export function AlertsMock() {
   return (
-    <PhoneFrame tone="light" label={L.sampleAlerts}>
+    <PhoneFrame>
       <AlertsScreen />
     </PhoneFrame>
   );

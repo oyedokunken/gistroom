@@ -25,9 +25,9 @@
     "test:unit": "vitest run --project unit",
     "test:integration": "vitest run --project integration --passWithNoTests",
     "test:socket": "vitest run --project socket --passWithNoTests",
-    "test:browser": "echo browser tests start in Phase 1",
-    "test:a11y": "echo a11y tests start in Phase 1",
-    "test:responsive": "echo responsive tests start in Phase 1",
+    "test:browser": "npm run e2e:build && playwright test --grep-invert \"@a11y|@responsive\"",
+    "test:a11y": "npm run e2e:build && playwright test --grep @a11y",
+    "test:responsive": "npm run e2e:build && playwright test --grep @responsive",
     "verify": "npm run lint:copy && npm run lint:ui && npm run lint:font && npm run lint && npm run typecheck && npm run lint:graphics && npm run test:unit && npm run test:integration && npm run test:socket && npm run build && npm run test:browser && npm run test:a11y && npm run test:responsive",
     "verify:quick": "npm run lint:copy && npm run lint:ui && npm run lint && npm run typecheck && npm run test:unit",
     "brand": "node scripts/brand.mjs",
@@ -39,7 +39,8 @@
     "db:reset": "node scripts/assert-safe-db.mjs prisma migrate reset --force",
     "db:studio": "npm run studio -w packages/db",
     "prepare": "husky",
-    "storage:setup": "node scripts/setup-storage.mjs"
+    "storage:setup": "node scripts/setup-storage.mjs",
+    "e2e:build": "npm run build:e2e -w apps/web"
   },
   "lint-staged": {
     "*.{ts,tsx,mjs,js,json,md,css}": [
@@ -51,8 +52,10 @@
     ]
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@eslint/js": "^9.39.5",
     "@fontsource/noto-sans": "^5.3.0",
+    "@playwright/test": "^1.64.0",
     "@resvg/resvg-js": "^2.6.2",
     "@types/node": "^26.6.5",
     "concurrently": "^10.0.6",

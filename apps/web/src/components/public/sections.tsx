@@ -2,7 +2,9 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Check } from "lucide-react";
 import { buttonStyles } from "@/components/ui/button";
+import { AnimatedArt } from "./animated-art";
 import { CardIcon, type CardIconName } from "./card-icon";
+import { CtaFloat } from "./cta-float";
 import { cn } from "@/lib/cn";
 
 export type Tone = "plain" | "soft" | "green" | "ink" | "yellow";
@@ -40,12 +42,15 @@ export function SectionHead({
   id,
   title,
   lead,
+  icon,
   align = "left",
   className,
 }: {
   id?: string;
   title: string;
   lead?: string;
+  /** Custom PNG icon above the heading. */
+  icon?: CardIconName;
   align?: "left" | "center";
   className?: string;
 }) {
@@ -53,6 +58,7 @@ export function SectionHead({
     <div
       className={cn("mb-10 max-w-[44rem]", align === "center" && "mx-auto text-center", className)}
     >
+      {icon ? <CardIcon name={icon} className="mb-4" /> : null}
       <h2
         id={id}
         className="text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-[1.1] tracking-[-0.02em]"
@@ -125,12 +131,13 @@ export function HeroActions({
   primary,
   secondary,
 }: {
-  primary: { label: string; href: string };
+  primary: { label: string; href: string; icon?: ReactNode };
   secondary?: { label: string; href: string };
 }) {
   return (
     <>
       <Link href={primary.href} className={buttonStyles("accent", "min-h-12 px-8 text-base")}>
+        {primary.icon}
         {primary.label}
       </Link>
       {secondary ? (
@@ -152,6 +159,8 @@ export function FeatureRow({
   body,
   points,
   visual,
+  icon,
+  action,
   reverse,
 }: {
   id: string;
@@ -159,6 +168,10 @@ export function FeatureRow({
   body: string;
   points?: readonly string[];
   visual: ReactNode;
+  /** Custom PNG icon above the heading. Desktop only, where it has room to breathe. */
+  icon?: CardIconName;
+  /** Button under the points that sends people to the feature. */
+  action?: { label: string; href: string };
   reverse?: boolean;
 }) {
   return (
@@ -167,6 +180,7 @@ export function FeatureRow({
       className="grid scroll-mt-28 items-center gap-10 py-10 lg:grid-cols-2 lg:gap-20 lg:py-14"
     >
       <div className={cn(reverse && "lg:order-2")}>
+        {icon ? <CardIcon name={icon} className="mb-5 hidden md:inline-flex" /> : null}
         <h2
           id={`${id}-h`}
           className="text-[clamp(1.75rem,4vw,2.75rem)] font-bold leading-[1.08] tracking-[-0.025em]"
@@ -185,6 +199,14 @@ export function FeatureRow({
               </li>
             ))}
           </ul>
+        ) : null}
+        {action ? (
+          <Link
+            href={action.href}
+            className={buttonStyles("primary", "mt-8 min-h-12 w-fit px-7 text-base")}
+          >
+            {action.label}
+          </Link>
         ) : null}
       </div>
       <div className={cn("flex justify-center", reverse && "lg:order-1")}>{visual}</div>
@@ -234,7 +256,7 @@ export function Bento({ items, tone = "plain" }: { items: readonly TileItem[]; t
         >
           {item.icon ? <CardIcon name={item.icon} className="mb-3" /> : null}
           <h3 className="text-xl font-bold tracking-tight">{item.title}</h3>
-          <p className="mt-2 max-w-[48ch] opacity-85">{item.body}</p>
+          <p className="mt-2 max-w-[48ch]">{item.body}</p>
         </li>
       ))}
     </ul>
@@ -256,15 +278,22 @@ export function StatementGrid({ items }: { items: readonly TileItem[] }) {
   );
 }
 
-/** A real sequence, so numbers are fine here. */
+/** A real sequence, shown with custom PNG icons when the item carries one. */
 export function Steps({ items }: { items: readonly TileItem[] }) {
   return (
     <ol className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
       {items.map((item, i) => (
-        <li key={item.title} className="relative rounded-card bg-surface p-6 text-text shadow-soft">
-          <span className="tabular flex size-10 items-center justify-center rounded-full bg-yellow-400 text-lg font-black text-ink-950">
-            {i + 1}
-          </span>
+        <li
+          key={item.title}
+          className="group relative rounded-card bg-surface p-6 text-text shadow-soft"
+        >
+          {item.icon ? (
+            <CardIcon name={item.icon} />
+          ) : (
+            <span className="tabular flex size-10 items-center justify-center rounded-full bg-yellow-400 text-lg font-black text-ink-950">
+              {i + 1}
+            </span>
+          )}
           <h3 className="mt-4 text-xl font-bold tracking-tight">{item.title}</h3>
           <p className="mt-2 text-text-muted">{item.body}</p>
         </li>
@@ -295,39 +324,150 @@ export function Callout({
   title,
   body,
   tone = "yellow",
+  icon,
 }: {
   title: string;
   body: string;
   tone?: Tone;
+  /** Custom PNG icon drifting at the right end, on top on phones. */
+  icon?: CardIconName;
 }) {
   return (
-    <div className={cn("rounded-hero p-8 md:p-12", tones[tone])}>
-      <h2 className="text-[clamp(1.5rem,3.5vw,2.25rem)] font-bold tracking-[-0.02em]">{title}</h2>
-      <p className="mt-3 max-w-[62ch] text-lg">{body}</p>
+    <div
+      className={cn(
+        "flex flex-col gap-6 rounded-hero p-8 md:flex-row md:items-center md:justify-between md:gap-10 md:p-12",
+        tones[tone],
+      )}
+    >
+      {icon ? (
+        <CtaFloat name={icon} className="block size-16 shrink-0 md:order-2 md:size-24" />
+      ) : null}
+      <div>
+        <h2 className="text-[clamp(1.5rem,3.5vw,2.25rem)] font-bold tracking-[-0.02em]">{title}</h2>
+        <p className="mt-3 max-w-[62ch] text-lg">{body}</p>
+      </div>
     </div>
   );
 }
+
+/** Scene art available to call to action bands, with intrinsic size and alt text. */
+const ctaScenes = {
+  "scene-final-cta": {
+    width: 1024,
+    height: 819,
+    alt: "Friends waving you in around a glowing circle of sound",
+  },
+  "scene-moderators": {
+    width: 1024,
+    height: 819,
+    alt: "A moderator with a shield badge at a table with a mute button and a list of logged actions",
+  },
+  "scene-rooftop": {
+    width: 1024,
+    height: 1024,
+    alt: "Four friends on a rooftop at night with a speaker, string lights and the city behind them",
+  },
+  "scene-barbershop": {
+    width: 1024,
+    height: 1024,
+    alt: "A barber trimming a customer's hair while they talk, with a mirror and a radio on the shelf",
+  },
+  "scene-danfo": {
+    width: 1024,
+    height: 1024,
+    alt: "A yellow danfo bus with its conductor waving, and three people chatting beside it",
+  },
+  "scene-suya": {
+    width: 1024,
+    height: 1024,
+    alt: "A suya seller grilling skewers over glowing coals while two customers chat under a lantern",
+  },
+  "scene-football-centre": {
+    width: 1024,
+    height: 1024,
+    alt: "Fans packed under a shed cheering at a big screen showing a match",
+  },
+  "scene-keke": {
+    width: 1024,
+    height: 1024,
+    alt: "A yellow keke napep driving past a plantain stand",
+  },
+  "scene-street-football": {
+    width: 1024,
+    height: 1024,
+    alt: "Two friends playing football on a street with a ball in mid-air",
+  },
+  "scene-village-square": {
+    width: 1024,
+    height: 1024,
+    alt: "Friends gathered under a big tree on a village square, talking in a circle",
+  },
+  "scene-help-desk": {
+    width: 1024,
+    height: 1024,
+    alt: "A helper behind a counter with a laptop, waving at a visitor, with a notes board behind them",
+  },
+  "scene-door-check": {
+    width: 1024,
+    height: 1024,
+    alt: "A host at a green doorway with a rope line, checking a list while a guest waits to enter",
+  },
+  "scene-dev-desk": {
+    width: 1024,
+    height: 1024,
+    alt: "A developer at a tidy desk writing code on a laptop, with a plant and a cup beside them",
+  },
+} as const;
+
+export type CtaSceneName = keyof typeof ctaScenes;
 
 export function CtaBand({
   title,
   body,
   primary,
   secondary,
+  art = "scene-final-cta",
+  icon,
 }: {
   title: string;
   body: string;
   primary: { label: string; href: string };
   secondary?: { label: string; href: string };
+  /** Animated scene beside the words. Every page picks a different one. */
+  art?: CtaSceneName;
+  /** Custom PNG icon floating on the scene art. */
+  icon?: CardIconName;
 }) {
+  const scene = ctaScenes[art];
   return (
-    <section aria-label={title} className={cn("w-full bg-green-700 text-white", dots)}>
-      <div className="mx-auto flex w-full max-w-[1200px] flex-col items-start gap-6 px-6 py-20 md:py-28">
-        <h2 className="max-w-[18ch] text-[clamp(2.25rem,6vw,4rem)] font-black leading-[1.02] tracking-[-0.035em]">
-          {title}
-        </h2>
-        <p className="max-w-[50ch] text-lg text-white/90">{body}</p>
-        <div className="flex flex-wrap gap-3">
-          <HeroActions primary={primary} secondary={secondary} />
+    <section
+      aria-label={title}
+      className={cn("relative w-full overflow-hidden bg-green-700 text-white", dots)}
+    >
+      <div className="mx-auto grid w-full max-w-[1200px] items-center gap-8 px-6 py-14 md:grid-cols-2 md:py-20">
+        <div className="flex flex-col items-start justify-center gap-6 md:order-1">
+          <h2 className="max-w-[18ch] text-[clamp(2.25rem,6vw,4rem)] font-black leading-[1.02] tracking-[-0.035em]">
+            {title}
+          </h2>
+          <p className="max-w-[50ch] text-lg text-white/90">{body}</p>
+          <div className="flex flex-wrap gap-3">
+            <HeroActions primary={primary} secondary={secondary} />
+          </div>
+        </div>
+        <div className="relative order-first md:order-2">
+          <AnimatedArt
+            id={art}
+            alt={scene.alt}
+            width={scene.width}
+            height={scene.height}
+            className="h-auto w-full rounded-hero object-cover shadow-lift"
+          />
+          {icon ? (
+            <CtaFloat
+              name={icon}
+              className="absolute -left-2 top-3 block size-14 md:-left-3 md:size-20"
+            />
+          ) : null}
         </div>
       </div>
     </section>

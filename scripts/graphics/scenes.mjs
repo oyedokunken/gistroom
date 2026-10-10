@@ -15,6 +15,7 @@ import {
   lantern,
   person,
   plant,
+  poly,
   pulse,
   rect,
   rings,
@@ -478,6 +479,828 @@ export const SCENES = [
       person(780, 690, { skin: SKIN[4], shirt: C.yellow, hair: "afro", size: 1.9 }),
   },
   {
+    id: "scene-village-square",
+    w: 1000,
+    h: 1000,
+    animated: true,
+    placement: "Rooms call to action: the village square where everybody gathers to gist",
+    alt: "Friends gathered under a big tree on a village square, talking in a circle",
+    draw: (t) =>
+      rect(430, 480, 46, 280, C.clay, 8) +
+      circle(350, 330, 170, C.greenDark) +
+      circle(560, 300, 190, C.green) +
+      circle(470, 210, 140, C.greenDark) +
+      lantern(370, 420, t) +
+      lantern(600, 390, t) +
+      building(40, 720, 130, 300, C.greenTint) +
+      building(830, 720, 140, 260, "#CFE9DB") +
+      ground(760, 1000) +
+      rect(220, 700, 560, 22, C.clay, 8) +
+      person(280, 700, {
+        skin: SKIN[1],
+        shirt: C.yellow,
+        hair: "afro",
+        size: 1.8,
+        arm: "cup",
+        sit: true,
+      }) +
+      person(430, 700, {
+        skin: SKIN[3],
+        shirt: C.white,
+        hair: "wrap",
+        cap: C.green,
+        size: 1.8,
+        sit: true,
+        sway: wave(t, 0.2, 1) * 2,
+      }) +
+      person(580, 700, {
+        skin: SKIN[0],
+        shirt: C.green,
+        hair: "fila",
+        cap: C.yellow,
+        size: 1.8,
+        arm: "up",
+        sit: true,
+        sway: wave(t, 0.4, 1) * 3,
+      }) +
+      rings(580, 700 - 250, 44, t, C.yellow) +
+      person(720, 700, {
+        skin: SKIN[4],
+        shirt: C.ink700,
+        pants: C.green,
+        hair: "hijab",
+        cap: C.yellowTint,
+        size: 1.8,
+        sit: true,
+      }) +
+      person(840, 760, {
+        skin: SKIN[2],
+        shirt: C.white,
+        hair: "cap",
+        cap: C.green,
+        size: 1.7,
+        arm: "phone",
+        sway: wave(t, 0.6, 1) * 2,
+      }),
+  },
+  {
+    id: "scene-help-desk",
+    w: 1000,
+    h: 1000,
+    animated: true,
+    placement: "Support call to action: the help desk where someone is always ready",
+    alt: "A helper behind a counter with a laptop, waving at a visitor, with a notes board behind them",
+    draw: (t) =>
+      rect(560, 180, 320, 260, C.white, 18, `stroke="${C.ink200}" stroke-width="4"`) +
+      rect(590, 212, 140, 16, C.green, 8) +
+      Array.from({ length: 3 }, (_, i) =>
+        rect(
+          590,
+          252 + i * 58,
+          230,
+          30,
+          i === Math.floor(t * 3) % 3 ? C.yellowTint : C.greenTint,
+          8,
+        ),
+      ).join("") +
+      plant(120, 760, 1.4) +
+      ground(760, 1000) +
+      rect(200, 580, 520, 180, C.greenDark, 14) +
+      rect(180, 560, 560, 36, C.ink700, 10) +
+      rect(480, 500, 120, 60, C.ink, 8) +
+      rect(470, 556, 140, 12, C.ink700, 4) +
+      circle(540, 530, 18, pulse(t, 0, 2) > 0.5 ? C.yellow : C.yellowTint) +
+      person(340, 700, {
+        skin: SKIN[3],
+        shirt: C.green,
+        hair: "wrap",
+        cap: C.yellow,
+        size: 1.9,
+        arm: "up",
+        sit: true,
+        sway: wave(t, 0, 1) * 2,
+      }) +
+      person(820, 760, {
+        skin: SKIN[0],
+        shirt: C.yellow,
+        hair: "fila",
+        cap: C.green,
+        size: 1.9,
+        arm: "cup",
+        sway: wave(t, 0.5, 1) * 3,
+      }) +
+      rings(340, 700 - 300, 46, t, C.yellow),
+  },
+  {
+    id: "scene-door-check",
+    w: 1000,
+    h: 1000,
+    animated: true,
+    placement: "Acceptable use call to action: the door where the rules keep the gist good",
+    alt: "A host at a green doorway with a rope line, checking a list while a guest waits to enter",
+    draw: (t) =>
+      rect(120, 160, 340, 600, C.greenDark, 16) +
+      rect(150, 190, 280, 540, C.green, 12) +
+      rect(180, 220, 220, 180, C.yellowTint, 10) +
+      circle(410, 480, 14, C.yellow) +
+      rect(560, 620, 18, 140, C.ink700, 6) +
+      rect(860, 620, 18, 140, C.ink700, 6) +
+      `<path d="M560 640 Q710 ${700 + wave(t, 0, 1) * 8} 860 640" stroke="${C.yellow}" stroke-width="12" fill="none" stroke-linecap="round"/>` +
+      ground(760, 1000) +
+      person(620, 760, {
+        skin: SKIN[1],
+        shirt: C.ink700,
+        pants: C.green,
+        hair: "low",
+        size: 2.1,
+        arm: "up",
+        sway: wave(t, 0, 1) * 2,
+      }) +
+      rect(660, 540, 56, 72, C.white, 6, `transform="rotate(8 688 576)"`) +
+      rect(670, 552, 36, 7, C.green, 3) +
+      rect(670, 566, 36, 7, C.green, 3) +
+      rect(670, 580, 24, 7, C.green, 3) +
+      person(800, 760, {
+        skin: SKIN[4],
+        shirt: C.yellow,
+        hair: "hijab",
+        cap: C.green,
+        size: 1.9,
+        arm: "cup",
+        sway: wave(t, 0.4, 1) * 2,
+      }) +
+      bunting(120, 130, 880, 30),
+  },
+  {
+    id: "scene-dev-desk",
+    w: 1000,
+    h: 1000,
+    animated: true,
+    placement: "About page, the developer: a clean desk with a laptop and code on the screen",
+    alt: "A developer at a tidy desk writing code on a laptop, with a plant and a cup beside them",
+    draw: (t) =>
+      // wall poster with the logo bars
+      rect(110, 120, 230, 170, C.greenTint, 14) +
+      rect(130, 168, 30, 66, C.green, 14) +
+      rect(172, 130, 30, 104, C.yellow, 14) +
+      rect(214, 150, 30, 84, C.green, 14) +
+      // sticky notes row
+      [0, 1, 2]
+        .map(
+          (i) =>
+            `<g transform="rotate(${(i - 1) * 6} ${390 + i * 62} 170)">` +
+            rect(360 + i * 62, 140, 54, 54, i === 1 ? C.yellow : C.greenTint, 6) +
+            rect(360 + i * 62, 140, 54, 10, i === 1 ? C.yellow : C.greenTint) +
+            "</g>",
+        )
+        .join("") +
+      // wall clock with a hand that sweeps
+      circle(620, 180, 52, C.white) +
+      circle(620, 180, 52, "none", `stroke="${C.ink}" stroke-width="8"`) +
+      `<line x1="620" y1="180" x2="${620 + Math.sin(t * Math.PI * 2) * 32}" y2="${180 - Math.cos(t * Math.PI * 2) * 32}" stroke="${C.ink}" stroke-width="7" stroke-linecap="round"/>` +
+      `<line x1="620" y1="180" x2="640" y2="180" stroke="${C.green}" stroke-width="7" stroke-linecap="round"/>` +
+      circle(620, 180, 7, C.ink) +
+      // window with sun and a drifting cloud
+      rect(730, 100, 230, 280, C.greenTint, 16) +
+      rect(750, 120, 190, 240, C.yellowTint, 10) +
+      circle(845, 195, 48, C.yellow) +
+      circle(800 + wave(t, 0, 1) * 90, 280, 24, C.white) +
+      circle(836 + wave(t, 0, 1) * 90, 272, 30, C.white) +
+      circle(872 + wave(t, 0, 1) * 90, 282, 22, C.white) +
+      ground(800, 1000) +
+      // rug under the desk
+      `<ellipse cx="530" cy="800" rx="330" ry="46" fill="${C.greenTint}"/>` +
+      plant(150, 800, 1.7) +
+      // desk
+      rect(220, 610, 620, 26, C.clay, 8) +
+      rect(250, 636, 22, 160, C.ink700) +
+      rect(790, 636, 22, 160, C.ink700) +
+      // desk lamp, glow pulsing
+      `<polygon points="800,610 860,610 900,470 860,470" fill="${C.yellowTint}" opacity="${0.35 + wave(t, 1, 2) * 0.15}"/>` +
+      circle(830, 610, 30, C.ink700) +
+      `<line x1="830" y1="600" x2="878" y2="490" stroke="${C.ink700}" stroke-width="14" stroke-linecap="round"/>` +
+      circle(878, 480, 26, C.ink) +
+      circle(872, 486, 8, C.yellow) +
+      // mug with rising steam
+      rect(310, 558, 56, 56, C.white, 8) +
+      `<path d="M366 574 q18 8 0 26" stroke="${C.white}" stroke-width="9" fill="none"/>` +
+      circle(
+        326,
+        556 - ((t * 80 + 20) % 80),
+        7,
+        C.ink200,
+        `opacity="${0.5 - ((t * 80 + 20) % 80) / 180}"`,
+      ) +
+      circle(
+        348,
+        556 - ((t * 80 + 55) % 80),
+        6,
+        C.ink200,
+        `opacity="${0.5 - ((t * 80 + 55) % 80) / 180}"`,
+      ) +
+      // the developer behind the desk
+      person(500, 636, {
+        skin: SKIN[1],
+        shirt: C.green,
+        hair: "low",
+        size: 2.1,
+        sit: true,
+        sway: wave(t, 0, 2) * 3,
+      }) +
+      rings(500, 636 - 268, 46, t, C.yellow) +
+      // big open laptop facing the viewer, real code on screen, cursor blinking
+      `<polygon points="560,610 700,610 720,650 540,650" fill="${C.ink700}"/>` +
+      rect(548, 418, 200, 192, C.ink, 12) +
+      rect(560, 430, 176, 168, C.ink700, 6) +
+      rect(560, 430, 24, 168, C.ink) +
+      Array.from({ length: 6 }, (_, i) => {
+        const lines = [
+          ['<tspan fill="#FFC20E">&lt;?php</tspan>'],
+          [
+            '<tspan fill="#7FD6A4">function</tspan> <tspan fill="#FFFFFF">gist()</tspan> <tspan fill="#7FD6A4">{</tspan>',
+          ],
+          [
+            '  <tspan fill="#7FD6A4">$room</tspan><tspan fill="#FFFFFF">-&gt;</tspan><tspan fill="#FFC20E">join</tspan><tspan fill="#FFFFFF">();</tspan>',
+          ],
+          [
+            '  <tspan fill="#7FD6A4">echo</tspan> <tspan fill="#FFC20E">"wetin dey"</tspan><tspan fill="#FFFFFF">;</tspan>',
+          ],
+          ['<tspan fill="#7FD6A4">}</tspan>'],
+          [
+            '<tspan fill="#7FD6A4">git</tspan> <tspan fill="#FFFFFF">push</tspan> <tspan fill="#FFC20E">origin</tspan>',
+          ],
+        ];
+        return (
+          (i === Math.floor(t * 6) % 6
+            ? rect(560, 438 + i * 27, 176, 20, "#FFFFFF", 0, 'opacity="0.08"')
+            : "") +
+          `<text x="590" y="453" font-family="Consolas, Menlo, monospace" font-size="14" dy="${i * 27}">${lines[i][0]}</text>`
+        );
+      }).join("") +
+      rect(
+        704,
+        438 + (Math.floor(t * 6) % 6) * 27,
+        9,
+        14,
+        C.white,
+        2,
+        `opacity="${Math.floor(t * 12) % 2}"`,
+      ) +
+      // typing spark drifting up off the keyboard
+      rect(508 + wave(t, 0, 3) * 24, 596 - ((t * 70 + 10) % 80), 20, 5, C.yellow, 2) +
+      rect(515 + wave(t, 0, 3) * 24, 589 - ((t * 70 + 10) % 80), 5, 20, C.yellow, 2) +
+      // code chips bobbing around the scene
+      [
+        [40, 380, 72, "&lt;/&gt;", 0],
+        [210, 470, 84, "PHP", 1],
+        [620, 330, 80, "{ ; }", 2],
+        [830, 390, 70, "JS", 3],
+      ]
+        .map(
+          ([x, y, w, label, phase]) =>
+            `<g transform="translate(${x} ${y + wave(t, phase, 2) * 12}) rotate(${wave(t, phase, 1) * 9} ${w / 2} 22)">` +
+            rect(0, 0, w, 44, C.white, 10, `stroke="${C.ink}" stroke-width="4"`) +
+            `<text x="${w / 2}" y="31" font-family="Consolas, Menlo, monospace" font-size="21" font-weight="700" fill="${C.ink}" text-anchor="middle">${label}</text>` +
+            "</g>",
+        )
+        .join(""),
+  },
+  {
+    id: "scene-auth-city",
+    w: 1000,
+    h: 1200,
+    animated: true,
+    placement: "Sign in page, a city street with a danfo and cars passing",
+    alt: "A Lagos street: a yellow danfo and a keke pass tall buildings while people wait at a bus stop",
+    draw: (t) =>
+      // sky, sun and drifting clouds
+      rect(0, 0, 1000, 800, C.greenTint) +
+      circle(830, 170, 78, C.yellow) +
+      circle(830, 170, 108, "none", `stroke="${C.yellow}" stroke-width="8"`) +
+      [0, 1]
+        .map(
+          (i) =>
+            circle(120 + wave(t, i * 0.5, 0.5) * 120 + i * 420, 130 + i * 90, 30, C.white) +
+            circle(160 + wave(t, i * 0.5, 0.5) * 120 + i * 420, 120 + i * 90, 38, C.white) +
+            circle(202 + wave(t, i * 0.5, 0.5) * 120 + i * 420, 134 + i * 90, 26, C.white),
+        )
+        .join("") +
+      // skyline
+      building(30, 800, 150, 400, "#CDE4D6") +
+      building(200, 800, 170, 300, C.yellowTint) +
+      building(390, 800, 150, 450, "#BFDCCB") +
+      building(560, 800, 180, 330, C.yellowTint) +
+      building(760, 800, 160, 380, "#CDE4D6") +
+      rect(440, 350, 60, 22, C.green) +
+      // sidewalk with people waiting at a bus stop
+      rect(0, 800, 1000, 44, C.ink200) +
+      rect(120, 700, 10, 110, C.ink700) +
+      rect(96, 660, 58, 58, C.green, 10) +
+      `<path d="M108 690 h34 M108 702 h34" stroke="${C.white}" stroke-width="8" stroke-linecap="round"/>` +
+      person(180, 838, {
+        skin: SKIN[0],
+        shirt: C.yellow,
+        arm: "up",
+        armWave: wave(t, 0, 6) * 18,
+        size: 1.1,
+        sway: wave(t, 0, 2) * 4,
+      }) +
+      person(235, 838, { skin: SKIN[2], shirt: C.green, size: 1.1, arm: "phone" }) +
+      person(285, 838, {
+        skin: SKIN[4],
+        shirt: C.white,
+        size: 1.05,
+        arm: "cup",
+        sway: wave(t, 2, 2) * 2,
+      }) +
+      // children playing by the road, ball bouncing between them
+      person(800, 838, {
+        skin: SKIN[1],
+        shirt: C.yellow,
+        size: 0.68,
+        arm: "up",
+        armWave: wave(t, 1, 8) * 20,
+        sway: wave(t, 1, 4) * 4,
+      }) +
+      person(862, 838, {
+        skin: SKIN[3],
+        shirt: C.greenTint,
+        size: 0.65,
+        arm: "up",
+        armWave: wave(t, 3, 8) * 20,
+        sway: wave(t, 3, 4) * 4,
+      }) +
+      circle(831, 818 - Math.abs(wave(t, 0.5, 4)) * 80, 15, C.yellow) +
+      circle(
+        831,
+        818 - Math.abs(wave(t, 0.5, 4)) * 80,
+        15,
+        "none",
+        `stroke="${C.ink}" stroke-width="3"`,
+      ) +
+      // a police officer directing traffic from the sidewalk
+      person(720, 838, {
+        skin: SKIN[0],
+        shirt: C.ink,
+        pants: C.ink700,
+        hair: "cap",
+        cap: C.ink,
+        size: 1.15,
+        arm: "up",
+        armWave: wave(t, 2, 5) * 22,
+        sway: wave(t, 1, 1) * 2,
+      }) +
+      rect(705, 762, 30, 6, C.yellow, 3) +
+      // road with lane dashes sliding past
+      rect(0, 844, 1000, 220, C.ink700) +
+      Array.from({ length: 9 }, (_, i) =>
+        rect(((i * 140 + t * 140) % 1400) - 80, 950, 84, 10, C.yellow, 5),
+      ).join("") +
+      // traffic: danfo left to right, keke and a small car right to left
+      // (phase shifted so the still frame and reduced motion visitors see a busy road too)
+      danfo(-380 + ((t + 0.42) % 1) * 1780, 950, 1.05, t) +
+      keke(1450 - ((t + 0.55) % 1) * 1750, 1045, 0.95) +
+      `<g transform="translate(${1350 - ((t + 0.85) % 1) * 1500} 880)">` +
+      rect(0, 20, 150, 42, C.green, 12) +
+      rect(28, 0, 88, 30, C.green, 10) +
+      rect(38, 6, 30, 20, C.greenTint, 4) +
+      rect(76, 6, 30, 20, C.greenTint, 4) +
+      circle(38, 66, 15, C.ink) +
+      circle(38, 66, 6, C.ink200) +
+      circle(112, 66, 15, C.ink) +
+      circle(112, 66, 6, C.ink200) +
+      "</g>" +
+      // an okada weaving through, rider in a yellow vest
+      `<g transform="translate(${-220 + ((t + 0.5) % 1) * 1700} 1052)">` +
+      circle(0, 34, 15, C.ink) +
+      circle(0, 34, 6, C.ink200) +
+      circle(64, 34, 15, C.ink) +
+      circle(64, 34, 6, C.ink200) +
+      `<line x1="0" y1="34" x2="26" y2="12" stroke="${C.ink}" stroke-width="7" stroke-linecap="round"/>` +
+      `<line x1="64" y1="34" x2="52" y2="10" stroke="${C.ink}" stroke-width="7" stroke-linecap="round"/>` +
+      rect(18, 16, 30, 10, C.yellow, 5) +
+      `<line x1="52" y1="10" x2="60" y2="0" stroke="${C.ink}" stroke-width="5" stroke-linecap="round"/>` +
+      person(34, 16, {
+        skin: SKIN[2],
+        shirt: C.yellow,
+        pants: C.ink700,
+        hair: "cap",
+        cap: C.ink,
+        size: 0.62,
+        sit: true,
+      }) +
+      "</g>" +
+      // birds circling high
+      `<path d="M${300 + wave(t, 0, 0.8) * 140} 90 q10 -10 20 0 q10 -10 20 0" stroke="${C.ink700}" stroke-width="5" fill="none" stroke-linecap="round"/>` +
+      `<path d="M${340 + wave(t, 0.4, 0.8) * 140} 120 q8 -8 16 0 q8 -8 16 0" stroke="${C.ink700}" stroke-width="5" fill="none" stroke-linecap="round"/>`,
+  },
+  {
+    id: "scene-auth-welcome",
+    w: 1000,
+    h: 1000,
+    animated: true,
+    placement: "Sign up page, friends waving a new person in through an open door",
+    alt: "Friends waving a visitor in through an open green door under bunting",
+    draw: (t) =>
+      rect(0, 0, 1000, 1000, C.white) +
+      circle(840, 140, 70, C.yellow) +
+      bunting(60, 120, 940, 34) +
+      // the house front with the door open
+      rect(330, 210, 340, 560, C.greenTint, 18) +
+      rect(415, 330, 170, 440, C.ink, 10) +
+      `<g transform="translate(585 340) skewY(${(wave(t, 0, 1) + 1) * -3})">` +
+      rect(0, 0, 120, 420, C.green, 8) +
+      circle(96, 220, 8, C.yellow) +
+      "</g>" +
+      rect(395, 750, 210, 22, C.clay, 6) +
+      // greeters at the door and a visitor on the path waving back
+      person(340, 780, {
+        skin: SKIN[2],
+        shirt: C.yellow,
+        hair: "wrap",
+        cap: C.yellow,
+        size: 1.15,
+        arm: "up",
+        armWave: wave(t, 0, 6) * 18,
+        sway: wave(t, 0, 2) * 2,
+      }) +
+      person(700, 780, {
+        skin: SKIN[0],
+        shirt: C.green,
+        size: 1.2,
+        arm: "cup",
+        sway: wave(t, 1, 1) * 2,
+      }) +
+      person(500, 800, {
+        skin: SKIN[4],
+        shirt: C.white,
+        hair: "afro",
+        size: 1.05,
+        arm: "up",
+        armWave: wave(t, 2, 6) * 16,
+        sway: wave(t, 2, 3) * 6,
+      }) +
+      plant(140, 780, 1.4) +
+      plant(860, 780, 1.4) +
+      ground(790, 1000) +
+      // two birds circling
+      `<path d="M${160 + wave(t, 0, 0.8) * 120} 180 q10 -10 20 0 q10 -10 20 0" stroke="${C.ink700}" stroke-width="5" fill="none" stroke-linecap="round"/>`,
+  },
+  {
+    id: "scene-auth-verify",
+    w: 1000,
+    h: 1000,
+    animated: true,
+    placement: "Verify page, a phone filling its code boxes while a message flies in",
+    alt: "A phone on a stand filling six code boxes one by one while a letter flies in",
+    draw: (t) => {
+      const filled = Math.floor(t * 6.999);
+      const fly = 1 - Math.pow(1 - t, 2); // ease out toward the phone
+      const ex = 120 + fly * 300;
+      const ey = 300 - fly * 130;
+      return (
+        rect(0, 0, 1000, 1000, C.white) +
+        // soft backdrop card
+        rect(150, 140, 700, 720, C.greenTint, 24) +
+        // the phone on its stand
+        rect(360, 260, 280, 460, C.ink, 26) +
+        rect(376, 286, 248, 380, C.white, 14) +
+        rect(468, 676, 64, 8, C.ink200, 4) +
+        rect(430, 720, 140, 18, C.ink700, 6) +
+        rect(480, 730, 40, 60, C.ink700) +
+        // six code boxes filling one by one
+        Array.from({ length: 6 }, (_, i) => {
+          const x = 392 + i * 38;
+          return (
+            rect(
+              x,
+              380,
+              30,
+              44,
+              i < filled ? C.green : (C.surface2 ?? "#EDEFEA"),
+              8,
+              `stroke="${C.ink200}" stroke-width="3"`,
+            ) +
+            (i < filled
+              ? `<rect x="${x + 9}" y="${394}" width="12" height="16" rx="3" fill="${C.white}"/>`
+              : "") +
+            (i === filled ? rect(x - 2, 436, 34, 4, C.yellow, 2) : "")
+          );
+        }).join("") +
+        rect(392, 330, 160, 10, C.ink200, 5) +
+        rect(392, 470, 216, 10, C.ink200, 5) +
+        rect(392, 490, 140, 10, C.ink200, 5) +
+        // the letter flying into the phone
+        `<g transform="translate(${ex} ${ey}) rotate(${20 - fly * 20})">` +
+        rect(0, 0, 84, 56, C.yellow, 8) +
+        poly(
+          [
+            [0, 0],
+            [42, 30],
+            [84, 0],
+            [84, 8],
+            [42, 38],
+            [0, 8],
+          ],
+          C.ink700,
+        ) +
+        "</g>" +
+        // a person checking their own phone beside it
+        person(760, 800, {
+          skin: SKIN[3],
+          shirt: C.green,
+          size: 1.25,
+          arm: "phone",
+          sway: wave(t, 1, 2) * 2,
+        }) +
+        plant(190, 810, 1.3) +
+        ground(810, 1000)
+      );
+    },
+  },
+  {
+    id: "scene-auth-forgot",
+    w: 1000,
+    h: 1000,
+    animated: true,
+    placement: "Forgot password page, a letter flying into a mailbox",
+    alt: "A letter flying into a green mailbox while a person waits beside it",
+    draw: (t) => {
+      const fly = t % 1;
+      const ex = 130 + fly * 400;
+      const ey = 505 - Math.sin(fly * Math.PI) * 150;
+      return (
+        rect(0, 0, 1000, 1000, C.white) +
+        rect(150, 140, 700, 720, C.greenTint, 24) +
+        // the mailbox on its post
+        rect(560, 620, 36, 150, C.ink700) +
+        rect(470, 430, 220, 200, C.green, 20) +
+        rect(470, 430, 220, 60, C.greenDark, 20) +
+        rect(500, 520, 160, 16, C.ink, 8) +
+        rect(640, 380, 14, 60, C.yellow, 6) +
+        circle(647, 380 + wave(t, 0, 2) * 8, 16, C.yellow) +
+        // the letter arcing into the slot
+        `<g transform="translate(${ex} ${ey}) rotate(${-14 + fly * 26})">` +
+        rect(0, 0, 88, 58, C.white, 8, `stroke="${C.ink200}" stroke-width="4"`) +
+        poly(
+          [
+            [4, 4],
+            [44, 32],
+            [84, 4],
+          ],
+          "none",
+        ) +
+        `<path d="M4 4 L44 32 L84 4" stroke="${C.ink200}" stroke-width="4" fill="none"/>` +
+        "</g>" +
+        // the person waiting by the box, cup in hand
+        person(320, 800, {
+          skin: SKIN[1],
+          shirt: C.yellow,
+          size: 1.2,
+          arm: "cup",
+          sway: wave(t, 0, 2) * 2,
+        }) +
+        plant(880, 810, 1.3) +
+        ground(810, 1000)
+      );
+    },
+  },
+  {
+    id: "scene-auth-onboarding",
+    w: 1000,
+    h: 1000,
+    animated: true,
+    placement: "Onboarding page, a profile card filling in beside a waving person",
+    alt: "A profile card with a photo and a checkmark while a person waves beside it",
+    draw: (t) =>
+      rect(0, 0, 1000, 1000, C.white) +
+      rect(150, 140, 700, 720, C.greenTint, 24) +
+      // the profile card on a stand
+      rect(390, 640, 200, 140, C.ink700, 10) +
+      rect(300, 240, 380, 420, C.white, 20, `stroke="${C.ink200}" stroke-width="4"`) +
+      // the avatar in the card, head and shoulders
+      circle(490, 390, 74, C.greenTint) +
+      circle(490, 375, 40, SKIN[2]) +
+      `<path d="M490 355 a40 40 0 0 1 40 26 a40 18 0 0 0 -80 0 a40 40 0 0 1 40 -26" fill="#1A1210"/>` +
+      `<path d="M430 440 a60 44 0 0 1 120 0 Z" fill="${C.green}"/>` +
+      // name and detail lines drawing in
+      rect(400, 500, Math.max(50, 180 * Math.min(1, t * 2)), 16, C.ink, 8) +
+      rect(420, 536, Math.max(40, 140 * Math.min(1, Math.max(0, t * 2 - 0.5))), 12, C.ink200, 6) +
+      rect(430, 566, Math.max(30, 120 * Math.min(1, Math.max(0, t * 2 - 1))), 12, C.ink200, 6) +
+      // the check badge stamping on
+      `<g transform="translate(560 560) scale(${0.7 + pulse(t, 0, 3) * 0.35})">` +
+      circle(0, 0, 36, C.yellow) +
+      `<path d="M-14 0 l10 12 l18 -22" stroke="${C.ink}" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>` +
+      "</g>" +
+      // the person presenting the card
+      person(750, 800, {
+        skin: SKIN[0],
+        shirt: C.green,
+        size: 1.25,
+        arm: "up",
+        armWave: wave(t, 1, 6) * 18,
+      }) +
+      person(240, 810, {
+        skin: SKIN[4],
+        shirt: C.yellow,
+        hair: "wrap",
+        cap: C.yellow,
+        size: 1.1,
+        arm: "phone",
+      }) +
+      rings(750, 560, 44, t, C.green, 1) +
+      ground(820, 1000),
+  },
+  {
+    id: "scene-auth-market",
+    w: 1000,
+    h: 1000,
+    animated: true,
+    placement: "Sign up page, a busy open-air market",
+    alt: "An open-air market with striped awnings, baskets of fruit, a steaming pot and shoppers",
+    draw: (t) => {
+      const stall = (x, w, flip) =>
+        rect(x + 8, 330, 14, 300, C.ink700) +
+        rect(x + w - 22, 330, 14, 300, C.ink700) +
+        rect(x - 6, 296, w + 12, 18, C.ink700, 8) +
+        Array.from({ length: Math.round(w / 46) }, (_, i) =>
+          rect(
+            x + i * 46,
+            314,
+            46,
+            58 + wave(t, i * 0.6 + flip, 2) * 5,
+            (i + flip) % 2 ? C.yellow : C.green,
+          ),
+        ).join("");
+      return (
+        rect(0, 0, 1000, 1000, C.yellowTint) +
+        circle(850, 130, 66, C.yellow) +
+        bunting(40, 190, 960, 30) +
+        // sellers behind their counters
+        person(210, 648, {
+          skin: SKIN[2],
+          shirt: C.yellow,
+          hair: "wrap",
+          cap: C.yellow,
+          size: 1.15,
+          arm: "cup",
+        }) +
+        person(700, 648, {
+          skin: SKIN[0],
+          shirt: C.green,
+          size: 1.2,
+          arm: "up",
+          armWave: wave(t, 1, 5) * 16,
+        }) +
+        // left stall, fruit and fabric
+        stall(60, 320, 0) +
+        rect(60, 560, 320, 26, C.clay, 6) +
+        rect(72, 586, 296, 60, C.white) +
+        rect(86, 516, 120, 44, C.clay, 8) +
+        circle(112, 530, 16, C.yellow) +
+        circle(140, 522, 16, C.yellow) +
+        circle(168, 530, 16, C.yellow) +
+        circle(126, 512, 16, C.yellow) +
+        circle(154, 512, 16, C.yellow) +
+        rect(232, 508, 110, 16, C.green, 4) +
+        rect(240, 526, 110, 16, C.yellow, 4) +
+        rect(228, 544, 110, 16, C.greenDark, 4) +
+        // right stall, a steaming pot and tomatoes
+        stall(540, 380, 1) +
+        rect(540, 560, 380, 26, C.clay, 6) +
+        rect(552, 586, 356, 60, C.white) +
+        rect(600, 500, 130, 62, C.ink700, 12) +
+        circle(
+          625,
+          500 - ((t * 90 + 15) % 95),
+          9,
+          C.ink200,
+          `opacity="${0.55 - ((t * 90 + 15) % 95) / 190}"`,
+        ) +
+        circle(
+          655,
+          500 - ((t * 90 + 55) % 95),
+          8,
+          C.ink200,
+          `opacity="${0.55 - ((t * 90 + 55) % 95) / 190}"`,
+        ) +
+        rect(770, 520, 110, 40, C.clay, 8) +
+        circle(792, 532, 13, C.red) +
+        circle(818, 528, 13, C.red) +
+        circle(844, 532, 13, C.red) +
+        circle(805, 516, 13, C.red) +
+        circle(831, 516, 13, C.red) +
+        // shoppers in front
+        person(430, 810, { skin: SKIN[4], shirt: C.green, size: 1.15, arm: "phone" }) +
+        person(230, 830, {
+          skin: SKIN[3],
+          shirt: C.white,
+          hair: "afro",
+          size: 1.2,
+          arm: "up",
+          armWave: wave(t, 0, 5) * 16,
+          sway: wave(t, 2, 2) * 3,
+        }) +
+        // a shopper carrying a basket on her head
+        person(860, 820, { skin: SKIN[1], shirt: C.red, size: 1.1, sway: wave(t, 3, 2) * 4 }) +
+        rect(828, 692 + wave(t, 3, 2) * 4, 64, 26, C.clay, 12) +
+        rect(838, 682 + wave(t, 3, 2) * 4, 44, 12, C.yellow, 6) +
+        // road with a keke rolling past
+        rect(0, 896, 1000, 104, C.ink700) +
+        Array.from({ length: 8 }, (_, i) =>
+          rect(((i * 150 + t * 150) % 1200) - 80, 942, 80, 9, C.yellow, 4),
+        ).join("") +
+        keke(-260 + ((t + 0.25) % 1) * 1560, 960, 0.9)
+      );
+    },
+  },
+  {
+    id: "scene-auth-stadium",
+    w: 1000,
+    h: 1000,
+    animated: true,
+    placement: "Sign up page, a packed stadium on match day",
+    alt: "A stadium with a bouncing crowd, floodlights and players on a green pitch",
+    draw: (t) => {
+      const fanRow = (y, flip) =>
+        Array.from({ length: 15 }, (_, i) => {
+          const x = 92 + i * 56;
+          const bob = Math.abs(wave(t, i * 0.35 + flip, 5)) * 8;
+          const shirt = [C.white, C.green, C.yellow, C.greenDark][(i + flip) % 4];
+          return (
+            circle(x, y - bob, 15, SKIN[(i + flip) % SKIN.length]) +
+            rect(x - 17, y + 12 - bob, 34, 42, shirt, 8)
+          );
+        }).join("");
+      return (
+        rect(0, 0, 1000, 1000, C.white) +
+        circle(860, 110, 60, C.yellow) +
+        // floodlight masts and their glow
+        rect(60, 170, 14, 300, C.ink700) +
+        rect(926, 170, 14, 300, C.ink700) +
+        `<g transform="translate(30 130) rotate(12)">` +
+        rect(0, 0, 110, 44, C.ink, 8) +
+        circle(24, 22, 11, C.yellow) +
+        circle(55, 22, 11, C.yellow) +
+        circle(86, 22, 11, C.yellow) +
+        "</g>" +
+        `<g transform="translate(860 130) rotate(-12)">` +
+        rect(0, 0, 110, 44, C.ink, 8) +
+        circle(24, 22, 11, C.yellow) +
+        circle(55, 22, 11, C.yellow) +
+        circle(86, 22, 11, C.yellow) +
+        "</g>" +
+        `<polygon points="110,175 320,660 60,660" fill="${C.yellow}" opacity="${0.08 + pulse(t, 0, 1) * 0.05}"/>` +
+        `<polygon points="890,175 680,660 940,660" fill="${C.yellow}" opacity="${0.08 + pulse(t, 0.5, 1) * 0.05}"/>` +
+        // the stands: three rows of fans bobbing
+        rect(60, 300, 880, 96, C.greenTint, 8) +
+        fanRow(330, 0) +
+        rect(60, 400, 880, 96, C.yellowTint, 8) +
+        fanRow(430, 1) +
+        rect(60, 500, 880, 96, C.greenTint, 8) +
+        fanRow(530, 2) +
+        // flags waving on the stands
+        rect(130, 210, 6, 110, C.ink700) +
+        `<path d="M136 214 l${56 + wave(t, 0, 4) * 8} 14 l-${56 + wave(t, 0, 4) * 8} 16 Z" fill="${C.green}"/>` +
+        rect(864, 210, 6, 110, C.ink700) +
+        `<path d="M864 214 l${-56 - wave(t, 2, 4) * 8} 14 l${56 + wave(t, 2, 4) * 8} 16 Z" fill="${C.yellow}"/>` +
+        // ad boards, no words
+        rect(60, 616, 880, 46, C.green, 8) +
+        Array.from({ length: 7 }, (_, i) =>
+          rect(100 + i * 126, 632, 60, 14, C.white, 7, 'opacity="0.5"'),
+        ).join("") +
+        // the pitch
+        rect(0, 664, 1000, 336, "#2E8B57") +
+        rect(0, 664, 1000, 10, "#25764A") +
+        `<line x1="500" y1="664" x2="500" y2="1000" stroke="${C.white}" stroke-width="6" opacity="0.7"/>` +
+        circle(500, 832, 78, "none", `stroke="${C.white}" stroke-width="6" opacity="0.7"`) +
+        circle(500, 832, 9, C.white) +
+        // goal at the left edge
+        rect(20, 780, 8, 130, C.white, 4) +
+        rect(120, 780, 8, 130, C.white, 4) +
+        rect(20, 774, 108, 10, C.white, 5) +
+        // two players mid-game and the ball in the air
+        person(360, 880, {
+          skin: SKIN[1],
+          shirt: C.white,
+          pants: C.ink,
+          size: 1.1,
+          sway: wave(t, 0, 3) * 6,
+        }) +
+        person(640, 890, {
+          skin: SKIN[3],
+          shirt: C.yellow,
+          pants: C.ink,
+          size: 1.1,
+          arm: "up",
+          armWave: wave(t, 1, 6) * 14,
+          sway: wave(t, 1, 3) * 6,
+        }) +
+        ball(500 + wave(t, 0, 1) * 130, 940, t, 16)
+      );
+    },
+  },
+  {
     id: "scene-final-cta",
     w: 1000,
     h: 800,
@@ -544,7 +1367,7 @@ for (const scene of SCENES) {
     const info = await sharp(joined, {
       raw: { width: aw, height: ah * FRAMES, channels: 4, pageHeight: ah },
     })
-      .webp({ quality: 72, alphaQuality: 80, effort: 5, loop: 3, delay: Array(FRAMES).fill(160) })
+      .webp({ quality: 72, alphaQuality: 80, effort: 5, loop: 0, delay: Array(FRAMES).fill(160) })
       .toFile(path.join(out, `${scene.id}.webp`));
     sizes.push({ width: aw, height: ah, file: animatedFile, animated: true, bytes: info.size });
     process.stdout.write(`${scene.id}: still ok, animated ${Math.round(info.size / 1024)} KB\n`);
@@ -561,7 +1384,7 @@ for (const scene of SCENES) {
     decorative: scene.alt === "",
     animated: scene.animated,
     static: `scenes/${scene.id}.png`,
-    loopCount: scene.animated ? 3 : 0,
+    loopCount: 0,
     prompt:
       "Drawn in code by scripts/graphics/scenes.mjs: flat vector scene, brand palette, no text.",
     status: "DRAFT",

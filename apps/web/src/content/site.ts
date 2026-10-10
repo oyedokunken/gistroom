@@ -33,6 +33,7 @@ export const serverError = {
 
 /** The only place the builder is named on the public site: one line in the footer. */
 export const builderCredit = {
-  text: "Built by Oyedokun Ken",
+  prefix: "Built by",
+  label: "@oyedokunken",
   href: "https://www.oyedokun.dev/",
 } as const;

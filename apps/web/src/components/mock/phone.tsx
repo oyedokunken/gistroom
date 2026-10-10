@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { ChevronLeft, Wifi } from "lucide-react";
-import { mockLabels as L } from "@/content/marketing";
 import { cn } from "@/lib/cn";
 
 /** Status bar of a Samsung style phone: time on the left, Wi-Fi, signal and battery on the right. */
@@ -106,7 +105,9 @@ export function PhoneFrame({
           <SamsungNavBar tone={tone} />
         </div>
       </div>
-      <figcaption className="mt-3 text-center text-sm opacity-70">{label ?? L.sample}</figcaption>
+      {label ? (
+        <figcaption className="mt-3 text-center text-sm opacity-70">{label}</figcaption>
+      ) : null}
     </figure>
   );
 }

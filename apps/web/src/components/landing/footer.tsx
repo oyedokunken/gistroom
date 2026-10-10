@@ -107,7 +107,7 @@ export function Footer({ year = new Date().getUTCFullYear() }: { year?: number }
           <ThemeToggle />
         </div>
 
-        {/* One row, exactly as wide as the wordmark above it. */}
+        {/* As wide as the wordmark above it. Phones may wrap onto a second row. */}
         <div
           data-legal-row
           className="mx-[6%] mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-0 whitespace-nowrap text-[clamp(0.5625rem,2.9vw,0.875rem)] tracking-tight text-text-muted md:justify-between"

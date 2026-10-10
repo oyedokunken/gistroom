@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Check } from "lucide-react";
+import { ArrowRight, Check, Mail } from "lucide-react";
+import { CardIcon, type CardIconName } from "@/components/public/card-icon";
 import { PublicPage } from "@/components/public/public-page";
 import { DevicesMock } from "@/components/public/mocks";
-import { Band, Callout, CtaBand, HeroActions, PageHero } from "@/components/public/sections";
+import { Band, CtaBand, HeroActions, PageHero } from "@/components/public/sections";
 import { cta, securityPage as p } from "@/content/marketing";
 import { security } from "@/content/pages";
 import { breadcrumbJsonLd } from "@/lib/jsonld";
@@ -51,10 +52,11 @@ export default function Page() {
               aria-labelledby={`${pillar.id}-h`}
               className={
                 i === 0
-                  ? "rounded-hero bg-green-600 p-8 text-white md:col-span-2 md:p-12"
-                  : "rounded-card bg-surface-2 p-8"
+                  ? "group rounded-hero bg-green-600 p-8 text-white md:col-span-2 md:p-12"
+                  : "group rounded-card bg-surface-2 p-8"
               }
             >
+              <CardIcon name={pillar.icon as CardIconName} className="mb-4" />
               <h3
                 id={`${pillar.id}-h`}
                 className="text-2xl font-bold tracking-[-0.02em] md:text-3xl"
@@ -82,27 +84,48 @@ export default function Page() {
         </div>
       </Band>
 
-      <Band tone={tones[2]}>
-        <Callout title={p.honest.title} body={p.honest.body} tone="yellow" />
-      </Band>
-
-      <Band tone={tones[3]} labelledBy="report-h">
-        <div className="grid items-center gap-8 md:grid-cols-[1fr_auto]">
-          <div>
+      <Band tone={tones[2]} labelledBy="honest-h">
+        <div className="grid overflow-hidden rounded-hero md:grid-cols-2">
+          <section
+            aria-labelledby="honest-h"
+            className="flex flex-col items-start bg-yellow-400 p-8 text-ink-950 md:p-12"
+          >
+            <CardIcon name={p.honest.icon as CardIconName} className="mb-4" />
+            <h2
+              id="honest-h"
+              className="text-[clamp(1.5rem,3.5vw,2.25rem)] font-bold tracking-[-0.02em]"
+            >
+              {p.honest.title}
+            </h2>
+            <p className="mt-3 max-w-[56ch] pb-6 text-lg">{p.honest.body}</p>
+            <Link
+              href={p.honest.action.href}
+              className="mt-auto inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-ink-950 px-8 font-semibold text-white hover:bg-ink-700"
+            >
+              {p.honest.action.label}
+              <ArrowRight aria-hidden className="size-4" />
+            </Link>
+          </section>
+          <section
+            aria-labelledby="report-h"
+            className="flex flex-col items-start bg-ink-950 p-8 text-white md:p-12"
+          >
+            <CardIcon name={p.report.icon as CardIconName} className="mb-4" />
             <h2
               id="report-h"
-              className="text-[clamp(1.75rem,4vw,2.5rem)] font-bold tracking-[-0.02em]"
+              className="text-[clamp(1.5rem,3.5vw,2.25rem)] font-bold tracking-[-0.02em]"
             >
               {p.report.title}
             </h2>
-            <p className="mt-3 max-w-[56ch] text-lg text-white/85">{p.report.body}</p>
-          </div>
-          <Link
-            href={p.report.action.href}
-            className="inline-flex min-h-12 items-center justify-center rounded-full bg-yellow-400 px-8 font-semibold text-ink-950 hover:bg-yellow-100"
-          >
-            {p.report.action.label}
-          </Link>
+            <p className="mt-3 max-w-[56ch] pb-6 text-lg text-white/85">{p.report.body}</p>
+            <Link
+              href={p.report.action.href}
+              className="mt-auto inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-yellow-400 px-8 font-semibold text-ink-950 hover:bg-yellow-100"
+            >
+              <Mail aria-hidden className="size-4" />
+              {p.report.action.label}
+            </Link>
+          </section>
         </div>
       </Band>
 
@@ -111,6 +134,8 @@ export default function Page() {
         body="Make an account in a minute. You choose who can reach you."
         primary={cta.enter}
         secondary={cta.safety}
+        art="scene-barbershop"
+        icon="account"
       />
     </PublicPage>
   );

@@ -145,14 +145,16 @@ function DesktopDock() {
             <Link
               href="/"
               aria-label={nav.home}
-              className="flex min-h-11 min-w-11 items-center justify-center rounded-full"
+              className="flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full"
             >
-              <LogoMark size={32} className="text-text" />
+              <LogoMark size={32} className="text-green-600 dark:text-text" />
+              <span className="text-lg font-black tracking-[-0.02em]">gistroom</span>
             </Link>
             <LayoutGroup id="dock">
               <ul className="hidden items-center md:flex" onMouseLeave={() => setActive(null)}>
                 {nav.items.map((item) => {
                   const current = pathname === item.href;
+                  const hot = active === item.id || current;
                   return (
                     <li key={item.id} className="relative">
                       <Link
@@ -163,14 +165,17 @@ function DesktopDock() {
                         onBlur={() => setActive(null)}
                         className="relative flex min-h-11 items-center px-4 text-[0.9375rem] font-medium text-text"
                       >
-                        {active === item.id ? (
+                        {hot ? (
                           <motion.span
                             layoutId="dock-blob"
                             transition={spring}
-                            className="absolute inset-0 -z-10 rounded-full bg-green-100"
+                            className={cn(
+                              "absolute inset-0 -z-10 rounded-full bg-green-100",
+                              current && "ring-1 ring-green-600/40",
+                            )}
                           />
                         ) : null}
-                        <span className={cn(active === item.id && "text-green-700")}>
+                        <span className={cn(hot && "text-green-700", current && "font-semibold")}>
                           {item.label}
                         </span>
                       </Link>
@@ -223,7 +228,7 @@ function DesktopDock() {
                 onClick={() => setFanned((v) => !v)}
                 className="pointer-events-auto relative flex size-14 items-center justify-center rounded-full border border-border bg-surface shadow-lift"
               >
-                <LogoMark size={36} className="text-text" />
+                <LogoMark size={36} className="text-green-600 dark:text-text" />
               </button>
             </div>
             <div ref={fanRef} className="absolute left-1/2 top-7 size-0">
@@ -232,6 +237,7 @@ function DesktopDock() {
                   ? fanItems.map((item, i) => {
                       const a = ((angles[i] ?? 90) * Math.PI) / 180;
                       const Icon = item.icon;
+                      const current = pathname === item.href;
                       return (
                         <motion.div
                           key={item.id}
@@ -249,12 +255,16 @@ function DesktopDock() {
                           <Link
                             href={item.href}
                             aria-label={item.label}
+                            aria-current={current ? "page" : undefined}
                             onClick={() => setFanned(false)}
                             className={cn(
                               "flex size-11 items-center justify-center rounded-full shadow-soft",
                               item.id === "cta"
                                 ? "bg-green-600 text-white"
                                 : "bg-surface text-text",
+                              current &&
+                                item.id !== "cta" &&
+                                "bg-green-100 text-green-700 ring-2 ring-green-600",
                             )}
                           >
                             <Icon aria-hidden className="size-5" />

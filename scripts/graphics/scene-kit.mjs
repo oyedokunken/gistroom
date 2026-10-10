@@ -34,6 +34,7 @@ export function person(x, base, opts = {}) {
     hair = "low",
     cap = C.yellow,
     arm = "none",
+    armWave = 0,
     size = 1,
     sway = 0,
     sit = false,
@@ -60,8 +61,11 @@ export function person(x, base, opts = {}) {
   g += `<rect x="${-bodyW / 2}" y="${topY}" width="${bodyW}" height="${bodyH}" rx="${12 * s}" fill="${shirt}"/>`;
   g += `<rect x="${-bodyW / 2 - 7 * s}" y="${topY + 6 * s}" width="${11 * s}" height="${bodyH * 0.7}" rx="${5 * s}" fill="${shirt}"/>`;
   if (arm === "up") {
-    g += `<rect x="${bodyW / 2 - 4 * s}" y="${topY - 28 * s}" width="${11 * s}" height="${50 * s}" rx="${5 * s}" fill="${shirt}" transform="rotate(14 ${bodyW / 2} ${topY})"/>`;
-    g += `<circle cx="${bodyW / 2 + 8 * s}" cy="${topY - 30 * s}" r="${6 * s}" fill="${skin}"/>`;
+    g +=
+      `<g transform="rotate(${14 + armWave} ${bodyW / 2} ${topY})">` +
+      `<rect x="${bodyW / 2 - 4 * s}" y="${topY - 28 * s}" width="${11 * s}" height="${50 * s}" rx="${5 * s}" fill="${shirt}"/>` +
+      `<circle cx="${bodyW / 2 + 8 * s}" cy="${topY - 30 * s}" r="${6 * s}" fill="${skin}"/>` +
+      "</g>";
   } else if (arm === "phone" || arm === "cup") {
     g += `<rect x="${bodyW / 2 - 6 * s}" y="${topY + 8 * s}" width="${11 * s}" height="${30 * s}" rx="${5 * s}" fill="${shirt}" transform="rotate(-30 ${bodyW / 2} ${topY + 8 * s})"/>`;
     g +=
@@ -149,6 +153,7 @@ export function danfo(x, base, s = 1, t = 0) {
     shirt: C.white,
     skin: SKIN[1],
     arm: "up",
+    armWave: wave(t, 0, 6) * 18,
     sway: wave(t, 0, 2) * 2,
   });
   return g;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import * as RadixPopover from "@radix-ui/react-popover";
+import { motion } from "motion/react";
 import { Monitor, Moon, Sun, type LucideIcon } from "lucide-react";
 import { footer } from "@/content/landing";
 import { cn } from "@/lib/cn";
@@ -93,25 +93,62 @@ export function ThemeToggle({
 
   const ActiveIcon = (options.find((o) => o.value === pref) ?? options[2]!).icon;
   return (
-    <RadixPopover.Root open={open} onOpenChange={setOpen}>
-      <RadixPopover.Trigger
-        type="button"
-        aria-label={footer.theme.label}
-        className="inline-flex size-11 items-center justify-center rounded-full bg-surface text-text shadow-soft transition-colors hover:text-green-700"
+    <div className={cn("relative size-11", className)}>
+      {open ? (
+        <button
+          type="button"
+          aria-label={footer.theme.close}
+          tabIndex={-1}
+          onClick={() => setOpen(false)}
+          className="fixed inset-0 z-40 cursor-default"
+        />
+      ) : null}
+      <motion.div
+        initial={false}
+        animate={{ width: open ? "auto" : "100%" }}
+        transition={{ type: "spring", stiffness: 360, damping: 30 }}
+        className="absolute right-0 top-0 z-50 flex h-11 items-center justify-end overflow-hidden rounded-full bg-surface text-text shadow-soft"
       >
-        <ActiveIcon aria-hidden className="size-4" />
-      </RadixPopover.Trigger>
-      <RadixPopover.Portal>
-        <RadixPopover.Content
-          align="end"
-          side="top"
-          sideOffset={8}
-          collisionPadding={12}
-          className="z-50"
-        >
-          {group}
-        </RadixPopover.Content>
-      </RadixPopover.Portal>
-    </RadixPopover.Root>
+        {open ? (
+          <div
+            role="radiogroup"
+            aria-label={footer.theme.label}
+            tabIndex={-1}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setOpen(false);
+            }}
+            className="flex gap-1 p-1"
+          >
+            {options.map(({ value, label, icon: Icon }) => (
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={pref === value}
+                aria-label={label}
+                onClick={() => choose(value)}
+                className={cn(
+                  "inline-flex size-9 items-center justify-center rounded-full transition-colors",
+                  pref === value ? "bg-green-600 text-white" : "text-text-muted hover:text-text",
+                )}
+              >
+                <Icon aria-hidden className="size-4" />
+              </button>
+            ))}
+          </div>
+        ) : (
+          <button
+            type="button"
+            aria-label={footer.theme.label}
+            aria-expanded={false}
+            aria-haspopup="true"
+            onClick={() => setOpen(true)}
+            className="inline-flex size-11 shrink-0 items-center justify-center rounded-full transition-colors hover:text-green-700"
+          >
+            <ActiveIcon aria-hidden className="size-4" />
+          </button>
+        )}
+      </motion.div>
+    </div>
   );
 }

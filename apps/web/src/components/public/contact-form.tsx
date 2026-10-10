@@ -42,7 +42,14 @@ export function ContactForm() {
       className="flex max-w-xl flex-col gap-4"
     >
       <Field label={copy.nameLabel} error={errors.name?.message}>
-        {(props) => <Input {...props} autoComplete="name" {...form.register("name")} />}
+        {(props) => (
+          <Input
+            {...props}
+            autoComplete="name"
+            placeholder={copy.namePlaceholder}
+            {...form.register("name")}
+          />
+        )}
       </Field>
       <Field label={copy.emailLabel} error={errors.email?.message}>
         {(props) => (
@@ -53,12 +60,20 @@ export function ContactForm() {
             autoComplete="email"
             autoCapitalize="none"
             spellCheck={false}
+            placeholder={copy.emailPlaceholder}
             {...form.register("email")}
           />
         )}
       </Field>
-      <Field label={copy.messageLabel} help={copy.messageHelp} error={errors.message?.message}>
-        {(props) => <Textarea {...props} rows={5} {...form.register("message")} />}
+      <Field label={copy.messageLabel} error={errors.message?.message}>
+        {(props) => (
+          <Textarea
+            {...props}
+            rows={5}
+            placeholder={copy.messageHelp}
+            {...form.register("message")}
+          />
+        )}
       </Field>
       {/* Bots fill every field. People never see this one. */}
       <div aria-hidden className="absolute -left-[9999px] h-0 w-0 overflow-hidden">

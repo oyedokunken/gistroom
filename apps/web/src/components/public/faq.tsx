@@ -5,21 +5,33 @@ export interface FaqItem {
   answer: string;
 }
 
-/** Native details elements: keyboard and screen reader friendly with no script. */
-export function Faq({ items }: { items: readonly FaqItem[] }) {
+/** Native details elements: keyboard and screen reader friendly with no script. Two columns on desktop. The shared `name` makes a group exclusive: opening one closes the others. */
+export function Faq({ items, name = "faq" }: { items: readonly FaqItem[]; name?: string }) {
+  const mid = Math.ceil(items.length / 2);
+  const columns = [items.slice(0, mid), items.slice(mid)];
   return (
-    <div className="divide-y divide-border rounded-card border border-border">
-      {items.map((item) => (
-        <details key={item.question} className="group px-5">
-          <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-3 text-left text-lg font-semibold text-text">
-            {item.question}
-            <ChevronDown
-              aria-hidden
-              className="size-5 shrink-0 text-text-muted transition-transform group-open:rotate-180"
-            />
-          </summary>
-          <p className="max-w-[68ch] pb-5 text-text-muted">{item.answer}</p>
-        </details>
+    <div className="grid gap-4 md:grid-cols-2 md:items-start">
+      {columns.map((column, i) => (
+        <div key={i} className="flex flex-col gap-3">
+          {column.map((item) => (
+            <details
+              key={item.question}
+              name={name}
+              className="group rounded-card border border-border bg-surface px-5 transition-colors hover:border-yellow-400 hover:bg-yellow-400 open:border-yellow-400 open:bg-yellow-400"
+            >
+              <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-3 text-left text-lg font-semibold text-text group-hover:text-ink-950 group-open:text-ink-950">
+                {item.question}
+                <ChevronDown
+                  aria-hidden
+                  className="size-5 shrink-0 text-text-muted transition-transform group-hover:text-ink-950 group-open:rotate-180 group-open:text-ink-950"
+                />
+              </summary>
+              <p className="max-w-[68ch] pb-5 text-text-muted group-open:text-ink-950/80">
+                {item.answer}
+              </p>
+            </details>
+          ))}
+        </div>
       ))}
     </div>
   );

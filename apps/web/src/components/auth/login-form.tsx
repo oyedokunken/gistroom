@@ -164,15 +164,23 @@ export function LoginForm({ next, error }: AuthFormProps) {
         </form>
         <Divider />
         <GoogleButton next={next} />
-        <p className="text-sm text-text-muted">
-          {auth.noAccount}{" "}
+        <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+          <p className="text-text-muted">
+            {auth.noAccount}{" "}
+            <Link
+              href={signupHref}
+              className="font-semibold text-green-700 underline-offset-4 hover:underline"
+            >
+              {auth.signUpLink}
+            </Link>
+          </p>
           <Link
-            href={signupHref}
-            className="font-semibold text-green-700 underline-offset-4 hover:underline"
+            href="/forgot"
+            className="inline-flex min-h-11 items-center font-semibold text-green-700 underline-offset-4 hover:underline"
           >
-            {auth.signUpLink}
+            {auth.forgot}
           </Link>
-        </p>
+        </div>
         <Terms />
       </>
     );
@@ -186,7 +194,18 @@ export function LoginForm({ next, error }: AuthFormProps) {
         onSubmit={passwordForm.handleSubmit(submitPassword)}
         className="flex flex-col gap-4"
       >
-        <Field label={auth.passwordLabel} error={passwordForm.formState.errors.password?.message}>
+        <Field
+          label={auth.passwordLabel}
+          action={
+            <Link
+              href={`/forgot?email=${encodeURIComponent(email)}`}
+              className="text-sm font-semibold text-green-700 underline-offset-4 hover:underline"
+            >
+              {auth.forgot}
+            </Link>
+          }
+          error={passwordForm.formState.errors.password?.message}
+        >
           {(props) => (
             <PasswordInput
               {...props}
@@ -199,13 +218,7 @@ export function LoginForm({ next, error }: AuthFormProps) {
           {passwordForm.formState.isSubmitting ? auth.signingIn : auth.signIn}
         </Button>
       </form>
-      <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-        <Link
-          href={`/forgot?email=${encodeURIComponent(email)}`}
-          className="inline-flex min-h-11 items-center font-semibold text-green-700 underline-offset-4 hover:underline"
-        >
-          {auth.forgot}
-        </Link>
+      <div className="flex flex-wrap items-center justify-end gap-2 text-sm">
         <button
           type="button"
           onClick={() => setEmail(null)}

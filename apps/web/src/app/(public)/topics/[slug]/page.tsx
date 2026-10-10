@@ -4,6 +4,9 @@ import { notFound } from "next/navigation";
 import { TOPICS, topicBySlug } from "@gistroom/shared";
 import { ProsePage } from "@/components/public/prose-page";
 import { PublicPage } from "@/components/public/public-page";
+import { CtaBand } from "@/components/public/sections";
+import type { CardIconName } from "@/components/public/card-icon";
+import { cta } from "@/content/marketing";
 import { RoomCard } from "@/components/public/room-card";
 import { buttonStyles } from "@/components/ui/button";
 import { topicsPage } from "@/content/pages";
@@ -88,6 +91,16 @@ export default async function TopicPage({ params }: { params: Promise<{ slug: st
             ),
           },
         ]}
+        after={
+          <CtaBand
+            title={topicsPage.closing.title(topic.name)}
+            body={topicsPage.closing.body}
+            primary={{ label: topicsPage.start, href: `/app/rooms?new=1&topic=${topic.slug}` }}
+            secondary={cta.safety}
+            art={topicsPage.scenes[topic.slug] ?? "scene-final-cta"}
+            icon={topic.slug as CardIconName}
+          />
+        }
       />
     </PublicPage>
   );

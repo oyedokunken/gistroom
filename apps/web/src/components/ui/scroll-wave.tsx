@@ -8,10 +8,11 @@ import {
   type KeyboardEvent,
   type PointerEvent,
 } from "react";
+import { Pause, Play, Square } from "lucide-react";
 import { footer } from "@/content/landing";
 import { cn } from "@/lib/cn";
 
-const BARS = 28;
+const BARS = 26;
 
 /** Fixed, pseudo random bar heights so the waveform looks like a voice note and never changes between renders. */
 const HEIGHTS: number[] = Array.from({ length: BARS }, (_, i) => {
@@ -125,6 +126,18 @@ export function ScrollWave({ className }: { className?: string }) {
         onKeyDown={onKeyDown}
         className="pointer-events-auto flex h-12 w-72 cursor-pointer touch-none select-none items-center justify-between rounded-full border border-border bg-surface/95 px-4 shadow-soft backdrop-blur"
       >
+        <span
+          aria-hidden
+          className="flex size-7 shrink-0 items-center justify-center rounded-full bg-green-600 text-white"
+        >
+          {progress >= 0.99 ? (
+            <Square className="size-3 fill-current" />
+          ) : progress > 0.01 ? (
+            <Pause className="size-3.5 fill-current" />
+          ) : (
+            <Play className="ml-0.5 size-3.5 fill-current" />
+          )}
+        </span>
         {HEIGHTS.map((h, i) => {
           const played = i <= playing;
           const current = i === playing;

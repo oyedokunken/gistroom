@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 /* Noto Sans fallback for glyphs Graphik lacks (naira, Yoruba, Igbo, Hausa letters). See wiki/Design-System.md */
 @font-face {
   font-family: "Noto Sans Gistroom";

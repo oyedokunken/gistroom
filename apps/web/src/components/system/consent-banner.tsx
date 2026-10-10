@@ -1,8 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Cookie } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { consent as copy } from "@/content/consent";
@@ -54,10 +54,14 @@ export function ConsentBanner() {
       aria-label={copy.title}
       className="fixed inset-x-3 bottom-[calc(5.75rem+env(safe-area-inset-bottom))] z-40 mx-auto max-w-lg rounded-card border border-border bg-surface p-4 shadow-lift md:inset-x-auto md:bottom-4 md:left-4 md:mx-0"
     >
-      <h2 className="flex items-center gap-2 text-base font-bold text-text">
-        <Cookie aria-hidden className="size-4 text-green-600" />
-        {copy.title}
-      </h2>
+      <Image
+        src="/images/icons/mascot-gist.png"
+        alt=""
+        width={36}
+        height={36}
+        className="mb-2 size-9"
+      />
+      <h2 className="text-base font-bold text-text">{copy.title}</h2>
       <p className="mt-1 text-sm text-text-muted">
         {copy.body}{" "}
         <Link

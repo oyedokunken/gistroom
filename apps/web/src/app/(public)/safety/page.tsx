@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { PublicPage } from "@/components/public/public-page";
 import { SafetyMock } from "@/components/public/mocks";
 import {
   Band,
   Bento,
-  Callout,
   CtaBand,
   HeroActions,
   PageHero,
@@ -61,12 +61,35 @@ export default function Page() {
       </Band>
 
       <Band tone={tones[3]} labelledBy="how-h">
-        <SectionHead id="how-h" title={p.how.title} />
+        <SectionHead id="how-h" title={p.how.title} lead={p.how.lead} />
         <Steps items={p.how.steps} />
       </Band>
 
-      <Band tone={tones[4]}>
-        <Callout title={p.moderators.title} body={p.moderators.body} tone="soft" />
+      <Band tone={tones[4]} labelledBy="mods-h">
+        <div className="grid items-center gap-8 rounded-hero bg-surface-2 p-8 md:grid-cols-[1fr_auto] md:p-12">
+          <div>
+            <h2
+              id="mods-h"
+              className="text-[clamp(1.5rem,3.5vw,2.25rem)] font-bold tracking-[-0.02em]"
+            >
+              {p.moderators.title}
+            </h2>
+            <p className="mt-3 max-w-[62ch] text-lg">{p.moderators.body}</p>
+            <Link
+              href={p.moderators.action.href}
+              className="mt-6 inline-flex min-h-12 items-center justify-center rounded-full bg-yellow-400 px-8 font-semibold text-ink-950 hover:bg-yellow-100"
+            >
+              {p.moderators.action.label}
+            </Link>
+          </div>
+          <Image
+            src="/images/icons/moderator.png"
+            alt=""
+            width={160}
+            height={160}
+            className="hidden size-40 shrink-0 md:block"
+          />
+        </div>
       </Band>
 
       <Band tone={tones[5]} labelledBy="contact-h">
@@ -94,6 +117,8 @@ export default function Page() {
         body="You decide who can reach you, and you can block or report in one tap."
         primary={cta.enter}
         secondary={cta.features}
+        art="scene-moderators"
+        icon="moderator"
       />
     </PublicPage>
   );

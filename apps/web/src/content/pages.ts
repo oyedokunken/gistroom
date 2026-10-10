@@ -90,7 +90,7 @@ export const features = {
     },
     {
       id: "chats",
-      heading: "Chats that feel right",
+      heading: "Chat all you want, anytime",
       bullets: [
         "Bubbles with the time on every message, in your own time zone",
         "Voice notes, photos, videos and files",
@@ -101,15 +101,15 @@ export const features = {
     },
     {
       id: "calls",
-      heading: "Calls that switch",
+      heading: "Switch anytime",
       body: [
-        "Call a friend with audio or video and change your mind in the middle. Turn your camera on or off without hanging up.",
+        "Start a call on audio and turn your camera on in the middle of it, or drop the video and keep talking when data gets tight. No hanging up, no calling back.",
         "If the network gets weak, Gistroom offers to switch to audio only so the conversation keeps going.",
       ],
     },
     {
       id: "rooms",
-      heading: "Rooms for the whole conversation",
+      heading: "A room for every gist",
       body: [
         "Start a room on the spot or schedule one. Pick a topic and a language: English, Pidgin, Yoruba, Igbo or Hausa. Make it public or keep it private for the people you invite.",
         "Moderators can mute, remove and ban, lock the room and delete room chat. The host sees a log of every moderator action.",
@@ -291,6 +291,10 @@ export const changelog = {
   title: "Changelog",
   description: "What changed in Gistroom and when.",
   lead: "A running list of what we have built and fixed.",
+  closing: {
+    title: "See it live, not just in the notes.",
+    body: "Open Gistroom and try the things on this list for yourself.",
+  },
 };
 
 export const support = {
@@ -300,6 +304,10 @@ export const support = {
   contactHeading: "Write to us",
   faqHeading: "Common questions",
   troubleHeading: "Troubleshooting",
+  closing: {
+    title: "We have got you.",
+    body: "Open Gistroom and get talking. If anything goes wrong, you know where to find us.",
+  },
 };
 
 export const roomsPage = {
@@ -318,6 +326,61 @@ export const roomsPage = {
   allLanguages: "All languages",
   join: "Join",
   scheduled: (when: string) => `Starts ${when}`,
+  how: {
+    title: "How a room works",
+    lead: "No setup, no downloads. A room is a live group call that ends when the gist does.",
+    steps: [
+      {
+        icon: "open-gist" as const,
+        title: "Start in one tap",
+        body: "Pick a topic, choose public or private, and the room is live.",
+      },
+      {
+        icon: "friends" as const,
+        title: "People join",
+        body: "Public rooms show on this page. Private rooms only open through your invite link.",
+      },
+      {
+        icon: "moderator" as const,
+        title: "Hosts keep it calm",
+        body: "Mute, remove, ban and lock. Every moderator action is logged.",
+      },
+      {
+        icon: "speed" as const,
+        title: "It ends when it ends",
+        body: "The room disbands when the host closes it or everyone leaves. Chats between friends stay forever.",
+      },
+    ],
+  },
+  browse: {
+    title: "Browse by topic",
+    lead: "Every room lives under a topic. Pick a card and open its page to see what is live there.",
+  },
+  kinds: {
+    title: "Public, private and your language",
+    lead: "Two ways to gist, five ways to say it.",
+    items: [
+      {
+        icon: "open-gist" as const,
+        title: "Public rooms",
+        body: "Anyone can find and join them from this page. Good for open gist on the big topics.",
+      },
+      {
+        icon: "private-room" as const,
+        title: "Private rooms",
+        body: "Only people with your invite link get in. You can revoke the link any time.",
+      },
+      {
+        icon: "voice" as const,
+        title: "Your language",
+        body: "Tag English, Pidgin, Yoruba, Igbo or Hausa so people know what to expect before they join.",
+      },
+    ],
+  },
+  closing: {
+    title: "The gist is already going.",
+    body: "Start your own room in one tap, or drop into one that is live right now.",
+  },
 };
 
 export const topicsPage = {
@@ -326,22 +389,49 @@ export const topicsPage = {
   none: "No live rooms on this topic right now.",
   start: "Start a room on this topic",
   other: "Other topics",
+  closing: {
+    title: (name: string) => `The ${name.toLowerCase()} gist will not wait.`,
+    body: "Start a room on this topic and let people come meet you inside.",
+  },
+  scenes: {
+    football: "scene-football-centre",
+    "music-and-gbedu": "scene-rooftop",
+    "politics-and-governance": "scene-danfo",
+    "tech-and-startups": "scene-keke",
+    "business-and-money": "scene-danfo",
+    relationships: "scene-barbershop",
+    "faith-and-life": "scene-rooftop",
+    "campus-life": "scene-village-square",
+    "nollywood-and-entertainment": "scene-rooftop",
+    "food-and-chop": "scene-suya",
+    "health-and-wellness": "scene-barbershop",
+    "careers-and-jobs": "scene-door-check",
+    education: "scene-help-desk",
+    comedy: "scene-street-football",
+    "diaspora-and-japa": "scene-danfo",
+    "fashion-and-owambe": "scene-rooftop",
+    gaming: "scene-street-football",
+    "open-gist": "scene-village-square",
+  } as Record<string, import("@/components/public/sections").CtaSceneName>,
 };
 
 export const legal = {
   updated: "Last updated 10 October 2026",
-  draftNote:
-    "This is the working version of this page. It is reviewed against Nigerian law before launch.",
 };
 
 export const privacy = {
   title: "Privacy",
   description: "What Gistroom collects, why, how long we keep it, and your rights under the NDPA.",
   lead: "We collect what we need to run Gistroom and nothing we do not need. This page explains it.",
+  closing: {
+    title: "Your gist stays yours.",
+    body: "Now you know what we keep and why. Come and see it working for yourself.",
+  },
   sections: [
     {
       id: "who",
       heading: "Who we are",
+      icon: "account" as const,
       body: [
         "Gistroom is run from Nigeria. For privacy questions or to use your rights, write to support@gistroom.ng.",
       ],
@@ -349,6 +439,7 @@ export const privacy = {
     {
       id: "collect",
       heading: "What we collect",
+      icon: "privacy" as const,
       bullets: [
         "Account details: your email, name, username, profile photo and bio",
         "Your sign in method and a salted hash of your password if you set one",
@@ -361,6 +452,7 @@ export const privacy = {
     {
       id: "use",
       heading: "Why we use it",
+      icon: "idea" as const,
       bullets: [
         "To run the service: deliver messages, connect calls and rooms, and send alerts you asked for",
         "To keep people safe: stop abuse, review reports and enforce our rules",
@@ -371,6 +463,7 @@ export const privacy = {
     {
       id: "share",
       heading: "Who we share it with",
+      icon: "invites" as const,
       body: [
         "We use service providers to run Gistroom: hosting, a database and file store, a calling provider, email delivery, and Google when you choose to sign in with Google. They only get what they need to do that job.",
         "We do not sell your data. We share information with authorities only when the law requires it.",
@@ -379,6 +472,7 @@ export const privacy = {
     {
       id: "keep",
       heading: "How long we keep it",
+      icon: "starred" as const,
       bullets: [
         "Chats and media stay until you or the other person delete them, or until you delete your account",
         "Room chat is removed 24 hours after a room ends, kept only so reports can be handled",
@@ -389,6 +483,7 @@ export const privacy = {
     {
       id: "rights",
       heading: "Your rights",
+      icon: "law" as const,
       body: [
         "Under the Nigeria Data Protection Act you can ask to see your data, correct it, export it and delete it. You can export your data and delete your account from Settings. For anything else, write to support@gistroom.ng.",
       ],
@@ -396,6 +491,7 @@ export const privacy = {
     {
       id: "children",
       heading: "Age",
+      icon: "children" as const,
       body: [
         "Gistroom is for people who are 18 or older. If we find an account that belongs to someone younger, we remove it.",
       ],
@@ -403,6 +499,7 @@ export const privacy = {
     {
       id: "changes",
       heading: "Changes",
+      icon: "honest" as const,
       body: [
         "If we change this page in a way that matters, we tell you in the app before it takes effect.",
       ],
@@ -414,10 +511,15 @@ export const terms = {
   title: "Terms",
   description: "The rules for using Gistroom.",
   lead: "By using Gistroom you agree to these terms. They are short on purpose.",
+  closing: {
+    title: "Fair rules, fair gist.",
+    body: "Short terms on purpose, so the talking can start. Come and gist.",
+  },
   sections: [
     {
       id: "use",
       heading: "Using Gistroom",
+      icon: "open-gist" as const,
       bullets: [
         "You must be 18 or older",
         "You are responsible for your account and for what you say and share",
@@ -428,6 +530,7 @@ export const terms = {
     {
       id: "content",
       heading: "Your content",
+      icon: "media" as const,
       body: [
         "You own what you create. You give us permission to store it, send it to the people you choose and show it as part of the service. When you delete something, we remove it from the service, except where we must keep a copy for a report or by law.",
       ],
@@ -435,6 +538,7 @@ export const terms = {
     {
       id: "safety",
       heading: "Safety and enforcement",
+      icon: "moderator" as const,
       body: [
         "We can remove content, end rooms, suspend or delete accounts that break these terms or the law. We try to tell you why when we do.",
       ],
@@ -442,6 +546,7 @@ export const terms = {
     {
       id: "service",
       heading: "The service",
+      icon: "tools" as const,
       body: [
         "We work to keep Gistroom running, but we cannot promise it will always be available or free of mistakes. We may change or stop features. Calls and alerts depend on your network and device.",
       ],
@@ -449,6 +554,7 @@ export const terms = {
     {
       id: "liability",
       heading: "Liability",
+      icon: "honest" as const,
       body: [
         "To the extent the law allows, Gistroom is provided as it is, and we are not liable for losses that come from using it, or from what other people say or do on it.",
       ],
@@ -456,11 +562,13 @@ export const terms = {
     {
       id: "law",
       heading: "Governing law",
+      icon: "law" as const,
       body: ["These terms are governed by the laws of the Federal Republic of Nigeria."],
     },
     {
       id: "contact",
       heading: "Contact",
+      icon: "invites" as const,
       body: ["Questions about these terms: support@gistroom.ng."],
     },
   ] satisfies Section[],
@@ -470,19 +578,25 @@ export const cookies = {
   title: "Cookies",
   description: "The cookies and local storage Gistroom uses, and how to control them.",
   lead: "We use a small number of cookies. Most are needed to keep you signed in.",
+  closing: {
+    title: "Only the crumbs we need.",
+    body: "Your choices stay yours to change. Ready to gist?",
+  },
   sections: [
     {
       id: "essential",
       heading: "Essential",
+      icon: "account" as const,
       bullets: [
-        "gr_session keeps you signed in. It is private to your browser and expires after 30 days of no use",
-        "gr_oauth holds the short lived state for Google sign in",
-        "gr_consent remembers your cookie choices",
+        "Your sign in cookie keeps you signed in. It is private to your browser and expires after 30 days of no use",
+        "A short lived cookie holds the state for Google sign in",
+        "One cookie remembers your cookie choices",
       ],
     },
     {
       id: "functional",
       heading: "Functional",
+      icon: "theme" as const,
       bullets: [
         "Your theme choice, unsent message drafts and recent emoji are stored in your browser storage",
         "Your outgoing message queue is stored in your browser so messages can send when the network returns",
@@ -491,6 +605,7 @@ export const cookies = {
     {
       id: "analytics",
       heading: "Analytics",
+      icon: "speed" as const,
       body: [
         "We do not load analytics today. If we add it, it stays off until you say yes in the cookie banner.",
       ],
@@ -498,6 +613,7 @@ export const cookies = {
     {
       id: "control",
       heading: "Your choices",
+      icon: "privacy" as const,
       body: [
         "Change your choices any time with the Cookie settings button in the footer, or clear site data in your browser.",
       ],
@@ -509,10 +625,15 @@ export const acceptableUse = {
   title: "Acceptable use",
   description: "What is not allowed on Gistroom.",
   lead: "Plain rules so everyone knows where the line is.",
+  closing: {
+    title: "Good gist only.",
+    body: "That is all the rules are for. Come be part of it.",
+  },
   sections: [
     {
       id: "not-allowed",
       heading: "Do not",
+      icon: "no-hate" as const,
       bullets: [
         "Threaten, harass, bully or hate on anyone",
         "Share sexual content involving minors, or any content that exploits people",
@@ -527,6 +648,7 @@ export const acceptableUse = {
     {
       id: "rooms",
       heading: "In rooms",
+      icon: "open-gist" as const,
       bullets: [
         "Follow the host and moderators",
         "Do not disrupt a room on purpose",
@@ -536,6 +658,7 @@ export const acceptableUse = {
     {
       id: "enforcement",
       heading: "What happens if you break these",
+      icon: "law" as const,
       body: [
         "We can warn you, mute or remove you from a room, suspend your account or delete it. We may pass serious cases to the authorities.",
       ],
@@ -543,6 +666,7 @@ export const acceptableUse = {
     {
       id: "report",
       heading: "Report a problem",
+      icon: "report" as const,
       body: ["Use the report option in the app, or write to safety@gistroom.ng."],
     },
   ] satisfies Section[],
@@ -550,7 +674,9 @@ export const acceptableUse = {
 
 export const contactForm = {
   nameLabel: "Your name",
+  namePlaceholder: "Adaeze Okafor",
   emailLabel: "Your email",
+  emailPlaceholder: "adaeze@example.com",
   messageLabel: "How can we help?",
   messageHelp: "Tell us what happened and what you expected.",
   send: "Send message",

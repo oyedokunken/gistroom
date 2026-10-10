@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { ContactForm } from "@/components/public/contact-form";
+import { CtaBand } from "@/components/public/sections";
 import { Faq } from "@/components/public/faq";
 import { ProsePage } from "@/components/public/prose-page";
 import { PublicPage } from "@/components/public/public-page";
 import { faqItems, support, troubleshooting } from "@/content/pages";
+import { cta } from "@/content/marketing";
 import { breadcrumbJsonLd, faqJsonLd } from "@/lib/jsonld";
 import { pageMetadata } from "@/lib/seo";
 
@@ -34,7 +36,18 @@ export default function SupportPage() {
         ]}
         sections={[
           {
+            id: "contact",
+            icon: "invites",
+            heading: support.contactHeading,
+            extra: (
+              <div className="mt-4">
+                <ContactForm />
+              </div>
+            ),
+          },
+          {
             id: "faq",
+            icon: "open-gist",
             heading: support.faqHeading,
             extra: (
               <div className="mt-4">
@@ -44,23 +57,24 @@ export default function SupportPage() {
           },
           {
             id: "troubleshooting",
+            icon: "tools",
             heading: support.troubleHeading,
             extra: (
               <div className="mt-4">
-                <Faq items={troubleshooting} />
-              </div>
-            ),
-          },
-          {
-            id: "contact",
-            heading: support.contactHeading,
-            extra: (
-              <div className="mt-4">
-                <ContactForm />
+                <Faq items={troubleshooting} name="troubleshooting" />
               </div>
             ),
           },
         ]}
+        after={
+          <CtaBand
+            title={support.closing.title}
+            body={support.closing.body}
+            primary={cta.enter}
+            art="scene-help-desk"
+            icon="invites"
+          />
+        }
       />
     </PublicPage>
   );

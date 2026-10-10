@@ -30,7 +30,6 @@ export const auth = {
   signingAs: "Signing in as",
   createAccount: "Create my account",
   emailPlaceholder: "name@example.com",
-  sendCode: "Send my code",
   sendingCode: "Sending code",
   or: "or",
   google: "Continue with Google",
@@ -104,8 +103,9 @@ export const auth = {
 } as const;
 
 export const authArt = {
-  login: "auth-login",
-  signup: "auth-signup",
-  verify: "auth-verify",
-  onboarding: "auth-onboarding",
+  login: "scene-auth-city",
+  signup: "scene-auth-stadium",
+  verify: "scene-auth-verify",
+  forgot: "scene-auth-forgot",
+  onboarding: "scene-auth-onboarding",
 } as const;

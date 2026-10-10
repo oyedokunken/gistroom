@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Loader2, Search, X } from "lucide-react";
 import type { PublicRoomCard } from "@gistroom/shared";
 import { RoomCard } from "@/components/public/room-card";
+import { buttonStyles } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { roomsSearch as copy } from "@/content/marketing";
 import { roomsPage } from "@/content/pages";
@@ -149,18 +151,24 @@ export function RoomsExplorer({
 
       {rooms.length === 0 && !loading ? (
         <EmptyState
+          artId="empty-rooms"
           title={term ? copy.noResultsTitle(term) : roomsPage.emptyTitle}
           body={term ? copy.noResultsBody : roomsPage.emptyBody}
           action={
-            bare ? (
-              <button
-                type="button"
-                onClick={() => setRetryTick((n) => n + 1)}
-                className="min-h-11 px-3 text-sm font-semibold text-green-700 underline-offset-4 hover:underline"
-              >
-                {roomsPage.refresh}
-              </button>
-            ) : null
+            <div className="flex flex-col items-center gap-2">
+              <Link href="/app/rooms?new=1" className={buttonStyles("primary")}>
+                {roomsPage.start}
+              </Link>
+              {bare ? (
+                <button
+                  type="button"
+                  onClick={() => setRetryTick((n) => n + 1)}
+                  className="min-h-11 px-3 text-sm font-semibold text-green-700 underline-offset-4 hover:underline"
+                >
+                  {roomsPage.refresh}
+                </button>
+              ) : null}
+            </div>
           }
         />
       ) : (

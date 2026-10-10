@@ -23,21 +23,13 @@ export const nav = {
 } as const;
 
 export const hero = {
+  kicker: "Free to join, made for Nigerians",
   headline: "Come gist. Properly.",
   subhead:
     "Start a room, call your friends, or drop into a conversation already going on. Audio first, video when you want it, built for Nigerian data and Nigerian opinions.",
   primary: { label: "Enter Gistroom", href: "/login" },
   secondary: { label: "See live rooms", href: "/rooms" },
   stageLabel: "Friends gisting on a rooftop",
-  // Short lines of sample gist that drift through the hero. They are decoration, not real messages.
-  gist: [
-    "Who is watching the match tonight?",
-    "Abeg, run that story again.",
-    "Oya, join the room.",
-    "No wahala, I dey hear you.",
-    "Wetin you think about the new price?",
-    "How far, everybody?",
-  ],
 } as const;
 
 export const footer = {
@@ -83,6 +75,7 @@ export const footer = {
     light: "Light",
     dark: "Dark",
     system: "System",
+    close: "Close theme picker",
   },
   followTitle: "Follow",
   scrollTop: "Back to top",

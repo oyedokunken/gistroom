@@ -2,9 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import {
-  AnimatePresence,
   motion,
   useInView,
   useMotionValue,
@@ -67,48 +66,6 @@ function SoundBars({ run }: { run: boolean }) {
   );
 }
 
-/** Short lines of sample gist drifting in and out. Decorative, so hidden from assistive tech. */
-function DriftingGist({ run }: { run: boolean }) {
-  const [tick, setTick] = useState(0);
-  useEffect(() => {
-    if (!run) return;
-    const id = window.setInterval(() => setTick((t) => t + 1), 3200);
-    return () => window.clearInterval(id);
-  }, [run]);
-  const slots = [
-    { cls: "left-[4%] top-[8%]", offset: 0 },
-    { cls: "right-[4%] top-[30%]", offset: 2 },
-    { cls: "left-[10%] top-[56%]", offset: 4 },
-  ];
-  return (
-    <div aria-hidden className="pointer-events-none absolute inset-0">
-      {slots.map((slot, s) => {
-        const index = (tick + slot.offset) % hero.gist.length;
-        return (
-          <div key={s} className={`absolute max-w-[62%] ${slot.cls}`}>
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={index}
-                initial={{ opacity: 0, y: 12, scale: 0.94 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.45, delay: s * 0.25 }}
-                className={`rounded-bubble px-4 py-2.5 text-sm font-medium shadow-soft ${
-                  s === 1
-                    ? "rounded-br-sm bg-green-600 text-white"
-                    : "rounded-bl-sm bg-surface text-text"
-                }`}
-              >
-                {hero.gist[index]}
-              </motion.p>
-            </AnimatePresence>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 export function Hero() {
   const stage = useRef<HTMLDivElement>(null);
   const inView = useInView(stage, { margin: "0px 0px -10% 0px" });
@@ -134,8 +91,23 @@ export function Hero() {
   }
 
   return (
-    <section className="mx-auto grid max-w-[1200px] items-stretch gap-8 px-6 pb-24 pt-24 md:grid-cols-2 md:gap-12 md:pb-28 md:pt-32">
-      <div className="flex flex-col items-start justify-center gap-6 md:min-h-[34rem]">
+    <section className="relative mx-auto grid max-w-[1200px] items-stretch gap-8 overflow-hidden px-6 pb-24 pt-24 md:grid-cols-2 md:gap-12 md:pb-28 md:pt-32">
+      <svg
+        aria-hidden
+        className="pointer-events-none absolute inset-0 h-full w-full text-green-600 opacity-[0.07]"
+      >
+        <defs>
+          <pattern id="hero-grid" width="44" height="44" patternUnits="userSpaceOnUse">
+            <path d="M44 0H0V44" fill="none" stroke="currentColor" strokeWidth="2" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#hero-grid)" />
+      </svg>
+      <div className="relative flex flex-col items-start justify-center gap-6 md:min-h-[34rem]">
+        <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-1.5 text-sm font-semibold text-text">
+          <span aria-hidden className="size-2 rounded-full bg-green-600" />
+          {hero.kicker}
+        </span>
         <h1 className="text-[clamp(2.75rem,8.5vw,5rem)] font-black leading-[1.02] tracking-[-0.035em] text-text">
           {hero.headline}
         </h1>
@@ -144,7 +116,7 @@ export function Hero() {
           <Link href={hero.primary.href} className={buttonStyles("primary", "min-h-12 px-7")}>
             {hero.primary.label}
           </Link>
-          <Link href={hero.secondary.href} className={buttonStyles("secondary", "min-h-12 px-7")}>
+          <Link href={hero.secondary.href} className={buttonStyles("accent", "min-h-12 px-7")}>
             {hero.secondary.label}
           </Link>
         </div>
@@ -180,7 +152,6 @@ export function Hero() {
           <SpeakingRing className="right-[24%] top-[46%] size-[12%]" run={run} delay={0.6} />
         </motion.div>
         <SoundBars run={run} />
-        <DriftingGist run={run} />
         <motion.div
           className="pointer-events-none absolute inset-0"
           style={{ x: frontX, y: frontY }}

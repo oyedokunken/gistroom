@@ -1,7 +1,7 @@
 "use client";
 
+import Image from "next/image";
 import { motion, useReducedMotion } from "motion/react";
-import { LogoMark } from "@/components/brand/logo-mark";
 
 const BARS = 36;
 
@@ -45,7 +45,13 @@ function QuietRing({ code }: { code: string }) {
           }}
         />
       ))}
-      <LogoMark size={64} className="size-[44%] text-text" />
+      <Image
+        src="/brand/lockup-stacked.png"
+        alt=""
+        width={176}
+        height={150}
+        className="h-auto w-[58%]"
+      />
       <span className="sr-only">{code}</span>
     </span>
   );

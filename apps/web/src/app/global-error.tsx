@@ -31,6 +31,11 @@ export default function GlobalError({
           fontFamily: emailFontStack,
         }}
       >
+        <img
+          src="/brand/lockup-stacked.png"
+          alt="Gistroom"
+          style={{ width: 150, height: "auto" }}
+        />
         <h1 style={{ fontSize: "2rem", margin: 0 }}>{copy.heading}</h1>
         <p style={{ margin: 0, color: colors.ink700 }}>{copy.body}</p>
         <button

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { CardIcon, type CardIconName } from "@/components/public/card-icon";
+import { PlatformInstall } from "@/components/public/platform-install";
 import { PublicPage } from "@/components/public/public-page";
 import { InstallMock } from "@/components/public/mocks";
 import {
@@ -57,10 +59,11 @@ export default function Page() {
               aria-labelledby={`${pl.id}-h`}
               className={
                 i === 1
-                  ? "rounded-hero bg-green-600 p-8 text-white"
-                  : "rounded-hero bg-surface-2 p-8"
+                  ? "group rounded-hero bg-green-600 p-8 text-white"
+                  : "group rounded-hero bg-surface-2 p-8"
               }
             >
+              <CardIcon name={pl.icon as CardIconName} className="mb-5" />
               <h3 id={`${pl.id}-h`} className="text-2xl font-bold tracking-[-0.02em]">
                 {pl.title}
               </h3>
@@ -75,6 +78,7 @@ export default function Page() {
                   </li>
                 ))}
               </ol>
+              <PlatformInstall platform={pl.id as "android" | "ios" | "desktop"} dark={i === 1} />
             </section>
           ))}
         </div>
@@ -85,7 +89,13 @@ export default function Page() {
         <Bento items={p.why.items} />
       </Band>
 
-      <CtaBand title={p.closing.title} body={p.closing.body} primary={cta.enter} />
+      <CtaBand
+        title={p.closing.title}
+        body={p.closing.body}
+        primary={cta.enter}
+        art="scene-danfo"
+        icon="mascot-install"
+      />
     </PublicPage>
   );
 }

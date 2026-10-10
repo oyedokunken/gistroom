@@ -80,6 +80,8 @@ export default function Page() {
             title={row.title}
             body={row.body}
             points={row.points}
+            icon={row.icon}
+            action={row.cta}
             visual={visuals[row.visual]}
             reverse={i % 2 === 1}
           />
@@ -87,12 +89,12 @@ export default function Page() {
       </Band>
 
       <Band tone={tones[2]} labelledBy="more-h">
-        <SectionHead id="more-h" title={p.more.title} />
+        <SectionHead id="more-h" title={p.more.title} icon="idea" />
         <Bento items={p.more.items} />
       </Band>
 
       <Band tone={tones[3]} labelledBy="facts-h">
-        <SectionHead id="facts-h" title={p.facts.title} lead={p.facts.lead} />
+        <SectionHead id="facts-h" title={p.facts.title} lead={p.facts.lead} icon="tools" />
         <Facts items={facts} />
       </Band>
 
@@ -101,6 +103,7 @@ export default function Page() {
         body={p.closing.body}
         primary={cta.enter}
         secondary={cta.safety}
+        icon="friends"
       />
     </PublicPage>
   );

@@ -28,6 +28,8 @@ export const Textarea = forwardRef<
 
 export interface FieldProps {
   label: string;
+  /** Optional element (for example a "Forgot password?" link) on the label row. */
+  action?: ReactNode;
   help?: string;
   error?: string;
   children: (props: {
@@ -38,7 +40,7 @@ export interface FieldProps {
 }
 
 /** Label, help and inline error (R4: field errors sit under the field, never in a toast). */
-export function Field({ label, help, error, children }: FieldProps) {
+export function Field({ label, action, help, error, children }: FieldProps) {
   const id = useId();
   const helpId = `${id}-help`;
   const errorId = `${id}-error`;
@@ -46,9 +48,12 @@ export function Field({ label, help, error, children }: FieldProps) {
     [error ? errorId : null, help ? helpId : null].filter(Boolean).join(" ") || undefined;
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm font-medium text-text">
-        {label}
-      </label>
+      <div className="flex items-center justify-between gap-2">
+        <label htmlFor={id} className="text-sm font-medium text-text">
+          {label}
+        </label>
+        {action}
+      </div>
       {children({ id, "aria-describedby": describedBy, "aria-invalid": error ? true : undefined })}
       {help ? (
         <p id={helpId} className="text-sm text-text-muted">

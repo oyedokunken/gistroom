@@ -8,20 +8,22 @@ import { maker } from "./maker";
 export const cta = {
   enter: { label: "Enter Gistroom", href: "/signup" },
   rooms: { label: "See live rooms", href: "/rooms" },
+  startRoom: { label: "Start a room", href: "/app/rooms?new=1" },
+  joinRoom: { label: "Join a room", href: "/rooms" },
   features: { label: "See everything it does", href: "/features" },
   safety: { label: "Read the safety rules", href: "/safety" },
 } as const;
 
 export const mockLabels = {
-  sample: "Sample conversation",
-  sampleRoom: "Sample room",
-  sampleAlerts: "Sample alerts",
   tabClosed: "Browser closed",
-  sampleDevices: "Sample devices",
   you: "You",
   typing: "typing",
   audio: "Audio",
   video: "Video",
+  view: "Audio or video",
+  notes: "Notes",
+  close: "Close",
+  raiseHand: "Raise hand",
   audioOnly: "Audio only",
   dataSaver: "Data saver on",
   mute: "Mute",
@@ -54,6 +56,8 @@ export const featuresPage = {
         "Delete for yourself, or for everyone in the first hour",
         "Archive a chat and it stays archived",
       ],
+      icon: "friends" as const,
+      cta: { label: "Start a chat", href: "/signup" },
       visual: "chat",
     },
     {
@@ -65,6 +69,8 @@ export const featuresPage = {
         "One tap to add or remove video",
         "Rings your phone even when the app is closed",
       ],
+      icon: "voice" as const,
+      cta: { label: "Call a friend", href: "/signup" },
       visual: "call",
     },
     {
@@ -76,6 +82,8 @@ export const featuresPage = {
         "Mute, remove, ban and lock from the moderator tools",
         "The host sees a log of every moderator action",
       ],
+      icon: "open-gist" as const,
+      cta: { label: "See live rooms", href: "/rooms" },
       visual: "room",
     },
     {
@@ -87,6 +95,8 @@ export const featuresPage = {
         "Missed calls always show in your call log",
         "Per type switches for in-app, push and email",
       ],
+      icon: "alerts" as const,
+      cta: { label: "Get the app", href: "/install" },
       visual: "alerts",
     },
     {
@@ -98,6 +108,8 @@ export const featuresPage = {
         "Weak network banner with a one tap switch to audio",
         "Messages queue offline and send when the network returns",
       ],
+      icon: "speed" as const,
+      cta: { label: "Enter Gistroom", href: "/signup" },
       visual: "data",
     },
   ],
@@ -169,6 +181,7 @@ export const aboutPage = {
     lead: "Gistroom is a place to talk about Nigeria out loud, built in Nigeria.",
   },
   story: {
+    icon: "idea",
     title: "Why it exists",
     body: [
       "The best conversations in Nigeria happen out loud: under an umbrella, in a barbershop, on a rooftop, in a danfo. Most apps squeeze that into text, or burn through your data trying to carry it.",
@@ -179,24 +192,50 @@ export const aboutPage = {
     title: "What we hold to",
     items: [
       {
+        icon: "voice",
         title: "Audio first",
         body: "Voice is the default. Video is there when you want it and your network allows it.",
       },
       {
+        icon: "friends",
         title: "Friends decide",
         body: "Private chats and calls only happen between people who accepted each other.",
       },
       {
+        icon: "private",
         title: "Safe by design",
         body: "Block, report, moderators and private rooms are part of the product, not an afterthought.",
       },
       {
+        icon: "honest",
         title: "Honest words",
         body: "We never claim to verify people we do not verify, and we never make up numbers, reviews or logos.",
       },
     ],
   },
   maker,
+  tools: {
+    icon: "tools",
+    title: "Behind the scenes",
+    lead: "Some of the tools that keep Gistroom running.",
+    items: [
+      { icon: "typescript", name: "TypeScript", role: "Types everywhere" },
+      { icon: "nextdotjs", name: "Next.js", role: "The web app" },
+      { icon: "react", name: "React", role: "The interface" },
+      { icon: "tailwindcss", name: "Tailwind CSS", role: "The styling" },
+      { icon: "nodedotjs", name: "Node.js", role: "The realtime service" },
+      { icon: "socketdotio", name: "Socket.IO", role: "Live updates" },
+      { icon: "livekit", name: "LiveKit", role: "Calls and rooms" },
+      { icon: "postgresql", name: "PostgreSQL", role: "The database" },
+      { icon: "prisma", name: "Prisma", role: "Talking to the data" },
+      { icon: "supabase", name: "Supabase", role: "Database and storage" },
+      { icon: "zod", name: "Zod", role: "Checking every input" },
+      { icon: "vitest", name: "Vitest", role: "The tests" },
+      { icon: "vercel", name: "Vercel", role: "Where the app lives" },
+      { icon: "render", name: "Render", role: "Where realtime lives" },
+      { icon: "express", name: "Express", role: "The realtime server" },
+    ],
+  },
   closing: {
     title: "Come and gist.",
     body: "Start a room, call a friend, or drop into a conversation already going on.",
@@ -211,6 +250,7 @@ export const securityPage = {
   pillars: [
     {
       id: "account",
+      icon: "account",
       title: "Your account",
       points: [
         "A one time code confirms your email when you sign up",
@@ -222,6 +262,7 @@ export const securityPage = {
     },
     {
       id: "devices",
+      icon: "devices",
       title: "Your devices",
       points: [
         "See every device that is signed in",
@@ -231,6 +272,7 @@ export const securityPage = {
     },
     {
       id: "media",
+      icon: "media",
       title: "Messages and media",
       points: [
         "Everything travels over HTTPS and secure web sockets",
@@ -241,6 +283,7 @@ export const securityPage = {
     },
     {
       id: "abuse",
+      icon: "shield-slash",
       title: "Against abuse",
       points: [
         "Rate limits on sign in, search, friend requests and messages",
@@ -250,13 +293,16 @@ export const securityPage = {
     },
   ],
   honest: {
+    icon: "honest",
     title: "What we do not claim",
     body: "Gistroom does not use end to end encryption yet, so we do not describe it that way. We can read message data on our servers when we need to act on a report. Do not share anything you would not want a moderator to see in a report.",
+    action: { label: "How safety works", href: "/safety" },
   },
   report: {
+    icon: "report",
     title: "Found a problem?",
     body: "Write to security@gistroom.ng with what you found and how to repeat it. Please do not post it publicly first. We reply within three working days.",
-    action: { label: "Email security@gistroom.ng", href: "mailto:security@gistroom.ng" },
+    action: { label: "Email us", href: "mailto:security@gistroom.ng" },
   },
 } as const;
 
@@ -332,21 +378,26 @@ export const safetyPage = {
   },
   how: {
     title: "What happens after you report",
+    lead: "Four steps from the moment you tap report to the outcome landing back with you.",
     steps: [
       {
         title: "You report",
+        icon: "report" as const,
         body: "Choose a reason and add details if you want. The other person is not told.",
       },
       {
         title: "We keep the evidence",
+        icon: "starred" as const,
         body: "The recent messages are saved so we can see what happened.",
       },
       {
         title: "A person reviews it",
+        icon: "respect" as const,
         body: "Someone on our team looks at it and decides what to do.",
       },
       {
         title: "We act and tell you",
+        icon: "honest" as const,
         body: "We can warn, suspend or remove accounts, and we tell you the outcome.",
       },
     ],
@@ -354,6 +405,7 @@ export const safetyPage = {
   moderators: {
     title: "Room moderators",
     body: "Hosts and moderators can mute, remove and ban people from their room, lock it and delete room chat. Every moderator action is logged where the host can see it.",
+    action: { label: "Become a moderator", href: "/signup" },
   },
   contact: {
     title: "Abuse and takedown requests",
@@ -370,6 +422,7 @@ export const installPage = {
   platforms: [
     {
       id: "android",
+      icon: "device-android",
       title: "Android",
       steps: [
         "Open Gistroom in Chrome",
@@ -379,6 +432,7 @@ export const installPage = {
     },
     {
       id: "ios",
+      icon: "device-ios",
       title: "iPhone and iPad",
       note: "Add Gistroom to your Home Screen to get call and message alerts. Alerts only work from the installed app on iPhone.",
       steps: [
@@ -389,6 +443,7 @@ export const installPage = {
     },
     {
       id: "desktop",
+      icon: "device-desktop",
       title: "Windows, Mac and Linux",
       steps: [
         "Open Gistroom in Chrome or Edge",
@@ -401,14 +456,29 @@ export const installPage = {
     title: "Why install it",
     items: [
       {
+        icon: "alerts",
         title: "Alerts when it is closed",
         body: "Calls and messages reach you even if the tab is gone.",
       },
-      { title: "Opens faster", body: "Start from your Home Screen like any other app." },
-      { title: "Works offline", body: "Read your recent chats without a network." },
+      {
+        icon: "speed",
+        title: "Opens faster",
+        body: "Start from your Home Screen like any other app.",
+      },
+      {
+        icon: "offline",
+        title: "Works offline",
+        body: "Read your recent chats without a network.",
+      },
     ],
   },
   closing: { title: "Ready when you are.", body: "Open Gistroom, then install it from the menu." },
+  action: "Install it now",
+  iosAction: "Show me how",
+  installed: "Installed on this device.",
+  hintManual:
+    "If nothing pops up, open your browser menu and choose Install, or follow the steps above.",
+  hintIos: "iPhone installs from the Share sheet: follow the steps above.",
 } as const;
 
 export const roomsSearch = {

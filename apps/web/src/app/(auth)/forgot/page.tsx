@@ -16,7 +16,7 @@ export default async function ForgotPage({
 }) {
   const parsed = emailSchema.safeParse((await searchParams).email ?? "");
   return (
-    <AuthShell artId={authArt.login}>
+    <AuthShell artId={authArt.forgot}>
       <ForgotForm initialEmail={parsed.success ? parsed.data : ""} />
     </AuthShell>
   );

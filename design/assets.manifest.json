@@ -36,14 +36,14 @@
           "height": 480,
           "file": "scenes/hero-mid.webp",
           "animated": true,
-          "bytes": 92374
+          "bytes": 92490
         }
       ],
       "alt": "",
       "decorative": true,
       "animated": true,
       "static": "scenes/hero-mid.png",
-      "loopCount": 3,
+      "loopCount": 0,
       "prompt": "Drawn in code by scripts/graphics/scenes.mjs: flat vector scene, brand palette, no text.",
       "status": "DRAFT",
       "createdAt": "2026-10-10T04:07:22.421Z"
@@ -1218,14 +1218,14 @@
           "height": 720,
           "file": "scenes/scene-danfo.webp",
           "animated": true,
-          "bytes": 61086
+          "bytes": 61624
         }
       ],
       "alt": "A yellow danfo bus with its conductor waving, and three people chatting on their phones beside it",
       "decorative": false,
       "animated": true,
       "static": "scenes/scene-danfo.png",
-      "loopCount": 3,
+      "loopCount": 0,
       "prompt": "Drawn in code by scripts/graphics/scenes.mjs: flat vector scene, brand palette, no text.",
       "status": "DRAFT",
       "createdAt": "2026-10-10T12:42:02.798Z"
@@ -1245,14 +1245,14 @@
           "height": 720,
           "file": "scenes/scene-football-centre.webp",
           "animated": true,
-          "bytes": 39264
+          "bytes": 39566
         }
       ],
       "alt": "Fans packed under a shed cheering at a big screen showing a match",
       "decorative": false,
       "animated": true,
       "static": "scenes/scene-football-centre.png",
-      "loopCount": 3,
+      "loopCount": 0,
       "prompt": "Drawn in code by scripts/graphics/scenes.mjs: flat vector scene, brand palette, no text.",
       "status": "DRAFT",
       "createdAt": "2026-10-10T12:42:02.798Z"
@@ -1272,14 +1272,14 @@
           "height": 720,
           "file": "scenes/scene-suya.webp",
           "animated": true,
-          "bytes": 94096
+          "bytes": 94108
         }
       ],
       "alt": "A suya seller grilling skewers over glowing coals while two customers chat under a lantern",
       "decorative": false,
       "animated": true,
       "static": "scenes/scene-suya.png",
-      "loopCount": 3,
+      "loopCount": 0,
       "prompt": "Drawn in code by scripts/graphics/scenes.mjs: flat vector scene, brand palette, no text.",
       "status": "DRAFT",
       "createdAt": "2026-10-10T12:42:02.798Z"
@@ -1299,14 +1299,14 @@
           "height": 720,
           "file": "scenes/scene-rooftop.webp",
           "animated": true,
-          "bytes": 51140
+          "bytes": 51164
         }
       ],
       "alt": "Four friends on a rooftop at night with a speaker, string lights and the city behind them",
       "decorative": false,
       "animated": true,
       "static": "scenes/scene-rooftop.png",
-      "loopCount": 3,
+      "loopCount": 0,
       "prompt": "Drawn in code by scripts/graphics/scenes.mjs: flat vector scene, brand palette, no text.",
       "status": "DRAFT",
       "createdAt": "2026-10-10T12:42:02.798Z"
@@ -1326,14 +1326,14 @@
           "height": 720,
           "file": "scenes/scene-street-football.webp",
           "animated": true,
-          "bytes": 30942
+          "bytes": 31358
         }
       ],
       "alt": "Two friends playing football on a street with a ball in mid-air",
       "decorative": false,
       "animated": true,
       "static": "scenes/scene-street-football.png",
-      "loopCount": 3,
+      "loopCount": 0,
       "prompt": "Drawn in code by scripts/graphics/scenes.mjs: flat vector scene, brand palette, no text.",
       "status": "DRAFT",
       "createdAt": "2026-10-10T12:42:02.798Z"
@@ -1353,14 +1353,14 @@
           "height": 720,
           "file": "scenes/scene-keke.webp",
           "animated": true,
-          "bytes": 44142
+          "bytes": 45082
         }
       ],
       "alt": "A yellow keke napep driving past a plantain stand",
       "decorative": false,
       "animated": true,
       "static": "scenes/scene-keke.png",
-      "loopCount": 3,
+      "loopCount": 0,
       "prompt": "Drawn in code by scripts/graphics/scenes.mjs: flat vector scene, brand palette, no text.",
       "status": "DRAFT",
       "createdAt": "2026-10-10T12:42:02.798Z"
@@ -1380,14 +1380,14 @@
           "height": 720,
           "file": "scenes/scene-barbershop.webp",
           "animated": true,
-          "bytes": 16092
+          "bytes": 16202
         }
       ],
       "alt": "A barber trimming a customer's hair while they talk, with a mirror and a radio on the shelf",
       "decorative": false,
       "animated": true,
       "static": "scenes/scene-barbershop.png",
-      "loopCount": 3,
+      "loopCount": 0,
       "prompt": "Drawn in code by scripts/graphics/scenes.mjs: flat vector scene, brand palette, no text.",
       "status": "DRAFT",
       "createdAt": "2026-10-10T12:42:02.798Z"
@@ -1407,14 +1407,14 @@
           "height": 576,
           "file": "scenes/scene-moderators.webp",
           "animated": true,
-          "bytes": 45462
+          "bytes": 45764
         }
       ],
       "alt": "A moderator with a shield badge at a table with a mute button and a list of logged actions, with two members beside them",
       "decorative": false,
       "animated": true,
       "static": "scenes/scene-moderators.png",
-      "loopCount": 3,
+      "loopCount": 0,
       "prompt": "Drawn in code by scripts/graphics/scenes.mjs: flat vector scene, brand palette, no text.",
       "status": "DRAFT",
       "createdAt": "2026-10-10T12:42:02.798Z"
@@ -1434,17 +1434,858 @@
           "height": 576,
           "file": "scenes/scene-final-cta.webp",
           "animated": true,
-          "bytes": 109312
+          "bytes": 110076
         }
       ],
       "alt": "Friends waving you in around a glowing circle of sound",
       "decorative": false,
       "animated": true,
       "static": "scenes/scene-final-cta.png",
-      "loopCount": 3,
+      "loopCount": 0,
       "prompt": "Drawn in code by scripts/graphics/scenes.mjs: flat vector scene, brand palette, no text.",
       "status": "DRAFT",
       "createdAt": "2026-10-10T12:42:02.798Z"
+    },
+    {
+      "id": "icon-football",
+      "placement": "Card icon: football",
+      "master": "design/masters/icons/football.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/football.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:38:36.599Z"
+    },
+    {
+      "id": "icon-music-and-gbedu",
+      "placement": "Card icon: music and gbedu",
+      "master": "design/masters/icons/music-and-gbedu.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/music-and-gbedu.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:38:36.599Z"
+    },
+    {
+      "id": "icon-politics-and-governance",
+      "placement": "Card icon: politics and governance",
+      "master": "design/masters/icons/politics-and-governance.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/politics-and-governance.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:38:36.599Z"
+    },
+    {
+      "id": "icon-tech-and-startups",
+      "placement": "Card icon: tech and startups",
+      "master": "design/masters/icons/tech-and-startups.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/tech-and-startups.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:38:36.599Z"
+    },
+    {
+      "id": "icon-business-and-money",
+      "placement": "Card icon: business and money",
+      "master": "design/masters/icons/business-and-money.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/business-and-money.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:38:36.599Z"
+    },
+    {
+      "id": "icon-relationships",
+      "placement": "Card icon: relationships",
+      "master": "design/masters/icons/relationships.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/relationships.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:38:36.599Z"
+    },
+    {
+      "id": "icon-faith-and-life",
+      "placement": "Card icon: faith and life",
+      "master": "design/masters/icons/faith-and-life.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/faith-and-life.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:38:36.599Z"
+    },
+    {
+      "id": "icon-campus-life",
+      "placement": "Card icon: campus life",
+      "master": "design/masters/icons/campus-life.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/campus-life.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:38:36.599Z"
+    },
+    {
+      "id": "icon-nollywood-and-entertainment",
+      "placement": "Card icon: nollywood and entertainment",
+      "master": "design/masters/icons/nollywood-and-entertainment.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/nollywood-and-entertainment.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:38:36.599Z"
+    },
+    {
+      "id": "icon-food-and-chop",
+      "placement": "Card icon: food and chop",
+      "master": "design/masters/icons/food-and-chop.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/food-and-chop.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:38:36.599Z"
+    },
+    {
+      "id": "icon-health-and-wellness",
+      "placement": "Card icon: health and wellness",
+      "master": "design/masters/icons/health-and-wellness.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/health-and-wellness.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:38:36.599Z"
+    },
+    {
+      "id": "icon-careers-and-jobs",
+      "placement": "Card icon: careers and jobs",
+      "master": "design/masters/icons/careers-and-jobs.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/careers-and-jobs.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:38:36.599Z"
+    },
+    {
+      "id": "icon-education",
+      "placement": "Card icon: education",
+      "master": "design/masters/icons/education.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/education.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:38:36.599Z"
+    },
+    {
+      "id": "icon-comedy",
+      "placement": "Card icon: comedy",
+      "master": "design/masters/icons/comedy.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/comedy.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:38:36.599Z"
+    },
+    {
+      "id": "icon-diaspora-and-japa",
+      "placement": "Card icon: diaspora and japa",
+      "master": "design/masters/icons/diaspora-and-japa.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/diaspora-and-japa.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:38:36.599Z"
+    },
+    {
+      "id": "icon-fashion-and-owambe",
+      "placement": "Card icon: fashion and owambe",
+      "master": "design/masters/icons/fashion-and-owambe.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/fashion-and-owambe.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:38:36.599Z"
+    },
+    {
+      "id": "icon-gaming",
+      "placement": "Card icon: gaming",
+      "master": "design/masters/icons/gaming.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/gaming.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:38:36.599Z"
+    },
+    {
+      "id": "icon-open-gist",
+      "placement": "Card icon: open gist",
+      "master": "design/masters/icons/open-gist.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/open-gist.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:38:36.599Z"
+    },
+    {
+      "id": "icon-device-android",
+      "placement": "Card icon: device android",
+      "master": "design/masters/icons/device-android.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/device-android.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:45:16.231Z"
+    },
+    {
+      "id": "icon-device-ios",
+      "placement": "Card icon: device ios",
+      "master": "design/masters/icons/device-ios.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/device-ios.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:45:16.231Z"
+    },
+    {
+      "id": "icon-device-desktop",
+      "placement": "Card icon: device desktop",
+      "master": "design/masters/icons/device-desktop.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/device-desktop.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:45:16.231Z"
+    },
+    {
+      "id": "icon-alerts",
+      "placement": "Card icon: alerts",
+      "master": "design/masters/icons/alerts.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/alerts.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:45:16.231Z"
+    },
+    {
+      "id": "icon-speed",
+      "placement": "Card icon: speed",
+      "master": "design/masters/icons/speed.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/speed.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:45:16.231Z"
+    },
+    {
+      "id": "icon-idea",
+      "placement": "Card icon: idea",
+      "master": "design/masters/icons/idea.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/idea.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:47:42.125Z"
+    },
+    {
+      "id": "icon-honest",
+      "placement": "Card icon: honest",
+      "master": "design/masters/icons/honest.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/honest.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:47:42.125Z"
+    },
+    {
+      "id": "icon-mascot-install",
+      "placement": "Card icon: mascot install",
+      "master": "design/masters/icons/mascot-install.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/mascot-install.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:50:11.907Z"
+    },
+    {
+      "id": "icon-tools",
+      "placement": "Card icon: tools",
+      "master": "design/masters/icons/tools.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/tools.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:52:42.842Z"
+    },
+    {
+      "id": "icon-mascot-gist",
+      "placement": "Card icon: mascot gist",
+      "master": "design/masters/icons/mascot-gist.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/mascot-gist.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T15:52:42.842Z"
+    },
+    {
+      "id": "icon-account",
+      "placement": "Card icon: account",
+      "master": "design/masters/icons/account.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/account.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T16:02:24.826Z"
+    },
+    {
+      "id": "icon-devices",
+      "placement": "Card icon: devices",
+      "master": "design/masters/icons/devices.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/devices.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T16:02:24.826Z"
+    },
+    {
+      "id": "icon-moderator",
+      "placement": "Card icon: moderator",
+      "master": "design/masters/icons/moderator.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/moderator.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T16:07:40.306Z"
+    },
+    {
+      "id": "scene-village-square",
+      "placement": "Rooms call to action: the village square where everybody gathers to gist",
+      "master": "design/masters/scenes/scene-village-square.svg",
+      "sizes": [
+        {
+          "width": 1024,
+          "height": 1024,
+          "file": "scenes/scene-village-square.png"
+        },
+        {
+          "width": 720,
+          "height": 720,
+          "file": "scenes/scene-village-square.webp",
+          "animated": true,
+          "bytes": 86016
+        }
+      ],
+      "alt": "Friends gathered under a big tree on a village square, talking in a circle",
+      "decorative": false,
+      "animated": true,
+      "static": "scenes/scene-village-square.png",
+      "loopCount": 0,
+      "prompt": "Drawn in code by scripts/graphics/scenes.mjs: flat vector scene, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T16:57:36.336Z"
+    },
+    {
+      "id": "scene-help-desk",
+      "placement": "Support call to action: the help desk where someone is always ready",
+      "master": "design/masters/scenes/scene-help-desk.svg",
+      "sizes": [
+        {
+          "width": 1024,
+          "height": 1024,
+          "file": "scenes/scene-help-desk.png"
+        },
+        {
+          "width": 720,
+          "height": 720,
+          "file": "scenes/scene-help-desk.webp",
+          "animated": true,
+          "bytes": 61026
+        }
+      ],
+      "alt": "A helper behind a counter with a laptop, waving at a visitor, with a notes board behind them",
+      "decorative": false,
+      "animated": true,
+      "static": "scenes/scene-help-desk.png",
+      "loopCount": 0,
+      "prompt": "Drawn in code by scripts/graphics/scenes.mjs: flat vector scene, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T16:57:36.336Z"
+    },
+    {
+      "id": "scene-door-check",
+      "placement": "Acceptable use call to action: the door where the rules keep the gist good",
+      "master": "design/masters/scenes/scene-door-check.svg",
+      "sizes": [
+        {
+          "width": 1024,
+          "height": 1024,
+          "file": "scenes/scene-door-check.png"
+        },
+        {
+          "width": 720,
+          "height": 720,
+          "file": "scenes/scene-door-check.webp",
+          "animated": true,
+          "bytes": 43280
+        }
+      ],
+      "alt": "A host at a green doorway with a rope line, checking a list while a guest waits to enter",
+      "decorative": false,
+      "animated": true,
+      "static": "scenes/scene-door-check.png",
+      "loopCount": 0,
+      "prompt": "Drawn in code by scripts/graphics/scenes.mjs: flat vector scene, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T16:57:36.336Z"
+    },
+    {
+      "id": "icon-switch",
+      "placement": "Card icon: switch",
+      "master": "design/masters/icons/switch.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/switch.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T17:06:35.033Z"
+    },
+    {
+      "id": "scene-dev-desk",
+      "placement": "About page, the developer: a clean desk with a laptop and code on the screen",
+      "master": "design/masters/scenes/scene-dev-desk.svg",
+      "sizes": [
+        {
+          "width": 1024,
+          "height": 1024,
+          "file": "scenes/scene-dev-desk.png"
+        },
+        {
+          "width": 720,
+          "height": 720,
+          "file": "scenes/scene-dev-desk.webp",
+          "animated": true,
+          "bytes": 118590
+        }
+      ],
+      "alt": "A developer at a tidy desk writing code on a laptop, with a plant and a cup beside them",
+      "decorative": false,
+      "animated": true,
+      "static": "scenes/scene-dev-desk.png",
+      "loopCount": 0,
+      "prompt": "Drawn in code by scripts/graphics/scenes.mjs: flat vector scene, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T17:26:59.000Z"
+    },
+    {
+      "id": "scene-auth-city",
+      "placement": "Sign in page, a city street with a danfo and cars passing",
+      "master": "design/masters/scenes/scene-auth-city.svg",
+      "sizes": [
+        {
+          "width": 1024,
+          "height": 1229,
+          "file": "scenes/scene-auth-city.png"
+        },
+        {
+          "width": 720,
+          "height": 864,
+          "file": "scenes/scene-auth-city.webp",
+          "animated": true,
+          "bytes": 101450
+        }
+      ],
+      "alt": "A Lagos street: a yellow danfo and a keke pass tall buildings while people wait at a bus stop",
+      "decorative": false,
+      "animated": true,
+      "static": "scenes/scene-auth-city.png",
+      "loopCount": 0,
+      "prompt": "Drawn in code by scripts/graphics/scenes.mjs: flat vector scene, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T18:15:49.381Z"
+    },
+    {
+      "id": "scene-auth-welcome",
+      "placement": "Sign up page, friends waving a new person in through an open door",
+      "master": "design/masters/scenes/scene-auth-welcome.svg",
+      "sizes": [
+        {
+          "width": 1024,
+          "height": 1024,
+          "file": "scenes/scene-auth-welcome.png"
+        },
+        {
+          "width": 720,
+          "height": 720,
+          "file": "scenes/scene-auth-welcome.webp",
+          "animated": true,
+          "bytes": 29646
+        }
+      ],
+      "alt": "Friends waving a visitor in through an open green door under bunting",
+      "decorative": false,
+      "animated": true,
+      "static": "scenes/scene-auth-welcome.png",
+      "loopCount": 0,
+      "prompt": "Drawn in code by scripts/graphics/scenes.mjs: flat vector scene, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T18:28:18.422Z"
+    },
+    {
+      "id": "scene-auth-verify",
+      "placement": "Verify page, a phone filling its code boxes while a message flies in",
+      "master": "design/masters/scenes/scene-auth-verify.svg",
+      "sizes": [
+        {
+          "width": 1024,
+          "height": 1024,
+          "file": "scenes/scene-auth-verify.png"
+        },
+        {
+          "width": 720,
+          "height": 720,
+          "file": "scenes/scene-auth-verify.webp",
+          "animated": true,
+          "bytes": 21188
+        }
+      ],
+      "alt": "A phone on a stand filling six code boxes one by one while a letter flies in",
+      "decorative": false,
+      "animated": true,
+      "static": "scenes/scene-auth-verify.png",
+      "loopCount": 0,
+      "prompt": "Drawn in code by scripts/graphics/scenes.mjs: flat vector scene, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T18:28:18.422Z"
+    },
+    {
+      "id": "scene-auth-forgot",
+      "placement": "Forgot password page, a letter flying into a mailbox",
+      "master": "design/masters/scenes/scene-auth-forgot.svg",
+      "sizes": [
+        {
+          "width": 1024,
+          "height": 1024,
+          "file": "scenes/scene-auth-forgot.png"
+        },
+        {
+          "width": 720,
+          "height": 720,
+          "file": "scenes/scene-auth-forgot.webp",
+          "animated": true,
+          "bytes": 14802
+        }
+      ],
+      "alt": "A letter flying into a green mailbox while a person waits beside it",
+      "decorative": false,
+      "animated": true,
+      "static": "scenes/scene-auth-forgot.png",
+      "loopCount": 0,
+      "prompt": "Drawn in code by scripts/graphics/scenes.mjs: flat vector scene, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T18:28:18.422Z"
+    },
+    {
+      "id": "scene-auth-onboarding",
+      "placement": "Onboarding page, a profile card filling in beside a waving person",
+      "master": "design/masters/scenes/scene-auth-onboarding.svg",
+      "sizes": [
+        {
+          "width": 1024,
+          "height": 1024,
+          "file": "scenes/scene-auth-onboarding.png"
+        },
+        {
+          "width": 720,
+          "height": 720,
+          "file": "scenes/scene-auth-onboarding.webp",
+          "animated": true,
+          "bytes": 18566
+        }
+      ],
+      "alt": "A profile card with a photo and a checkmark while a person waves beside it",
+      "decorative": false,
+      "animated": true,
+      "static": "scenes/scene-auth-onboarding.png",
+      "loopCount": 0,
+      "prompt": "Drawn in code by scripts/graphics/scenes.mjs: flat vector scene, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T18:28:18.422Z"
+    },
+    {
+      "id": "scene-auth-market",
+      "placement": "Sign up page, a busy open-air market",
+      "master": "design/masters/scenes/scene-auth-market.svg",
+      "sizes": [
+        {
+          "width": 1024,
+          "height": 1024,
+          "file": "scenes/scene-auth-market.png"
+        },
+        {
+          "width": 720,
+          "height": 720,
+          "file": "scenes/scene-auth-market.webp",
+          "animated": true,
+          "bytes": 42602
+        }
+      ],
+      "alt": "An open-air market with striped awnings, baskets of fruit, a steaming pot and shoppers",
+      "decorative": false,
+      "animated": true,
+      "static": "scenes/scene-auth-market.png",
+      "loopCount": 0,
+      "prompt": "Drawn in code by scripts/graphics/scenes.mjs: flat vector scene, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T18:32:48.622Z"
+    },
+    {
+      "id": "scene-auth-stadium",
+      "placement": "Sign up page, a packed stadium on match day",
+      "master": "design/masters/scenes/scene-auth-stadium.svg",
+      "sizes": [
+        {
+          "width": 1024,
+          "height": 1024,
+          "file": "scenes/scene-auth-stadium.png"
+        },
+        {
+          "width": 720,
+          "height": 720,
+          "file": "scenes/scene-auth-stadium.webp",
+          "animated": true,
+          "bytes": 113814
+        }
+      ],
+      "alt": "A stadium with a bouncing crowd, floodlights and players on a green pitch",
+      "decorative": false,
+      "animated": true,
+      "static": "scenes/scene-auth-stadium.png",
+      "loopCount": 0,
+      "prompt": "Drawn in code by scripts/graphics/scenes.mjs: flat vector scene, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T18:37:37.046Z"
     }
   ]
 }

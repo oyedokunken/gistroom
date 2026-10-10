@@ -41,10 +41,11 @@ for (const a of manifest.assets ?? []) {
   if (release && a.status === "PLACEHOLDER")
     fail(`${a.id}: still a placeholder in a release build`);
   if (a.animated) {
-    // Animated art is animated WebP with a static PNG fallback and a loop count. Never GIF (Section 17).
+    // Animated art is animated WebP with a static PNG fallback and a loop count (0 loops forever). Never GIF (Section 17).
     if (!a.static || !existsSync(path.join(root, "apps", "web", "public", "images", a.static)))
       fail(`${a.id}: animated asset has no static fallback`);
-    if (!(a.loopCount > 0)) fail(`${a.id}: animated asset has no loop count`);
+    if (!Number.isInteger(a.loopCount) || a.loopCount < 0)
+      fail(`${a.id}: animated asset has no loop count`);
     if ((a.sizes ?? []).some((x) => /\.gif$/i.test(x.file))) fail(`${a.id}: GIF is not allowed`);
     if (!(a.sizes ?? []).some((x) => x.animated)) fail(`${a.id}: no animated file listed`);
   }

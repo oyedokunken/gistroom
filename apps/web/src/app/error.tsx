@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LogoMark } from "@/components/brand/logo-mark";
+import Image from "next/image";
 import { Button, buttonStyles } from "@/components/ui/button";
 import { serverError as copy } from "@/content/site";
 
@@ -15,7 +15,14 @@ export default function ErrorPage({
 }) {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center gap-8 bg-surface px-6 py-16 text-center">
-      <LogoMark size={72} className="text-text" />
+      <Image
+        src="/brand/lockup-stacked.png"
+        alt="Gistroom"
+        width={200}
+        height={170}
+        priority
+        className="h-auto w-44"
+      />
       <div className="flex max-w-[34rem] flex-col items-center gap-3">
         <h1 className="text-[clamp(1.75rem,5vw,2.75rem)] font-bold leading-[1.1] tracking-tight text-text">
           {copy.heading}

@@ -32,7 +32,7 @@ export function DevicesMock() {
     { icon: MonitorSmartphone, name: "Edge on Windows", note: "Last week" },
   ];
   return (
-    <PhoneFrame label={L.sampleDevices}>
+    <PhoneFrame>
       <div className="flex flex-1 flex-col gap-3 px-3 py-4">
         <p className="flex items-center gap-2 text-sm font-semibold">
           <ShieldCheck aria-hidden className="size-4 text-green-600" />

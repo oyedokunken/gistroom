@@ -12,6 +12,7 @@ import {
   DropdownTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AttachmentView } from "./attachment-views";
+import { ReactionChips } from "./reaction-chips";
 import { ReceiptTicks } from "./receipt-ticks";
 import { chat, QUICK_REACTIONS } from "@/content/chat";
 import { cn } from "@/lib/cn";
@@ -207,27 +208,12 @@ export function ChatBubble({
             </DropdownContent>
           </DropdownMenu>
         )}
-        {message.reactions.length > 0 && !message.deletedForEveryone ? (
-          <div className={cn("-mt-1.5 flex gap-1", mine ? "mr-2" : "ml-2")}>
-            {message.reactions.map((r) => (
-              <button
-                type="button"
-                key={r.emoji}
-                aria-pressed={r.mine}
-                aria-label={chat.reactedBy(r.emoji, r.count)}
-                onClick={() => actions.onReact(r.emoji)}
-                className={cn(
-                  "tabular inline-flex min-h-7 cursor-pointer items-center gap-1 rounded-full border px-2 text-sm",
-                  r.mine
-                    ? "border-green-600 bg-green-100 text-green-700"
-                    : "border-border bg-surface text-text",
-                )}
-              >
-                <span aria-hidden>{r.emoji}</span>
-                {r.count}
-              </button>
-            ))}
-          </div>
+        {!message.deletedForEveryone ? (
+          <ReactionChips
+            reactions={message.reactions}
+            onToggle={actions.onReact}
+            className={cn("-mt-1.5", mine ? "mr-2 justify-end" : "ml-2")}
+          />
         ) : null}
       </motion.div>
     </div>

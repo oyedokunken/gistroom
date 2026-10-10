@@ -6,10 +6,11 @@ export default defineConfig({
   test: {
     projects: [
       {
+        oxc: { jsx: { runtime: "automatic" } },
         test: {
           name: "unit",
           include: [
-            "tests/unit/**/*.test.ts",
+            "tests/unit/**/*.test.{ts,tsx}",
             "packages/**/src/**/*.test.ts",
             "apps/**/src/**/*.test.ts",
           ],

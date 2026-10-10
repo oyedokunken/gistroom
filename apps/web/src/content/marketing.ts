@@ -16,6 +16,7 @@ export const mockLabels = {
   sample: "Sample conversation",
   sampleRoom: "Sample room",
   sampleAlerts: "Sample alerts",
+  tabClosed: "Browser closed",
   sampleDevices: "Sample devices",
   you: "You",
   typing: "typing",

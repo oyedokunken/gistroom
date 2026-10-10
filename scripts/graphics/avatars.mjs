@@ -7,6 +7,8 @@ import sharp from "sharp";
 const root = path.resolve(import.meta.dirname, "../..");
 const masters = path.join(root, "design", "masters", "avatars");
 const shipped = path.join(root, "apps", "web", "public", "images", "avatars");
+const people = path.join(root, "apps", "web", "public", "images", "people");
+mkdirSync(people, { recursive: true });
 mkdirSync(masters, { recursive: true });
 mkdirSync(shipped, { recursive: true });
 
@@ -238,6 +240,18 @@ function face(p, skin, shade) {
   return parts.join("");
 }
 
+/** The same person without the round backdrop, for video call and scene mockups. */
+function bustSvg(p) {
+  const skin = SKIN[p.skin];
+  const shade = SKIN_SHADE[p.skin];
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="480" height="560" viewBox="20 20 216 252">
+${hairBack(p)}
+${clothing(p, skin)}
+${face(p, skin, shade)}
+${hairFront(p)}
+</svg>`;
+}
+
 function svgFor(p) {
   const skin = SKIN[p.skin];
   const shade = SKIN_SHADE[p.skin];
@@ -265,6 +279,9 @@ for (let i = 0; i < PEOPLE.length; i++) {
   await sharp(Buffer.from(svg))
     .png({ compressionLevel: 9, palette: true })
     .toFile(path.join(shipped, `${id}.png`));
+  await sharp(Buffer.from(bustSvg(p)))
+    .png({ compressionLevel: 9 })
+    .toFile(path.join(people, `person-${String(i + 1).padStart(2, "0")}.png`));
   const entry = {
     id,
     placement: `Illustrated avatar for ${p.name}, used on the landing page, public pages and as the default profile picture`,

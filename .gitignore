@@ -1,0 +1,15 @@
+node_modules
+.next
+dist
+.env
+.env.*
+!.env.example
+.mail-preview
+coverage
+test-results
+playwright-report
+*.tsbuildinfo
+.turbo
+.vercel
+.DS_Store
+next-env.d.ts

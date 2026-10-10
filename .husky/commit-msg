@@ -1,0 +1,1 @@
+node scripts/check-copy.mjs --commit-msg "$1"

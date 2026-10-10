@@ -19,7 +19,7 @@
     "web-push": "^3.6.7",
     "@gistroom/db": "*",
     "@gistroom/shared": "*",
-    "zod": "^3.25.76"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

@@ -1,0 +1,16 @@
+export const ui = {
+  ok: "Got it",
+  cancel: "Cancel",
+  confirm: "Confirm",
+  close: "Close",
+  loading: "Loading",
+  retry: "Try again",
+  errorTitle: "That did not work",
+  successTitle: "Done",
+  infoTitle: "Heads up",
+  confirmTitle: "Are you sure?",
+  selectPlaceholder: "Choose one",
+  offlineBanner: "You are offline. Your messages will send when the network returns.",
+  reconnectingBanner: "Reconnecting to the room. Hold on.",
+  presence: { online: "Online", offline: "Offline" },
+} as const;

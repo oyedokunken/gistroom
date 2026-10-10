@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import { connection } from "next/server";
+import { Providers } from "@/components/providers";
 import { site } from "@/content/site";
 import { colors } from "@/lib/tokens";
 import "./globals.css";
@@ -43,10 +45,14 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+// Nonce based CSP needs per-request rendering, so every page opts out of static prerendering.
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  await connection();
   return (
     <html lang="en-NG" className={graphik.variable}>
-      <body>{children}</body>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

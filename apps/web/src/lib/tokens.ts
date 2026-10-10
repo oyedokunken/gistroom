@@ -21,4 +21,8 @@ export const radii = { input: 10, button: 9999, bubble: 18, card: 24, hero: 32 }
 export const fontStack =
   'var(--font-graphik), "Noto Sans Gistroom", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Arial, sans-serif';
 
+/** Email clients cannot load Graphik, so emails use the system stack (Section 14). */
+export const emailFontStack =
+  "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans', Arial, sans-serif";
+
 export const SITE = { name: "Gistroom", url: "https://gistroom.ng", locale: "en-NG" } as const;

@@ -15,7 +15,7 @@ import {
   useVelocity,
 } from "motion/react";
 import {
-  DoorOpen,
+  MessageCircle,
   Ellipsis,
   Radio,
   ShieldCheck,
@@ -118,7 +118,7 @@ function DesktopDock() {
 
   const fanItems = [
     ...nav.items.slice(0, 2).map((i) => ({ ...i, icon: icons[i.id] ?? Sparkles, short: i.label })),
-    { id: "cta", label: nav.cta.label, href: nav.cta.href, icon: DoorOpen, short: "Enter" },
+    { id: "cta", label: nav.cta.label, href: nav.cta.href, icon: MessageCircle, short: "Enter" },
     ...nav.items.slice(2).map((i) => ({ ...i, icon: icons[i.id] ?? Sparkles, short: i.label })),
   ];
   const angles = [155, 122, 90, 58, 25];
@@ -355,7 +355,7 @@ function MobileDock() {
                   aria-label={nav.cta.label}
                   className="relative -mt-6 flex size-14 items-center justify-center rounded-full bg-green-600 text-white shadow-lift"
                 >
-                  <DoorOpen aria-hidden className="size-6" />
+                  <MessageCircle aria-hidden className="size-6" />
                 </Link>
               </motion.div>
             </li>

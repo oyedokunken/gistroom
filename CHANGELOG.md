@@ -11,7 +11,14 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 - Hero: text left and image right on desktop at equal height, image first on mobile.
 - Mobile header: the capsule contracts into the mic bubble on scroll, the dock has an entrance, press blob and a pulsing center button. The footer waveform plays on touch screens.
 
+### Changed
+
+- Footer: endless waveform behind the wordmark (pauses only off screen), descender no longer clipped, 2 by 2 link grid on mobile, theme switcher above Made in Nigeria and the builder link on one row, scroll to top no longer covers the last row.
+- Mobile dock center button uses a chat icon.
+
 ### Added
+
+- Identity groundwork that needs no database: shared Zod schemas (email, code, username with reserved words, onboarding, search), OTP generation, hashing and verify decisions, send cooldown and hourly cap, session tokens and cookie attributes, realtime pass signing and verifying, origin check, and the mailer (console, capture and smtp transports, recipient guard, sign-in code templates, `npm run mail:preview`).
 
 - Monorepo with npm workspaces: `apps/web`, `apps/realtime`, `packages/shared`, `packages/db`.
 - Quality gates: copy checker, UI rules checker, font coverage check, graphics manifest check, safe database wrapper.

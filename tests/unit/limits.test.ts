@@ -11,3 +11,9 @@ describe("limits invariants", () => {
     expect(LIMITS.USERNAME_REGEX.test("ab")).toBe(false);
   });
 });
+
+describe("auth constants", () => {
+  it("keeps the code length in step with the schema", () => {
+    expect(LIMITS.OTP_LENGTH).toBe(6);
+  });
+});

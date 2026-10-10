@@ -7,3 +7,5 @@ packages/db/prisma/migrations
 design/masters
 apps/web/next-env.d.ts
 apps/web/src/content/alt.ts
+.mail-capture
+.mail-preview

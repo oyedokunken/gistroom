@@ -25,9 +25,9 @@ jobs:
       DIRECT_URL: postgresql://ci:ci@localhost:5432/ci
       DATABASE_SCHEMA: gistroom_test
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: npm
@@ -41,7 +41,6 @@ jobs:
       - name: Verify
         run: npm run verify
 
-      # Dev tooling (the Prisma CLI) pulls in packages that never reach production, so the
-      # audit gate covers runtime dependencies only. See wiki/Decisions.md D21.
-      - name: Audit runtime dependencies
-        run: npm audit --omit=dev --audit-level=high
+      # Fails on unreviewed high advisories. Reviewed exceptions live in scripts/audit.mjs (D21).
+      - name: Audit dependencies
+        run: npm run audit

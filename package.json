@@ -20,6 +20,7 @@
     "lint:copy": "node scripts/check-copy.mjs",
     "lint:ui": "node scripts/check-ui-rules.mjs",
     "lint:font": "node scripts/check-font-coverage.mjs",
+    "audit": "node scripts/audit.mjs",
     "lint:graphics": "node scripts/graphics/verify.mjs",
     "test:unit": "vitest run --project unit",
     "test:integration": "vitest run --project integration --passWithNoTests",

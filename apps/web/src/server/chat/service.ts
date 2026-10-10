@@ -22,7 +22,15 @@ import { isUniqueViolation } from "../db-errors";
 import { areFriends, isBlockedEitherWay } from "../friends/relations";
 import { notify } from "../notifications/service";
 import { publish } from "../realtime";
-import { bodyIsValid, canDeleteForEveryone, isSingleEmoji, previewText, showInList } from "./rules";
+import {
+  bodyIsValid,
+  canDeleteForEveryone,
+  canEditMessage,
+  chatAvailability,
+  isSingleEmoji,
+  previewText,
+  showInList,
+} from "./rules";
 import { unreadByConversation } from "./unread";
 
 export interface Access {
@@ -48,8 +56,40 @@ export async function accessFor(userId: string, conversationId: string): Promise
 
 /** Sending needs an accepted friendship and no block either way (Section 9.2). */
 export async function assertCanInteract(userId: string, peerId: string): Promise<void> {
-  if (await isBlockedEitherWay(userId, peerId)) throw forbidden(errors.blocked);
+  // A block is never named to the person who was blocked, so both sides get the same plain answer.
+  if (await isBlockedEitherWay(userId, peerId)) throw forbidden(errors.chatUnavailable);
   if (!(await areFriends(userId, peerId))) throw forbidden(errors.notFriends);
+}
+
+/** How each peer looks to me: blocked by me, unavailable (they blocked me or are gone), or fine. */
+async function availabilityFor(
+  meId: string,
+  peers: { id: string; status: string }[],
+): Promise<Map<string, "OK" | "BLOCKED_BY_ME" | "UNAVAILABLE">> {
+  const ids = peers.map((p) => p.id);
+  const blocks = ids.length
+    ? await getDb().block.findMany({
+        where: {
+          OR: [
+            { blockerId: meId, blockedId: { in: ids } },
+            { blockedId: meId, blockerId: { in: ids } },
+          ],
+        },
+        select: { blockerId: true, blockedId: true },
+      })
+    : [];
+  const out = new Map<string, "OK" | "BLOCKED_BY_ME" | "UNAVAILABLE">();
+  for (const p of peers) {
+    out.set(
+      p.id,
+      chatAvailability({
+        blockedByMe: blocks.some((b) => b.blockerId === meId && b.blockedId === p.id),
+        blockedMe: blocks.some((b) => b.blockerId === p.id && b.blockedId === meId),
+        peerGone: p.status !== "ACTIVE",
+      }),
+    );
+  }
+  return out;
 }
 
 // ---------- Listing ----------
@@ -73,6 +113,7 @@ export async function listConversations(me: User, archived: boolean): Promise<Co
     unreadByConversation(me.id),
   ]);
   const peerById = new Map(peers.map((p) => [p.id, p]));
+  const availability = await availabilityFor(me.id, peers);
 
   const lastRows = await Promise.all(
     visible.map((m) =>
@@ -101,6 +142,7 @@ export async function listConversations(me: User, archived: boolean): Promise<Co
       unread: unread.get(m.conversationId) ?? 0,
       archived: m.archivedAt !== null,
       muted: m.mutedUntil !== null && m.mutedUntil > new Date(),
+      availability: availability.get(peer.id) ?? "OK",
     });
   });
   return out.sort((a, b) => (b.lastMessageAt ?? "").localeCompare(a.lastMessageAt ?? ""));
@@ -359,6 +401,38 @@ export async function deleteForEveryone(me: User, messageId: string): Promise<Me
   return reload(me, msg.id);
 }
 
+export async function editMessage(me: User, messageId: string, body: string): Promise<MessageDto> {
+  const msg = await loadMessageFor(me, messageId);
+  const verdict = canEditMessage({
+    senderId: msg.senderId,
+    userId: me.id,
+    type: msg.type,
+    createdAt: msg.createdAt,
+    deleted: msg.deletedForEveryoneAt !== null,
+    now: new Date(),
+  });
+  if (!verdict.ok) {
+    throw verdict.reason === "WINDOW_CLOSED"
+      ? forbidden(errors.editWindowClosed)
+      : forbidden(errors.editNotAllowed);
+  }
+  const access = await accessFor(me.id, msg.conversationId);
+  await assertCanInteract(me.id, access.peerId);
+  await enforce(policies.messages, me.id);
+  const text = body.trim();
+  if (!bodyIsValid("TEXT", text)) {
+    throw new AppError(400, "INVALID", errors.messageTooLong(LIMITS.MESSAGE_MAX_CHARS));
+  }
+  if (text !== msg.body) {
+    await getDb().message.update({
+      where: { id: msg.id },
+      data: { body: text, editedAt: new Date() },
+    });
+    void publish({ type: "message:updated", messageId: msg.id });
+  }
+  return reload(me, msg.id);
+}
+
 export async function setStar(me: User, messageId: string, on: boolean): Promise<MessageDto> {
   const msg = await loadMessageFor(me, messageId);
   const db = getDb();
@@ -381,6 +455,7 @@ export async function toggleReaction(
 ): Promise<MessageDto> {
   if (!isSingleEmoji(emoji)) throw new AppError(400, "INVALID", errors.invalidRequest);
   const msg = await loadMessageFor(me, messageId);
+  await assertCanInteract(me.id, (await accessFor(me.id, msg.conversationId)).peerId);
   const db = getDb();
   const key = { userId_messageId_emoji: { userId: me.id, messageId: msg.id, emoji } };
   const had = await db.messageReaction.findUnique({ where: key });
@@ -516,5 +591,6 @@ export async function getConversation(me: User, conversationId: string): Promise
     unread: unread.get(conversationId) ?? 0,
     archived: member.archivedAt !== null,
     muted: member.mutedUntil !== null && member.mutedUntil > new Date(),
+    availability: (await availabilityFor(me.id, [peer])).get(peer.id) ?? "OK",
   };
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { serverError as copy } from "@/content/site";
-import { colors } from "@/lib/tokens";
+import { colors, emailFontStack } from "@/lib/tokens";
 
 /**
  * Last resort when the root layout itself fails. It brings its own html and body, so it uses inline
@@ -28,7 +28,7 @@ export default function GlobalError({
           textAlign: "center",
           background: colors.white,
           color: colors.ink950,
-          fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, Arial, sans-serif",
+          fontFamily: emailFontStack,
         }}
       >
         <h1 style={{ fontSize: "2rem", margin: 0 }}>{copy.heading}</h1>

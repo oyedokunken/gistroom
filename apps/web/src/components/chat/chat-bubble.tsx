@@ -1,7 +1,8 @@
 "use client";
 
 import * as Menu from "@radix-ui/react-dropdown-menu";
-import { Copy, CornerUpLeft, Star, Trash2, Trash } from "lucide-react";
+import { motion } from "motion/react";
+import { Copy, CornerUpLeft, Pencil, Star, Trash2, Trash } from "lucide-react";
 import type { ReceiptStatus } from "@gistroom/shared";
 import {
   DropdownContent,
@@ -16,11 +17,15 @@ import { cn } from "@/lib/cn";
 import { formatClock, formatFull } from "@/lib/time";
 import type { Row } from "@/lib/chat/rows";
 
+/** How far a bubble is dragged to the right before it counts as a reply. */
+export const SWIPE_REPLY_PX = 56;
+
 export interface BubbleActions {
   onReply: () => void;
   onCopy: () => void;
   onStar: () => void;
   onReact: (emoji: string) => void;
+  onEdit: () => void;
   onDeleteMe: () => void;
   onDeleteEveryone: () => void;
   onRetry: () => void;
@@ -31,6 +36,7 @@ export interface ChatBubbleProps {
   receipt: ReceiptStatus | null;
   peerName: string;
   canDeleteEveryone: boolean;
+  canEdit: boolean;
   actions: BubbleActions;
 }
 
@@ -39,6 +45,7 @@ export function ChatBubble({
   receipt,
   peerName,
   canDeleteEveryone,
+  canEdit,
   actions,
 }: ChatBubbleProps) {
   const { message, mine, groupStart, groupEnd, pending } = row;
@@ -77,6 +84,7 @@ export function ChatBubble({
       ) : null}
       <span>{body}</span>
       <span className="mt-1 flex items-center justify-end gap-1.5 text-[0.6875rem] leading-none opacity-80">
+        {message.editedAt ? <span>{chat.edit.label}</span> : null}
         {message.starred ? (
           <Star aria-label={chat.starredBadge} className="size-3 fill-current" />
         ) : null}
@@ -88,95 +96,122 @@ export function ChatBubble({
     </>
   );
 
+  const swipeable = !failed && !local && !message.deletedForEveryone;
+
   return (
-    <div
-      className={cn(
-        "flex w-full flex-col",
-        mine ? "items-end" : "items-start",
-        groupStart ? "mt-3" : "mt-0.5",
-      )}
-    >
-      {failed ? (
-        <button
-          type="button"
-          onClick={actions.onRetry}
-          aria-label={chat.retryAria}
-          className={bubbleClass}
-        >
-          {content}
-          <span className="mt-1 block text-xs font-semibold">
-            {chat.failedSend}. {chat.retrySend}
-          </span>
-        </button>
-      ) : local || message.deletedForEveryone ? (
-        <div className={bubbleClass}>{content}</div>
-      ) : (
-        <DropdownMenu>
-          <DropdownTrigger asChild>
-            <button
-              type="button"
-              aria-haspopup="menu"
-              className={cn(bubbleClass, "cursor-pointer")}
-            >
-              {content}
-            </button>
-          </DropdownTrigger>
-          <DropdownContent align={mine ? "end" : "start"}>
-            <div
-              role="group"
-              aria-label={chat.reactionQuick}
-              className="flex justify-between gap-1 px-1 py-1"
-            >
-              {QUICK_REACTIONS.map((emoji) => (
-                <Menu.Item
-                  key={emoji}
-                  onSelect={() => actions.onReact(emoji)}
-                  className="flex size-11 cursor-pointer items-center justify-center rounded-full text-xl outline-none data-[highlighted]:bg-green-100"
-                >
-                  {emoji}
-                </Menu.Item>
-              ))}
-            </div>
-            <DropdownSeparator />
-            <DropdownItem icon={CornerUpLeft} onSelect={actions.onReply}>
-              {chat.actions.reply}
-            </DropdownItem>
-            <DropdownItem icon={Copy} onSelect={actions.onCopy}>
-              {chat.actions.copy}
-            </DropdownItem>
-            <DropdownItem icon={Star} onSelect={actions.onStar}>
-              {message.starred ? chat.actions.unstar : chat.actions.star}
-            </DropdownItem>
-            <DropdownSeparator />
-            <DropdownItem icon={Trash} onSelect={actions.onDeleteMe} danger>
-              {chat.actions.deleteForMe}
-            </DropdownItem>
-            {canDeleteEveryone ? (
-              <DropdownItem icon={Trash2} onSelect={actions.onDeleteEveryone} danger>
-                {chat.actions.deleteForEveryone}
-              </DropdownItem>
-            ) : null}
-          </DropdownContent>
-        </DropdownMenu>
-      )}
-      {message.reactions.length > 0 && !message.deletedForEveryone ? (
-        <div className={cn("-mt-1.5 flex gap-1", mine ? "mr-2" : "ml-2")}>
-          {message.reactions.map((r) => (
-            <span
-              key={r.emoji}
-              className={cn(
-                "tabular inline-flex min-h-7 items-center gap-1 rounded-full border px-2 text-sm",
-                r.mine
-                  ? "border-green-600 bg-green-100 text-green-700"
-                  : "border-border bg-surface text-text",
-              )}
-            >
-              <span aria-hidden>{r.emoji}</span>
-              {r.count}
-            </span>
-          ))}
-        </div>
+    <div className="relative">
+      {swipeable ? (
+        <CornerUpLeft
+          aria-hidden
+          className="absolute left-3 top-1/2 size-5 -translate-y-1/2 text-text-muted"
+        />
       ) : null}
+      <motion.div
+        drag={swipeable ? "x" : false}
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={{ left: 0, right: 0.4 }}
+        dragSnapToOrigin
+        onDragEnd={(_, info) => {
+          if (info.offset.x > SWIPE_REPLY_PX) actions.onReply();
+        }}
+        aria-description={swipeable ? chat.swipeReply : undefined}
+        className={cn(
+          "relative flex w-full flex-col bg-transparent",
+          mine ? "items-end" : "items-start",
+          groupStart ? "mt-3" : "mt-0.5",
+        )}
+      >
+        {failed ? (
+          <button
+            type="button"
+            onClick={actions.onRetry}
+            aria-label={chat.retryAria}
+            className={bubbleClass}
+          >
+            {content}
+            <span className="mt-1 block text-xs font-semibold">
+              {chat.failedSend}. {chat.retrySend}
+            </span>
+          </button>
+        ) : local || message.deletedForEveryone ? (
+          <div className={bubbleClass}>{content}</div>
+        ) : (
+          <DropdownMenu>
+            <DropdownTrigger asChild>
+              <button
+                type="button"
+                aria-haspopup="menu"
+                className={cn(bubbleClass, "cursor-pointer")}
+              >
+                {content}
+              </button>
+            </DropdownTrigger>
+            <DropdownContent align={mine ? "end" : "start"}>
+              <div
+                role="group"
+                aria-label={chat.reactionQuick}
+                className="flex justify-between gap-1 px-1 py-1"
+              >
+                {QUICK_REACTIONS.map((emoji) => (
+                  <Menu.Item
+                    key={emoji}
+                    onSelect={() => actions.onReact(emoji)}
+                    className="flex size-11 cursor-pointer items-center justify-center rounded-full text-xl outline-none data-[highlighted]:bg-green-100"
+                  >
+                    {emoji}
+                  </Menu.Item>
+                ))}
+              </div>
+              <DropdownSeparator />
+              <DropdownItem icon={CornerUpLeft} onSelect={actions.onReply}>
+                {chat.actions.reply}
+              </DropdownItem>
+              {canEdit ? (
+                <DropdownItem icon={Pencil} onSelect={actions.onEdit}>
+                  {chat.edit.action}
+                </DropdownItem>
+              ) : null}
+              <DropdownItem icon={Copy} onSelect={actions.onCopy}>
+                {chat.actions.copy}
+              </DropdownItem>
+              <DropdownItem icon={Star} onSelect={actions.onStar}>
+                {message.starred ? chat.actions.unstar : chat.actions.star}
+              </DropdownItem>
+              <DropdownSeparator />
+              <DropdownItem icon={Trash} onSelect={actions.onDeleteMe} danger>
+                {chat.actions.deleteForMe}
+              </DropdownItem>
+              {canDeleteEveryone ? (
+                <DropdownItem icon={Trash2} onSelect={actions.onDeleteEveryone} danger>
+                  {chat.actions.deleteForEveryone}
+                </DropdownItem>
+              ) : null}
+            </DropdownContent>
+          </DropdownMenu>
+        )}
+        {message.reactions.length > 0 && !message.deletedForEveryone ? (
+          <div className={cn("-mt-1.5 flex gap-1", mine ? "mr-2" : "ml-2")}>
+            {message.reactions.map((r) => (
+              <button
+                type="button"
+                key={r.emoji}
+                aria-pressed={r.mine}
+                aria-label={chat.reactedBy(r.emoji, r.count)}
+                onClick={() => actions.onReact(r.emoji)}
+                className={cn(
+                  "tabular inline-flex min-h-7 cursor-pointer items-center gap-1 rounded-full border px-2 text-sm",
+                  r.mine
+                    ? "border-green-600 bg-green-100 text-green-700"
+                    : "border-border bg-surface text-text",
+                )}
+              >
+                <span aria-hidden>{r.emoji}</span>
+                {r.count}
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </motion.div>
     </div>
   );
 }

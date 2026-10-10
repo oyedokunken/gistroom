@@ -29,6 +29,7 @@ const make = (
   meta: null,
   createdAt: iso(minutesAgo),
   deletedForEveryone: false,
+  editedAt: null,
   attachments: [],
   reactions: [],
   starred: false,
@@ -85,6 +86,7 @@ export function ChatPreview() {
               row={row}
               peerName="Ada"
               canDeleteEveryone={row.mine}
+              canEdit={row.mine}
               receipt={
                 row.mine
                   ? row.message.id === "5"
@@ -99,6 +101,7 @@ export function ChatPreview() {
                 onCopy: noop,
                 onStar: noop,
                 onReact: noop,
+                onEdit: noop,
                 onDeleteMe: noop,
                 onDeleteEveryone: noop,
                 onRetry: noop,

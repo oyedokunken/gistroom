@@ -15,6 +15,33 @@ export function canDeleteForEveryone(input: {
   return { ok: true };
 }
 
+/** Edit: the sender only, text messages only, inside the first 15 minutes, never once deleted. */
+export function canEditMessage(input: {
+  senderId: string;
+  userId: string;
+  type: string;
+  createdAt: Date;
+  deleted: boolean;
+  now: Date;
+}): { ok: true } | { ok: false; reason: "NOT_ALLOWED" | "WINDOW_CLOSED" } {
+  if (input.senderId !== input.userId || input.type !== "TEXT" || input.deleted)
+    return { ok: false, reason: "NOT_ALLOWED" };
+  const ageMin = (input.now.getTime() - input.createdAt.getTime()) / 60_000;
+  if (ageMin > LIMITS.EDIT_WINDOW_MIN) return { ok: false, reason: "WINDOW_CLOSED" };
+  return { ok: true };
+}
+
+/** What the viewer may see of a chat: blocked people see it as unavailable and are never told why. */
+export function chatAvailability(input: {
+  blockedByMe: boolean;
+  blockedMe: boolean;
+  peerGone: boolean;
+}): "OK" | "BLOCKED_BY_ME" | "UNAVAILABLE" {
+  if (input.blockedByMe) return "BLOCKED_BY_ME";
+  if (input.blockedMe || input.peerGone) return "UNAVAILABLE";
+  return "OK";
+}
+
 /** A conversation shows in the list unless it was cleared and nothing newer has arrived (Section 9.3). */
 export function showInList(input: { clearedAt: Date | null; lastMessageAt: Date | null }): boolean {
   if (!input.clearedAt) return true;

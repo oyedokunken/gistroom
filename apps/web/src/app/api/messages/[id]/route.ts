@@ -1,6 +1,7 @@
-import { api, assertSameOrigin, json } from "@/server/http";
+import { editMessageSchema } from "@gistroom/shared";
+import { api, assertSameOrigin, json, parseJson } from "@/server/http";
 import { requireOnboarded } from "@/server/auth/session";
-import { deleteForEveryone, deleteForMe } from "@/server/chat/service";
+import { deleteForEveryone, deleteForMe, editMessage } from "@/server/chat/service";
 
 /** ?scope=me hides it for you. ?scope=everyone replaces the bubble for both of you (first hour only). */
 export const DELETE = api(async (request, ctx: { params: Promise<{ id: string }> }) => {
@@ -12,4 +13,12 @@ export const DELETE = api(async (request, ctx: { params: Promise<{ id: string }>
   }
   await deleteForMe(user, id);
   return json({ ok: true });
+});
+
+/** Edit the text of your own message in the first 15 minutes. */
+export const PATCH = api(async (request, ctx: { params: Promise<{ id: string }> }) => {
+  assertSameOrigin(request);
+  const { user } = await requireOnboarded();
+  const { body } = await parseJson(request, editMessageSchema);
+  return json({ message: await editMessage(user, (await ctx.params).id, body) });
 });

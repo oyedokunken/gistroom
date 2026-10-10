@@ -76,6 +76,13 @@ export function MessageList({
     prev.current = { first, last, height: el.scrollHeight, key: scrollKey };
   }, [rows, scrollKey, virtualizer]);
 
+  // The typing bubble sits below the list. If you were at the bottom, keep it in view.
+  const hasFooter = Boolean(footer);
+  useEffect(() => {
+    const el = parent.current;
+    if (hasFooter && el && atBottom.current) el.scrollTop = el.scrollHeight;
+  }, [hasFooter]);
+
   useEffect(() => {
     const el = parent.current;
     if (!el) return;

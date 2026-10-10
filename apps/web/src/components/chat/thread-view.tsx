@@ -4,17 +4,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Archive, BellOff, ChevronLeft, MoreVertical, Trash2, UserX } from "lucide-react";
-import { receiptStatus, type ConversationDto, type MessageDto } from "@gistroom/shared";
+import { ChevronLeft, Phone, Settings, Video } from "lucide-react";
+import { LIMITS, receiptStatus, type ConversationDto, type MessageDto } from "@gistroom/shared";
 import { useFeedback } from "@/components/feedback/feedback-provider";
 import { Avatar } from "@/components/ui/avatar";
-import {
-  DropdownContent,
-  DropdownItem,
-  DropdownMenu,
-  DropdownSeparator,
-  DropdownTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { chat } from "@/content/chat";
@@ -22,15 +16,19 @@ import { ApiClientError, apiFetch } from "@/lib/api";
 import { upsertMessage, flattenOldestFirst, type CachedMessages } from "@/lib/chat/cache";
 import { keys, useMessages } from "@/lib/chat/hooks";
 import { useOutbox } from "@/lib/chat/outbox-store";
+import { toggleReactionLocal } from "@/lib/chat/reactions";
 import { buildRows, type Row } from "@/lib/chat/rows";
 import { presenceLabel } from "@/lib/presence";
 import { useRealtime } from "@/lib/realtime/provider";
 import { useRealtimeStore } from "@/lib/realtime/store";
 import { ChatBubble } from "./chat-bubble";
+import { ChatSettings, ReportDialog, StarredDialog } from "./chat-dialogs";
 import { Composer } from "./composer";
 import { MessageList } from "./message-list";
+import { TypingBubble } from "./typing-bubble";
 
-const DELETE_WINDOW_MS = 60 * 60_000;
+const DELETE_WINDOW_MS = LIMITS.DELETE_FOR_EVERYONE_WINDOW_MIN * 60_000;
+const EDIT_WINDOW_MS = LIMITS.EDIT_WINDOW_MIN * 60_000;
 
 function useConversation(id: string) {
   return useQuery({
@@ -49,20 +47,33 @@ export function ThreadView({
   const router = useRouter();
   const queryClient = useQueryClient();
   const realtime = useRealtime();
-  const { confirm, showError, showSuccess } = useFeedback();
+  const { confirm, showError, showInfo } = useFeedback();
   const conv = useConversation(conversationId);
   const messages = useMessages(conversationId);
   const outbox = useOutbox((s) => s.queue);
   const [replyTo, setReplyTo] = useState<{ id: string; name: string; text: string } | null>(null);
+  const [editing, setEditing] = useState<{ id: string; text: string } | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [starredOpen, setStarredOpen] = useState(false);
 
-  const peer = conv.data?.conversation.peer;
+  const conversation = conv.data?.conversation;
+  const peer = conversation?.peer;
+  const availability = conversation?.availability ?? "OK";
   const presence = useRealtimeStore((s) => (peer ? s.presence[peer.id] : undefined));
   const peerTyping = useRealtimeStore((s) => (s.typing[conversationId] ?? []).length > 0);
+  const live = availability === "OK";
 
   // Tell the store which chat is open, so arriving messages here count as read.
   useEffect(() => {
     useRealtimeStore.getState().setOpenConversation(conversationId);
     return () => useRealtimeStore.getState().setOpenConversation(null);
+  }, [conversationId]);
+
+  // Moving to another chat leaves any reply or edit behind.
+  useEffect(() => {
+    setReplyTo(null);
+    setEditing(null);
   }, [conversationId]);
 
   const flat = useMemo(
@@ -124,17 +135,33 @@ export function ThreadView({
     [queryClient, conversationId],
   );
 
+  const failure = useCallback(
+    (e: unknown) => showError(e instanceof ApiClientError ? e.message : chat.reactionFailed),
+    [showError],
+  );
+
   const star = useMutation({
     mutationFn: (m: MessageDto) =>
       apiFetch<{ message: MessageDto }>(`/api/messages/${m.id}/star`, { body: { on: !m.starred } }),
-    onSuccess: (r) => replace(r.message),
-    onError: (e) => e instanceof ApiClientError && showError(e.message),
+    onSuccess: (r) => {
+      replace(r.message);
+      void queryClient.invalidateQueries({ queryKey: ["starred"] });
+    },
+    onError: failure,
   });
+
+  /** Optimistic: the chip changes at once, and goes back with a visible error if the server says no. */
   const react = useMutation({
     mutationFn: ({ m, emoji }: { m: MessageDto; emoji: string }) =>
       apiFetch<{ message: MessageDto }>(`/api/messages/${m.id}/reactions`, { body: { emoji } }),
+    onMutate: ({ m, emoji }) => {
+      replace({ ...m, reactions: toggleReactionLocal(m.reactions, emoji) });
+    },
     onSuccess: (r) => replace(r.message),
-    onError: (e) => e instanceof ApiClientError && showError(e.message),
+    onError: (e, { m }) => {
+      replace(m);
+      failure(e);
+    },
   });
 
   async function deleteMe(m: MessageDto) {
@@ -157,8 +184,7 @@ export function ThreadView({
       );
       void queryClient.invalidateQueries({ queryKey: ["conversations"] });
     } catch (e) {
-      if (e instanceof ApiClientError) showError(e.message);
-      else throw e;
+      failure(e);
     }
   }
 
@@ -178,17 +204,31 @@ export function ThreadView({
       replace(res.message);
       void queryClient.invalidateQueries({ queryKey: ["conversations"] });
     } catch (e) {
-      if (e instanceof ApiClientError) showError(e.message);
-      else throw e;
+      failure(e);
     }
   }
 
   async function copy(m: MessageDto) {
     try {
       await navigator.clipboard.writeText(m.body ?? "");
-      showSuccess(chat.actions.copied);
+      showInfo(chat.actions.copied);
     } catch {
       showError(chat.loadError);
+    }
+  }
+
+  async function saveEdit(text: string) {
+    if (!editing) return;
+    try {
+      const res = await apiFetch<{ message: MessageDto }>(`/api/messages/${editing.id}`, {
+        method: "PATCH",
+        body: { body: text },
+      });
+      replace(res.message);
+      setEditing(null);
+      void queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    } catch (e) {
+      failure(e);
     }
   }
 
@@ -199,6 +239,7 @@ export function ThreadView({
       void queryClient.invalidateQueries({ queryKey: ["conversations"] });
       void queryClient.invalidateQueries({ queryKey: ["conversation", conversationId] });
     },
+    onError: failure,
   });
 
   async function clearChat() {
@@ -209,9 +250,13 @@ export function ThreadView({
       destructive: true,
     });
     if (!ok) return;
-    await apiFetch(`/api/conversations/${conversationId}`, { method: "DELETE", body: {} });
-    void queryClient.invalidateQueries({ queryKey: ["conversations"] });
-    router.replace("/app/chats");
+    try {
+      await apiFetch(`/api/conversations/${conversationId}`, { method: "DELETE", body: {} });
+      void queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      router.replace("/app/chats");
+    } catch (e) {
+      failure(e);
+    }
   }
 
   async function blockPeer() {
@@ -226,31 +271,59 @@ export function ThreadView({
     try {
       await apiFetch("/api/blocks", { body: { userId: peer.id } });
       void queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      void queryClient.invalidateQueries({ queryKey: ["conversation", conversationId] });
       void queryClient.invalidateQueries({ queryKey: ["friends"] });
-      router.replace("/app/chats");
     } catch (e) {
-      if (e instanceof ApiClientError) showError(e.message);
-      else throw e;
+      failure(e);
     }
   }
 
-  const status = peerTyping ? `${chat.typing}...` : presenceLabel(presence);
+  async function unblockPeer() {
+    if (!peer) return;
+    const ok = await confirm({
+      title: chat.blockedByMe.unblockTitle(peer.name),
+      message: chat.blockedByMe.unblockBody,
+      confirmLabel: chat.blockedByMe.unblockConfirm,
+    });
+    if (!ok) return;
+    try {
+      await apiFetch(`/api/blocks/${peer.id}`, { method: "DELETE", body: {} });
+      void queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      void queryClient.invalidateQueries({ queryKey: ["conversation", conversationId] });
+      void queryClient.invalidateQueries({ queryKey: ["friends"] });
+    } catch (e) {
+      failure(e);
+    }
+  }
+
+  async function startCall(kind: "audio" | "video") {
+    if (!peer) return;
+    const video = kind === "video";
+    const ok = await confirm({
+      title: video
+        ? chat.calls.confirmVideoTitle(peer.name)
+        : chat.calls.confirmAudioTitle(peer.name),
+      message: chat.calls.confirmBody,
+      confirmLabel: video ? chat.calls.confirmVideo : chat.calls.confirmAudio,
+    });
+    if (ok) showInfo(chat.calls.notReady);
+  }
+
+  const status = !live ? null : peerTyping ? `${chat.typing}...` : presenceLabel(presence);
   const loadError =
     conv.isError && conv.error instanceof ApiClientError && conv.error.status === 404;
 
   function renderMessage(row: Extract<Row, { kind: "message" }>) {
     const m = row.message;
-    const canDeleteEveryone =
-      row.mine &&
-      !row.pending &&
-      !m.deletedForEveryone &&
-      Date.now() - new Date(m.createdAt).getTime() < DELETE_WINDOW_MS;
+    const age = Date.now() - new Date(m.createdAt).getTime();
+    const settled = row.mine && !row.pending && !m.deletedForEveryone;
     return (
       <ChatBubble
         row={row}
         receipt={receiptFor(m)}
         peerName={peer?.name ?? ""}
-        canDeleteEveryone={canDeleteEveryone}
+        canDeleteEveryone={settled && age < DELETE_WINDOW_MS}
+        canEdit={settled && live && m.type === "TEXT" && age < EDIT_WINDOW_MS}
         actions={{
           onReply: () =>
             setReplyTo({
@@ -261,6 +334,10 @@ export function ThreadView({
           onCopy: () => void copy(m),
           onStar: () => star.mutate(m),
           onReact: (emoji) => react.mutate({ m, emoji }),
+          onEdit: () => {
+            setReplyTo(null);
+            setEditing({ id: m.id, text: m.body ?? "" });
+          },
           onDeleteMe: () => void deleteMe(m),
           onDeleteEveryone: () => void deleteEveryone(m),
           onRetry: () => useOutbox.getState().retry(conversationId),
@@ -272,7 +349,7 @@ export function ThreadView({
   if (loadError) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
-        <p className="text-text-muted">{chat.cannotMessage}</p>
+        <p className="text-text-muted">{chat.unavailable.title}</p>
         <Link
           href="/app/chats"
           className="font-semibold text-green-700 underline-offset-4 hover:underline"
@@ -285,7 +362,7 @@ export function ThreadView({
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <header className="flex min-h-16 items-center gap-2 border-b border-border px-2 py-2 md:px-4">
+      <header className="flex min-h-16 items-center gap-1 border-b border-border px-2 py-2 md:px-4">
         <Link
           href="/app/chats"
           aria-label={chat.back}
@@ -294,16 +371,29 @@ export function ThreadView({
           <ChevronLeft aria-hidden className="size-6" />
         </Link>
         {peer ? (
-          <Link href={`/app/u/${peer.username}`} className="flex min-w-0 flex-1 items-center gap-3">
-            <Avatar name={peer.name} src={peer.avatarUrl} size={40} online={presence?.online} />
+          <Link
+            href={`/app/u/${peer.username}`}
+            aria-label={`${chat.settings.profile}: ${peer.name}`}
+            className="flex min-w-0 flex-1 items-center gap-3 rounded-xl py-1"
+          >
+            <Avatar
+              name={peer.name}
+              src={live ? peer.avatarUrl : null}
+              size={40}
+              online={live ? presence?.online : undefined}
+            />
             <span className="flex min-w-0 flex-col">
               <span className="truncate font-semibold text-text">{peer.name}</span>
               <span
                 role="status"
                 aria-live="polite"
-                className={`truncate text-sm ${peerTyping ? "font-medium text-green-700" : "text-text-muted"}`}
+                className={`truncate text-sm ${peerTyping && live ? "font-medium text-green-700" : "text-text-muted"}`}
               >
-                {status ?? `@${peer.username}`}
+                {availability === "UNAVAILABLE"
+                  ? chat.unavailable.title
+                  : availability === "BLOCKED_BY_ME"
+                    ? chat.blockedByMe.title(peer.name)
+                    : (status ?? `@${peer.username}`)}
               </span>
             </span>
           </Link>
@@ -313,38 +403,23 @@ export function ThreadView({
             <Skeleton className="h-4 w-32" />
           </div>
         )}
-        <DropdownMenu>
-          <DropdownTrigger asChild>
-            <IconButton label={chat.conversation.menu}>
-              <MoreVertical aria-hidden className="size-5" />
+        {live ? (
+          <>
+            <IconButton label={chat.calls.audio} onClick={() => void startCall("audio")}>
+              <Phone aria-hidden className="size-5" />
             </IconButton>
-          </DropdownTrigger>
-          <DropdownContent>
-            <DropdownItem
-              icon={Archive}
-              onSelect={() => patch.mutate({ archived: !conv.data?.conversation.archived })}
-            >
-              {conv.data?.conversation.archived
-                ? chat.conversation.unarchive
-                : chat.conversation.archive}
-            </DropdownItem>
-            <DropdownItem
-              icon={BellOff}
-              onSelect={() =>
-                patch.mutate({ muteMinutes: conv.data?.conversation.muted ? 0 : 8 * 60 })
-              }
-            >
-              {conv.data?.conversation.muted ? chat.conversation.unmute : chat.conversation.mute}
-            </DropdownItem>
-            <DropdownSeparator />
-            <DropdownItem icon={Trash2} danger onSelect={() => void clearChat()}>
-              {chat.conversation.clear}
-            </DropdownItem>
-            <DropdownItem icon={UserX} danger onSelect={() => void blockPeer()}>
-              {chat.conversation.block}
-            </DropdownItem>
-          </DropdownContent>
-        </DropdownMenu>
+            <IconButton label={chat.calls.video} onClick={() => void startCall("video")}>
+              <Video aria-hidden className="size-5" />
+            </IconButton>
+          </>
+        ) : null}
+        <IconButton
+          label={chat.settings.open}
+          onClick={() => setSettingsOpen(true)}
+          disabled={!conversation}
+        >
+          <Settings aria-hidden className="size-5" />
+        </IconButton>
       </header>
 
       {messages.isPending ? (
@@ -379,17 +454,60 @@ export function ThreadView({
               </p>
             ) : null
           }
+          footer={peerTyping && live && peer ? <TypingBubble name={peer.name} /> : null}
         />
       )}
 
-      <Composer
+      {availability === "BLOCKED_BY_ME" && peer ? (
+        <div className="flex flex-col items-center gap-2 border-t border-border bg-surface-2 px-4 py-4 text-center">
+          <p className="font-semibold text-text">{chat.blockedByMe.title(peer.name)}</p>
+          <p className="text-sm text-text-muted">{chat.blockedByMe.body}</p>
+          <Button variant="secondary" onClick={() => void unblockPeer()}>
+            {chat.blockedByMe.unblock}
+          </Button>
+        </div>
+      ) : (
+        <Composer
+          conversationId={conversationId}
+          disabled={availability === "UNAVAILABLE"}
+          disabledReason={chat.unavailable.body}
+          replyingTo={replyTo}
+          onCancelReply={() => setReplyTo(null)}
+          editing={editing}
+          onSaveEdit={(text) => void saveEdit(text)}
+          onCancelEdit={() => setEditing(null)}
+          onSend={(text) => {
+            useOutbox
+              .getState()
+              .add({ conversationId, body: text, replyToId: replyTo?.id ?? null });
+            setReplyTo(null);
+          }}
+        />
+      )}
+
+      {conversation ? (
+        <ChatSettings
+          open={settingsOpen}
+          onOpenChange={setSettingsOpen}
+          conversation={conversation}
+          onToggleMute={() => patch.mutate({ muteMinutes: conversation.muted ? 0 : 8 * 60 })}
+          onToggleArchive={() => patch.mutate({ archived: !conversation.archived })}
+          onStarred={() => setStarredOpen(true)}
+          onReport={() => setReportOpen(true)}
+          onBlock={() => void blockPeer()}
+          onUnblock={() => void unblockPeer()}
+          onClear={() => void clearChat()}
+        />
+      ) : null}
+      <ReportDialog
+        open={reportOpen}
+        onOpenChange={setReportOpen}
         conversationId={conversationId}
-        replyingTo={replyTo}
-        onCancelReply={() => setReplyTo(null)}
-        onSend={(text) => {
-          useOutbox.getState().add({ conversationId, body: text, replyToId: replyTo?.id ?? null });
-          setReplyTo(null);
-        }}
+      />
+      <StarredDialog
+        open={starredOpen}
+        onOpenChange={setStarredOpen}
+        conversationId={conversationId}
       />
     </div>
   );

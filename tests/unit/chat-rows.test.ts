@@ -15,6 +15,7 @@ const m = (id: string, senderId: string, at: string): MessageDto => ({
   meta: null,
   createdAt: at,
   deletedForEveryone: false,
+  editedAt: null,
   attachments: [],
   reactions: [],
   starred: false,

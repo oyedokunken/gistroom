@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { SendHorizontal, X } from "lucide-react";
+import { Check, SendHorizontal, X } from "lucide-react";
 import { IconButton } from "@/components/ui/icon-button";
 import { chat } from "@/content/chat";
 import { LIMITS, validation } from "@gistroom/shared";
@@ -17,6 +17,10 @@ export interface ComposerProps {
   replyingTo: { id: string; name: string; text: string } | null;
   onCancelReply: () => void;
   onSend: (text: string) => void;
+  /** When set, the composer edits this message instead of sending a new one. */
+  editing?: { id: string; text: string } | null;
+  onSaveEdit?: (text: string) => void;
+  onCancelEdit?: () => void;
 }
 
 const TYPING_REFRESH_MS = 2500;
@@ -29,6 +33,9 @@ export function Composer({
   replyingTo,
   onCancelReply,
   onSend,
+  editing,
+  onSaveEdit,
+  onCancelEdit,
 }: ComposerProps) {
   const realtime = useRealtime();
   const draft = useDrafts((s) => s.drafts[conversationId] ?? "");
@@ -42,6 +49,16 @@ export function Composer({
   useEffect(() => {
     setText(useDrafts.getState().drafts[conversationId] ?? "");
   }, [conversationId]);
+
+  // Opening an edit loads that message. Leaving it puts the chat draft back.
+  useEffect(() => {
+    if (editing) {
+      setText(editing.text);
+      requestAnimationFrame(() => ref.current?.focus());
+    } else {
+      setText(useDrafts.getState().drafts[conversationId] ?? "");
+    }
+  }, [editing, conversationId]);
 
   // Grow with the text, up to a few lines.
   useEffect(() => {
@@ -60,6 +77,7 @@ export function Composer({
 
   function change(value: string) {
     setText(value);
+    if (editing) return;
     setDraft(conversationId, value);
     const now = Date.now();
     if (value && now - lastTyping.current > TYPING_REFRESH_MS) {
@@ -76,6 +94,10 @@ export function Composer({
   function submit() {
     const value = text.trim();
     if (!value || disabled) return;
+    if (editing) {
+      onSaveEdit?.(value);
+      return;
+    }
     onSend(value);
     setText("");
     useDrafts.getState().clear(conversationId);
@@ -115,7 +137,18 @@ export function Composer({
 
   return (
     <div className="border-t border-border bg-surface px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 md:px-4">
-      {replyingTo ? (
+      {editing ? (
+        <div className="mb-2 flex items-start justify-between gap-2 rounded-lg border-l-4 border-yellow-400 bg-surface-2 px-3 py-2 text-sm">
+          <div className="min-w-0">
+            <p className="font-semibold text-text">{chat.edit.editing}</p>
+            <p className="text-text-muted">{chat.edit.window}</p>
+          </div>
+          <IconButton label={chat.edit.cancel} onClick={onCancelEdit} className="-my-2 -mr-2">
+            <X aria-hidden className="size-4" />
+          </IconButton>
+        </div>
+      ) : null}
+      {replyingTo && !editing ? (
         <div className="mb-2 flex items-start justify-between gap-2 rounded-lg border-l-4 border-green-600 bg-surface-2 px-3 py-2 text-sm">
           <div className="min-w-0">
             <p className="font-semibold text-green-700">{chat.replyingTo(replyingTo.name)}</p>
@@ -144,12 +177,16 @@ export function Composer({
           )}
         />
         <IconButton
-          label={chat.send}
+          label={editing ? chat.edit.save : chat.send}
           onClick={submit}
           disabled={!text.trim() || over}
           className="bg-green-600 text-white hover:bg-green-700"
         >
-          <SendHorizontal aria-hidden className="size-5" />
+          {editing ? (
+            <Check aria-hidden className="size-5" />
+          ) : (
+            <SendHorizontal aria-hidden className="size-5" />
+          )}
         </IconButton>
       </div>
       {over ? (

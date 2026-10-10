@@ -34,10 +34,18 @@ export interface MessageDto {
   meta: Record<string, unknown> | null;
   createdAt: string;
   deletedForEveryone: boolean;
+  /** Set when the sender edited the text inside the edit window. */
+  editedAt: string | null;
   attachments: AttachmentDto[];
   reactions: ReactionDto[];
   starred: boolean;
 }
+
+/**
+ * OK: chat as normal. BLOCKED_BY_ME: you blocked them, you can unblock. UNAVAILABLE: they blocked you or the
+ * account is gone; the chat just shows as unavailable and never says why.
+ */
+export type ChatAvailability = "OK" | "BLOCKED_BY_ME" | "UNAVAILABLE";
 
 export interface ConversationDto {
   id: string;
@@ -47,6 +55,7 @@ export interface ConversationDto {
   unread: number;
   archived: boolean;
   muted: boolean;
+  availability: ChatAvailability;
 }
 
 export type FriendRequestDirection = "INCOMING" | "OUTGOING";

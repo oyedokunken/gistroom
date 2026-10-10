@@ -33,6 +33,7 @@ export function pendingToMessage(item: OutboxItem, senderId: string): MessageDto
     meta: null,
     createdAt: item.createdAt,
     deletedForEveryone: false,
+    editedAt: null,
     attachments: [],
     reactions: [],
     starred: false,

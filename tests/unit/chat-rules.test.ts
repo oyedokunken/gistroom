@@ -3,6 +3,8 @@ import {
   archivedHasActivity,
   bodyIsValid,
   canDeleteForEveryone,
+  canEditMessage,
+  chatAvailability,
   isSingleEmoji,
   previewText,
   showInList,
@@ -94,5 +96,45 @@ describe("unread cutoff", () => {
     expect(unreadCutoff(ago(10), null)).toEqual(ago(10));
     expect(unreadCutoff(ago(10), ago(5))).toEqual(ago(5));
     expect(unreadCutoff(ago(2), ago(5))).toEqual(ago(2));
+  });
+});
+
+describe("editing and block visibility", () => {
+  const base = {
+    senderId: "a",
+    userId: "a",
+    type: "TEXT",
+    createdAt: new Date("2026-01-01T10:00:00Z"),
+    deleted: false,
+  };
+  it("lets the sender edit text for 15 minutes only", () => {
+    const at = (min: number) => new Date(base.createdAt.getTime() + min * 60_000);
+    expect(canEditMessage({ ...base, now: at(1) })).toEqual({ ok: true });
+    expect(canEditMessage({ ...base, now: at(15) })).toEqual({ ok: true });
+    expect(canEditMessage({ ...base, now: at(16) })).toEqual({
+      ok: false,
+      reason: "WINDOW_CLOSED",
+    });
+  });
+  it("refuses other people, media and deleted messages", () => {
+    const now = new Date(base.createdAt.getTime() + 60_000);
+    expect(canEditMessage({ ...base, userId: "b", now }).ok).toBe(false);
+    expect(canEditMessage({ ...base, type: "IMAGE", now }).ok).toBe(false);
+    expect(canEditMessage({ ...base, deleted: true, now }).ok).toBe(false);
+  });
+  it("tells the blocker they blocked, and tells the blocked person only that it is unavailable", () => {
+    expect(chatAvailability({ blockedByMe: true, blockedMe: false, peerGone: false })).toBe(
+      "BLOCKED_BY_ME",
+    );
+    expect(chatAvailability({ blockedByMe: false, blockedMe: true, peerGone: false })).toBe(
+      "UNAVAILABLE",
+    );
+    expect(chatAvailability({ blockedByMe: false, blockedMe: false, peerGone: true })).toBe(
+      "UNAVAILABLE",
+    );
+    expect(chatAvailability({ blockedByMe: false, blockedMe: false, peerGone: false })).toBe("OK");
+    expect(chatAvailability({ blockedByMe: true, blockedMe: true, peerGone: false })).toBe(
+      "BLOCKED_BY_ME",
+    );
   });
 });

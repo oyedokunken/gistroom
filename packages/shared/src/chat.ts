@@ -34,5 +34,23 @@ export const conversationPatchSchema = z
   .partial();
 
 export const reactionSchema = z.object({ emoji: z.string().min(1).max(32) });
+export const editMessageSchema = z.object({
+  body: z
+    .string()
+    .trim()
+    .min(1, validation.messageRequired)
+    .max(LIMITS.MESSAGE_MAX_CHARS, validation.messageTooLong(LIMITS.MESSAGE_MAX_CHARS)),
+});
+
+export const REPORT_REASONS = ["SPAM", "HARASSMENT", "HATE", "SCAM", "UNSAFE", "OTHER"] as const;
+export type ReportReason = (typeof REPORT_REASONS)[number];
+export const reportSchema = z.object({
+  reason: z.enum(REPORT_REASONS),
+  details: z.string().trim().max(1000).optional(),
+  /** Set when one message is reported. Left out when the whole chat is reported. */
+  messageId: z.string().trim().min(1).max(64).optional(),
+});
+export type ReportInput = z.infer<typeof reportSchema>;
+
 export const starSchema = z.object({ on: z.boolean() });
 export const openChatSchema = z.object({ userId: z.string().trim().min(1).max(64) });

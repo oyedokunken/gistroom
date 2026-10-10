@@ -31,6 +31,7 @@ const msg = (id: string, at: string, over: Partial<MessageDto> = {}): MessageDto
   meta: null,
   createdAt: at,
   deletedForEveryone: false,
+  editedAt: null,
   attachments: [],
   reactions: [],
   starred: false,

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Archive, ChevronLeft, Search, UserPlus } from "lucide-react";
 import { previewText, type ConversationDto } from "@gistroom/shared";
+import { ChatFab } from "./chat-fab";
 import { Avatar } from "@/components/ui/avatar";
 import { buttonStyles } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -118,7 +119,7 @@ export function ConversationList({ viewerId }: { viewerId: string }) {
   const archivedDot = (main.data?.archivedUnread ?? 0) > 0;
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className="relative flex h-full min-h-0 flex-col">
       <div className="flex flex-col gap-3 border-b border-border p-3 md:p-4">
         <div className="flex items-center justify-between">
           {showArchived ? (
@@ -232,6 +233,7 @@ export function ConversationList({ viewerId }: { viewerId: string }) {
           </ul>
         )}
       </div>
+      <ChatFab />
     </div>
   );
 }

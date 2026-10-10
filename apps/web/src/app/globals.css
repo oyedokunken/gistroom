@@ -126,3 +126,14 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* Scrollbars stay hidden everywhere. Everything still scrolls with wheel, touch and keys. */
+html,
+body,
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+*::-webkit-scrollbar {
+  display: none;
+}

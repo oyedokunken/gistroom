@@ -148,7 +148,7 @@ export function ScrollWave({ className }: { className?: string }) {
 const SIZE = 80;
 const C = SIZE / 2;
 const GR = 34;
-const START = 135; // degrees, measured clockwise from 12 o'clock, so the dial opens at the bottom
+const START = -135; // degrees clockwise from 12 o'clock: the dial starts at lower left, sweeps over the top and ends at lower right
 const SWEEP = 270;
 const TICKS = 28;
 

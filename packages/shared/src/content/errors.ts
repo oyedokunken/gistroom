@@ -38,6 +38,9 @@ export const errors = {
   friendLimitDay: "You have reached the daily limit for friend requests. Try again tomorrow.",
   notFriends: "You can only do that with friends.",
   blocked: "You cannot do that with this person.",
+  chatUnavailable: "This chat is unavailable.",
+  editWindowClosed: "You can only edit a message in the first 15 minutes.",
+  editNotAllowed: "You can only edit your own text messages.",
   messageTooLong: (max: number) => `Messages can be up to ${max} characters.`,
   deleteWindowClosed: "You can only delete a message for everyone in the first hour.",
 } as const;

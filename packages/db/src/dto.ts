@@ -84,6 +84,7 @@ export function messageDto(row: MessageRow, viewerId: string): MessageDto {
     meta: deleted ? null : ((row.meta as Record<string, unknown> | null) ?? null),
     createdAt: row.createdAt.toISOString(),
     deletedForEveryone: deleted,
+    editedAt: deleted ? null : (row.editedAt?.toISOString() ?? null),
     attachments,
     reactions: deleted ? [] : reactionsFor(row.reactions, viewerId),
     starred: row.stars.length > 0,

@@ -4,6 +4,12 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ## [Unreleased]
 
+### Added
+
+- Chat: edit a message for 15 minutes (shows Edited), typing bubble and typing line under the avatar, swipe right to reply, reactions that update at once and roll back with a clear error, block that shows the blocked person only an unavailable chat, report a chat with the last 20 messages kept as evidence, chat settings, starred messages list, audio and video call buttons with a confirmation modal, and a quick actions button on the chat list. Run `npm run db:migrate` for the new editedAt column.
+- Public pages rebuilt with full width bands, device mocks, bento tiles and steps (features, about, security, safety, install), a contents list on long pages, and a rooms page with one large live search plus a few keyword chips.
+- Scrollbars are hidden everywhere. Scroll position is a waveform at the bottom centre on desktop and a speedometer gauge around the chat button on phones.
+
 ### Changed
 
 - Phase 2 client: realtime provider (fresh pass on every reconnect, resync after any gap, focus reporting, app badge), chat list, virtualised thread, bubbles with receipts, reply, star, react and delete, composer with drafts and typing, own emoji picker, offline outbox in IndexedDB that flushes in order, friends page (friends, requests, sent, find people), profiles, notifications page, push opt in with a primer, service worker (push, notification clicks, offline page, update modal), install card and settings for notifications and install.

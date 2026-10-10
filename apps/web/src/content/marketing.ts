@@ -367,3 +367,32 @@ export const installPage = {
   },
   closing: { title: "Ready when you are.", body: "Open Gistroom, then install it from the menu." },
 } as const;
+
+export const roomsSearch = {
+  hero: {
+    title: "Find a room to join.",
+    lead: "Search live and upcoming public rooms by title, topic or keyword.",
+  },
+  label: "Search rooms",
+  placeholder: "Search rooms, like football, jollof or japa",
+  clear: "Clear search",
+  trySearching: "Popular keywords",
+  keywords: [
+    "football",
+    "music",
+    "politics",
+    "tech",
+    "campus",
+    "japa",
+    "owambe",
+    "jollof",
+    "relationships",
+    "comedy",
+  ],
+  searching: "Searching rooms",
+  results: (n: number) => (n === 1 ? "1 room found" : `${n} rooms found`),
+  noResultsTitle: (q: string) => `No rooms match "${q}"`,
+  noResultsBody: "Try another word, or start a room on this topic yourself.",
+  retry: "Try again",
+  sampleNote: "Rooms are listed as they happen. Nothing here is sample content.",
+} as const;

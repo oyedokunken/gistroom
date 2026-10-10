@@ -18,7 +18,15 @@ async function query(filters: RoomFilters): Promise<PublicRoomCard[]> {
       status: { in: ["LIVE", "SCHEDULED"] },
       ...(filters.topic ? { topic: { slug: filters.topic } } : {}),
       ...(filters.language ? { language: filters.language } : {}),
-      ...(filters.q ? { title: { contains: filters.q, mode: "insensitive" as const } } : {}),
+      ...(filters.q
+        ? {
+            OR: [
+              { title: { contains: filters.q, mode: "insensitive" as const } },
+              { description: { contains: filters.q, mode: "insensitive" as const } },
+              { topic: { name: { contains: filters.q, mode: "insensitive" as const } } },
+            ],
+          }
+        : {}),
     },
     include: {
       host: true,

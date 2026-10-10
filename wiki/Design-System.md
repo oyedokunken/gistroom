@@ -17,4 +17,4 @@ The fallback family is `Noto Sans Gistroom`, declared in `globals.css` with `uni
 
 ## Page position (ScrollWave)
 
-No floating back to top button (Decisions D27). `components/ui/scroll-wave.tsx` draws 36 bars like a voice note. Green bars are played, the yellow bar is where you are. Drag or tap to seek. It is an ARIA slider: arrows move 5 percent (25 with Shift), Page keys 25, Home and End jump to the ends. It sits on the right edge from tablet up and as a strip above the dock on phones, and fades when idle. The footer wordmark is a button that scrolls to the top.
+No floating back to top button (Decisions D27). `components/ui/scroll-wave.tsx` draws 36 bars like a voice note. Green bars are played, the yellow bar is where you are. Drag or tap to seek. It is an ARIA slider: arrows move 5 percent (25 with Shift), Page keys 25, Home and End jump to the ends. On desktop it is a horizontal pill fixed at the bottom centre of the page. On phones the same position is shown as a speedometer gauge (ticks and a needle) around the centre chat button of the dock. It fades when idle. The footer wordmark is a button that scrolls to the top.

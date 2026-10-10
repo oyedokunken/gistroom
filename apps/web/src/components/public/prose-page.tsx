@@ -1,6 +1,5 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
-import { buttonStyles } from "@/components/ui/button";
+import { HeroActions, PageHero } from "./sections";
 
 export interface Section {
   id: string;
@@ -22,7 +21,10 @@ export interface ProsePageProps {
   after?: ReactNode;
 }
 
-/** Long form public page: one h1, then h2 sections in order. Line length stays under 80 characters. */
+/**
+ * Long form public page: a full width hero, then a contents list that stays in view beside the sections.
+ * Text lines stay under 80 characters, the page itself uses the full 1200 pixel column.
+ */
 export function ProsePage({
   title,
   lead,
@@ -34,64 +36,60 @@ export function ProsePage({
   after,
 }: ProsePageProps) {
   return (
-    <article className="mx-auto w-full max-w-[1200px] px-6 pb-24 pt-28 md:pt-36">
-      {crumbs?.length ? (
-        <nav aria-label="Breadcrumb" className="mb-6 text-sm text-text-muted">
-          <ol className="flex flex-wrap gap-2">
-            {crumbs.map((c, i) => (
-              <li key={c.href} className="flex items-center gap-2">
-                {i > 0 ? <span aria-hidden>/</span> : null}
-                {i === crumbs.length - 1 ? (
-                  <span aria-current="page">{c.name}</span>
-                ) : (
-                  <Link
-                    href={c.href}
-                    className="inline-flex min-h-11 items-center underline-offset-4 hover:underline"
-                  >
-                    {c.name}
-                  </Link>
-                )}
-              </li>
-            ))}
-          </ol>
-        </nav>
-      ) : null}
-      <header className="max-w-[44rem]">
-        <h1 className="text-[clamp(2.25rem,6vw,3.5rem)] font-black leading-[1.05] tracking-[-0.03em] text-text">
-          {title}
-        </h1>
-        <p className="mt-5 max-w-[60ch] text-lg text-text-muted">{lead}</p>
-        {updated ? <p className="mt-3 text-sm text-text-muted">{updated}</p> : null}
-        {cta ? (
-          <Link href={cta.href} className={buttonStyles("primary", "mt-6 min-h-12 px-7")}>
-            {cta.label}
-          </Link>
-        ) : null}
-      </header>
+    <>
+      <PageHero
+        title={title}
+        lead={updated ? `${lead} ${updated}` : lead}
+        crumbs={crumbs}
+        actions={cta ? <HeroActions primary={cta} /> : undefined}
+      />
       {before}
-      <div className="mt-12 flex max-w-[44rem] flex-col gap-10">
-        {sections.map((s) => (
-          <section key={s.id} id={s.id} aria-labelledby={`${s.id}-h`}>
-            <h2 id={`${s.id}-h`} className="text-2xl font-bold tracking-tight text-text">
-              {s.heading}
-            </h2>
-            {s.body?.map((p) => (
-              <p key={p} className="mt-3 max-w-[68ch] text-text-muted">
-                {p}
-              </p>
-            ))}
-            {s.bullets ? (
-              <ul className="mt-3 flex max-w-[68ch] list-disc flex-col gap-2 pl-5 text-text-muted">
-                {s.bullets.map((b) => (
-                  <li key={b}>{b}</li>
-                ))}
-              </ul>
-            ) : null}
-            {s.extra}
-          </section>
-        ))}
+      <div className="mx-auto grid w-full max-w-[1200px] gap-12 px-6 py-16 md:py-24 lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-20">
+        {sections.length > 2 ? (
+          <nav aria-label="On this page" className="hidden lg:block">
+            <ul className="sticky top-28 flex flex-col gap-1 border-l-2 border-border">
+              {sections.map((s) => (
+                <li key={s.id}>
+                  <a
+                    href={`#${s.id}`}
+                    className="-ml-0.5 flex min-h-11 items-center border-l-2 border-transparent py-1 pl-4 text-sm font-medium text-text-muted hover:border-green-600 hover:text-text"
+                  >
+                    {s.heading}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ) : null}
+        <div
+          className={`flex flex-col gap-14 ${sections.length > 2 ? "" : "lg:col-span-2 lg:max-w-[52rem]"}`}
+        >
+          {sections.map((s) => (
+            <section key={s.id} id={s.id} aria-labelledby={`${s.id}-h`} className="scroll-mt-28">
+              <h2
+                id={`${s.id}-h`}
+                className="text-[clamp(1.5rem,3vw,2rem)] font-bold tracking-[-0.02em] text-text"
+              >
+                {s.heading}
+              </h2>
+              {s.body?.map((p) => (
+                <p key={p} className="mt-4 max-w-[68ch] text-lg text-text-muted">
+                  {p}
+                </p>
+              ))}
+              {s.bullets ? (
+                <ul className="mt-4 flex max-w-[68ch] list-disc flex-col gap-2.5 pl-5 text-lg text-text-muted marker:text-green-600">
+                  {s.bullets.map((b) => (
+                    <li key={b}>{b}</li>
+                  ))}
+                </ul>
+              ) : null}
+              {s.extra}
+            </section>
+          ))}
+        </div>
       </div>
       {after}
-    </article>
+    </>
   );
 }

@@ -8,6 +8,8 @@ export interface SchedulerDeps {
   log: Logger;
   intervalMs?: number;
   now?: () => Date;
+  /** Asks the web app to finish calls whose ring has run out. */
+  expireCalls?: () => Promise<void>;
 }
 
 /**
@@ -34,6 +36,8 @@ export function createScheduler(deps: SchedulerDeps) {
           const payload = (job.payload ?? {}) as { notificationId?: string };
           if (job.kind === "notify" && payload.notificationId) {
             await delivery.deliverNotification(payload.notificationId);
+          } else if (job.kind === "call-timeout") {
+            await deps.expireCalls?.();
           } else {
             log.warn({ kind: job.kind }, "no handler for scheduled job");
           }

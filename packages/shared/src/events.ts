@@ -1,5 +1,6 @@
 // Event names and payloads shared by web and realtime (Section 8). Zod only, safe for the browser.
 import { z } from "zod";
+import type { CallDto } from "./calls";
 import type { FriendRequestDto, MessageDto, NotificationDto } from "./dto";
 import type { PublicUser } from "./profile";
 
@@ -37,6 +38,13 @@ export interface ServerEvents {
   "friend:accepted": { friend: PublicUser; conversationId: string };
   "notification:new": { notification: NotificationDto };
   "badge:update": { notifications: number; chats: number };
+  /** Someone is calling you. Sent to every open tab, and a push goes out as well. */
+  "call:incoming": { call: CallDto };
+  /** The callee answered. The caller is already connected and moves from ringing to talking. */
+  "call:accepted": { call: CallDto };
+  /** Declined, cancelled or not answered in time. Stops the ring on every device. */
+  "call:cancelled": { call: CallDto };
+  "call:ended": { call: CallDto };
   "session:revoked": { sessionId: string };
   "auth:expired": Record<string, never>;
 }
@@ -63,6 +71,11 @@ export const internalEventSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("friend:accepted"), requestId: id }),
   z.object({ type: z.literal("session:revoked"), userId: id, sessionId: id }),
   z.object({ type: z.literal("badge"), userId: id }),
+  z.object({
+    type: z.literal("call"),
+    callId: id,
+    change: z.enum(["ringing", "accepted", "cancelled", "ended"]),
+  }),
 ]);
 export type InternalEvent = z.infer<typeof internalEventSchema>;
 

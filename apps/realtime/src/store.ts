@@ -1,4 +1,7 @@
 import type {
+  CallDto,
+  CallMedia,
+  CallStatus,
   FriendRequestDto,
   MessageDto,
   NotificationDto,
@@ -23,6 +26,19 @@ export interface NotificationBundle {
   unread: number;
   chatsUnread: number;
   subscriptions: PushSub[];
+}
+
+export interface CallDelivery {
+  callId: string;
+  callerId: string;
+  calleeId: string;
+  status: CallStatus;
+  media: CallMedia;
+  callerName: string;
+  /** The call as each of the two people sees it. */
+  dtoFor: Map<string, CallDto>;
+  /** What the callee needs to be pushed when no tab is open. */
+  calleePush: { subscriptions: PushSub[]; previews: boolean; unread: number };
 }
 
 export interface AckResult {
@@ -66,6 +82,7 @@ export interface Store {
   } | null>;
   counts(userId: string): Promise<{ notifications: number; chats: number }>;
 
+  callForDelivery(callId: string): Promise<CallDelivery | null>;
   notificationBundle(notificationId: string): Promise<NotificationBundle | null>;
   recordPushResult(input: { subscriptionId: string; ok: boolean; revoke: boolean }): Promise<void>;
 

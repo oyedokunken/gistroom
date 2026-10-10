@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useMemo, useRef, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { io, type Socket } from "socket.io-client";
-import type { ConversationDto, ServerEvents } from "@gistroom/shared";
+import type { CallDto, ConversationDto, ServerEvents } from "@gistroom/shared";
+import { useCallStore } from "@/lib/calls/store";
 import { apiFetch } from "@/lib/api";
 import {
   advancePeerCursor,
@@ -178,6 +179,19 @@ export function RealtimeProvider({ userId, children }: { userId: string; childre
       if (total > 0) void nav.setAppBadge?.(total).catch(() => undefined);
       else void nav.clearAppBadge?.().catch(() => undefined);
     });
+    on("call:incoming", ({ call }) => {
+      const calls = useCallStore.getState();
+      // Already on the call screen for this one, or another ring is showing: keep what is there.
+      if (calls.incoming && calls.incoming.id !== call.id) return;
+      calls.setIncoming(call);
+    });
+    const callMoved = ({ call }: { call: CallDto }) => {
+      useCallStore.getState().update(call);
+      void queryClient.invalidateQueries({ queryKey: ["calls"] });
+    };
+    on("call:accepted", callMoved);
+    on("call:cancelled", callMoved);
+    on("call:ended", callMoved);
     on("session:revoked", () => {
       socket.disconnect();
       router.replace("/login?error=session_expired");

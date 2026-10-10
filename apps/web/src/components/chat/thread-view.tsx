@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { chat } from "@/content/chat";
 import { ApiClientError, apiFetch } from "@/lib/api";
 import { upsertMessage, flattenOldestFirst, type CachedMessages } from "@/lib/chat/cache";
+import { startCallRequest } from "@/lib/calls/api";
 import { keys, useMessages } from "@/lib/chat/hooks";
 import { useOutbox } from "@/lib/chat/outbox-store";
 import { toggleReactionLocal } from "@/lib/chat/reactions";
@@ -307,7 +308,13 @@ export function ThreadView({
       message: chat.calls.confirmBody,
       confirmLabel: video ? chat.calls.confirmVideo : chat.calls.confirmAudio,
     });
-    if (ok) showInfo(chat.calls.notReady);
+    if (!ok) return;
+    try {
+      const started = await startCallRequest(conversationId, video ? "VIDEO" : "AUDIO");
+      router.push(`/app/call/${started.call.id}`);
+    } catch (e) {
+      failure(e);
+    }
   }
 
   const status = !live ? null : peerTyping ? `${chat.typing}...` : presenceLabel(presence);

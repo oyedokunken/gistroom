@@ -87,11 +87,25 @@ describe("decidePush", () => {
     expect(plan.kind).toBe("CANCEL_CALL");
     if (plan.kind === "CANCEL_CALL") {
       expect(plan.tag).toBe("call:9");
-      expect(plan.missed.options.silent).toBe(true);
-      expect(plan.missed.options.tag).toBe("call:9");
-      expect(plan.missed.options.data.url).toBe("/app/calls");
+      expect(plan.missed?.options.silent).toBe(true);
+      expect(plan.missed?.options.tag).toBe("call:9");
+      expect(plan.missed?.options.data.url).toBe("/app/calls");
     }
   });
+});
+
+it("only removes the ring when the call was answered or declined elsewhere", () => {
+  const plan = decidePush(
+    push({
+      type: "CALL_CANCEL",
+      title: "x",
+      body: "y",
+      tag: "call:9",
+      data: { reason: "dismiss" },
+    }),
+    [],
+  );
+  expect(plan).toEqual({ kind: "CANCEL_CALL", tag: "call:9", missed: null });
 });
 
 describe("planClick", () => {

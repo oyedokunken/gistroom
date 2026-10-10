@@ -107,7 +107,9 @@ self.addEventListener("push", (event) => {
       if (plan.kind === "SKIP") return;
       if (plan.kind === "CANCEL_CALL") {
         for (const n of await self.registration.getNotifications({ tag: plan.tag })) n.close();
-        await self.registration.showNotification(plan.missed.title, plan.missed.options);
+        if (plan.missed) {
+          await self.registration.showNotification(plan.missed.title, plan.missed.options);
+        }
         return;
       }
       await self.registration.showNotification(plan.title, plan.options);

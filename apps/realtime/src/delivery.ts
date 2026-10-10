@@ -4,6 +4,7 @@ import {
   channelsFor,
   deliveryPlan,
   notificationCopy,
+  pushCopy,
   shouldRevoke,
   type InternalEvent,
 } from "@gistroom/shared";
@@ -51,7 +52,7 @@ export function createDelivery(deps: DeliveryDeps) {
       });
     }
 
-    if (!plan.push || !channels.push) return;
+    if (!plan.push || !channels.push || notification.payload.noPush === true) return;
     const payload = buildPushPayload({
       type: copy.kind,
       title: copy.title,
@@ -132,11 +133,86 @@ export function createDelivery(deps: DeliveryDeps) {
         io.in(`session:${event.sessionId}`).disconnectSockets(true);
         return;
       }
+      case "call":
+        return handleCall(event.callId, event.change);
       case "badge": {
         const counts = await store.counts(event.userId);
         emitTo(io, event.userId, "badge:update", counts);
         return;
       }
+    }
+  }
+
+  async function pushToCallee(
+    loaded: NonNullable<Awaited<ReturnType<Store["callForDelivery"]>>>,
+    payload: ReturnType<typeof buildPushPayload>,
+  ): Promise<void> {
+    await Promise.all(
+      loaded.calleePush.subscriptions.map(async (sub) => {
+        const result = await push.send(sub, payload);
+        if (result.disabled) return;
+        const failures = result.ok ? 0 : sub.failureCount + 1;
+        await store.recordPushResult({
+          subscriptionId: sub.id,
+          ok: result.ok,
+          revoke:
+            !result.ok && shouldRevoke({ statusCode: result.statusCode, failureCount: failures }),
+        });
+      }),
+    );
+  }
+
+  /** Rings, answers and endings of a 1:1 call. Calls always push, even when a tab is open (Section 10.1). */
+  async function handleCall(
+    callId: string,
+    change: "ringing" | "accepted" | "cancelled" | "ended",
+  ): Promise<void> {
+    const loaded = await store.callForDelivery(callId);
+    if (!loaded) return;
+    const eventFor = {
+      ringing: "call:incoming",
+      accepted: "call:accepted",
+      cancelled: "call:cancelled",
+      ended: "call:ended",
+    } as const;
+    const name = eventFor[change];
+    for (const [userId, call] of loaded.dtoFor) {
+      // Only the callee hears a ring. The caller already has the call on screen.
+      if (change === "ringing" && userId !== loaded.calleeId) continue;
+      emitTo(io, userId, name, { call });
+    }
+    const base = {
+      ref: loaded.callId,
+      previews: true,
+      badge: loaded.calleePush.unread,
+    };
+    if (change === "ringing") {
+      await pushToCallee(
+        loaded,
+        buildPushPayload({
+          ...base,
+          type: "CALL_INCOMING",
+          title: pushCopy.callIncomingTitle(loaded.callerName),
+          body: loaded.media === "VIDEO" ? pushCopy.callVideo : pushCopy.callAudio,
+          url: `/app/call/${loaded.callId}?answer=1`,
+          data: { callId: loaded.callId },
+        }),
+      );
+    } else if (change === "cancelled" || change === "accepted") {
+      // Not answered in time or cancelled by the caller: leave a quiet missed call.
+      // Answered or declined: just remove the ring from every device.
+      const missed = loaded.status === "MISSED" || loaded.status === "CANCELLED";
+      await pushToCallee(
+        loaded,
+        buildPushPayload({
+          ...base,
+          type: "CALL_CANCEL",
+          title: pushCopy.missedCallTitle,
+          body: pushCopy.missedCallBody(loaded.callerName),
+          url: "/app/calls",
+          data: { callId: loaded.callId, ...(missed ? {} : { reason: "dismiss" }) },
+        }),
+      );
     }
   }
 

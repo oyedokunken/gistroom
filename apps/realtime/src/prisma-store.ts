@@ -1,5 +1,7 @@
 import {
   advanceReceipt,
+  callDto,
+  dmKeyOf,
   getDb,
   messageDto,
   messageInclude,
@@ -161,6 +163,46 @@ export function createPrismaStore(): Store {
         unreadChatCount(userId),
       ]);
       return { notifications, chats };
+    },
+
+    async callForDelivery(callId) {
+      const call = await db.call.findUnique({
+        where: { id: callId },
+        include: { caller: true, callee: true },
+      });
+      if (!call) return null;
+      const conv = await db.conversation.findUnique({
+        where: { dmKey: dmKeyOf(call.callerId, call.calleeId) },
+        select: { id: true },
+      });
+      const [prefsRow, subscriptions, unread] = await Promise.all([
+        db.notificationPreference.findUnique({ where: { userId: call.calleeId } }),
+        db.pushSubscription.findMany({ where: { userId: call.calleeId, revokedAt: null } }),
+        db.notification.count({ where: { userId: call.calleeId, readAt: null } }),
+      ]);
+      return {
+        callId: call.id,
+        callerId: call.callerId,
+        calleeId: call.calleeId,
+        status: call.status,
+        media: call.initialMedia,
+        callerName: call.caller.name,
+        dtoFor: new Map([
+          [call.callerId, callDto(call, call.callerId, conv?.id ?? null)],
+          [call.calleeId, callDto(call, call.calleeId, conv?.id ?? null)],
+        ]),
+        calleePush: {
+          subscriptions: subscriptions.map((s) => ({
+            id: s.id,
+            endpoint: s.endpoint,
+            p256dh: s.p256dh,
+            auth: s.auth,
+            failureCount: s.failureCount,
+          })),
+          previews: prefsRow?.previews ?? true,
+          unread,
+        },
+      };
     },
 
     async notificationBundle(notificationId) {

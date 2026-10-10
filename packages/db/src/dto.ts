@@ -1,5 +1,5 @@
-import type { Prisma, User } from "./generated/client";
-import type { AttachmentDto, MessageDto, PublicUser, ReactionDto } from "@gistroom/shared";
+import type { Call, Prisma, User } from "./generated/client";
+import type { AttachmentDto, CallDto, MessageDto, PublicUser, ReactionDto } from "@gistroom/shared";
 
 /** Public avatar URL from the public bucket. Null when none is set or storage is not configured. */
 export function avatarUrl(path: string | null): string | null {
@@ -104,5 +104,31 @@ export function toNotificationDto(n: Notification): NotificationDto {
     readAt: n.readAt?.toISOString() ?? null,
     createdAt: n.createdAt.toISOString(),
     href: notificationHref(type, payload),
+  };
+}
+
+/** Key of the one DM between two people, lowest id first. */
+export function dmKeyOf(a: string, b: string): string {
+  return a < b ? `${a}:${b}` : `${b}:${a}`;
+}
+
+/** A call as one of its two people sees it. The peer is always the other person. */
+export function callDto(
+  row: Call & { caller: User; callee: User },
+  viewerId: string,
+  conversationId: string | null,
+): CallDto {
+  const outgoing = row.callerId === viewerId;
+  return {
+    id: row.id,
+    status: row.status,
+    media: row.initialMedia,
+    direction: outgoing ? "OUTGOING" : "INCOMING",
+    peer: toPublicUser(outgoing ? row.callee : row.caller),
+    conversationId,
+    ringExpiresAt: row.ringExpiresAt.toISOString(),
+    answeredAt: row.answeredAt?.toISOString() ?? null,
+    endedAt: row.endedAt?.toISOString() ?? null,
+    endReason: row.endReason,
   };
 }

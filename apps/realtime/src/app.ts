@@ -24,6 +24,8 @@ export interface RealtimeOptions {
   recheckMs?: number;
   passGraceMs?: number;
   schedulerIntervalMs?: number;
+  /** Asks the web app to finish calls whose ring has run out. */
+  expireCalls?: () => Promise<void>;
 }
 
 export interface Realtime {
@@ -66,6 +68,7 @@ export function createRealtime(options: RealtimeOptions): Realtime {
     delivery,
     log,
     intervalMs: options.schedulerIntervalMs,
+    expireCalls: options.expireCalls,
   });
   attachSockets({
     io,

@@ -30,7 +30,11 @@ export type PushAction =
   | { kind: "SKIP" }
   | { kind: "SHOW"; title: string; options: NotificationShape }
   /** A call was cancelled: close its ring, then show a quiet missed call line with the same tag. */
-  | { kind: "CANCEL_CALL"; tag: string; missed: { title: string; options: NotificationShape } };
+  | {
+      kind: "CANCEL_CALL";
+      tag: string;
+      missed: { title: string; options: NotificationShape } | null;
+    };
 
 export interface NotificationShape {
   body: string;
@@ -85,6 +89,8 @@ export function decidePush(push: PushData, clients: readonly ClientInfo[]): Push
   const someoneIsLooking = clients.some((c) => c.visible && c.focused);
 
   if (push.type === "CALL_CANCEL") {
+    // When the call was answered or declined on another device, only the ring is removed.
+    if (push.data.reason === "dismiss") return { kind: "CANCEL_CALL", tag: push.tag, missed: null };
     return {
       kind: "CANCEL_CALL",
       tag: push.tag,

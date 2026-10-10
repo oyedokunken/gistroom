@@ -1,6 +1,7 @@
 "use client";
 
 import { PwaRuntime } from "@/components/app/pwa-runtime";
+import { IncomingCall } from "@/components/call/incoming-call";
 import { ConnectionBanner } from "@/components/ui/connection-banner";
 import { useOutboxFlusher } from "@/lib/chat/hooks";
 import { useRealtimeStore } from "@/lib/realtime/store";
@@ -15,6 +16,7 @@ export function AppRuntime() {
   return (
     <>
       <PwaRuntime />
+      <IncomingCall />
       <ConnectionBanner state={state} />
     </>
   );

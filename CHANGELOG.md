@@ -6,6 +6,7 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ### Added
 
+- Calls: 1:1 audio and video with a full screen call, an incoming call ring on every screen, answering, declining, cancelling, ring timeout, glare merging, busy handling, switching between audio and video in the call, a weak network banner, wake lock, and a call log with filters, search and pagination. Needs LiveKit keys.
 - Friendship anniversaries: on the day two friends reach a year, a card appears in their chat with confetti (not shown when the visitor prefers reduced motion).
 - Attachments and voice notes: private Supabase uploads with magic byte checks, photos compressed on the phone with location removed, previews, a lightbox, video player, voice notes with a recorded waveform and 1x, 1.5x and 2x playback, and file cards for PDF, Word, Excel, PowerPoint, text and CSV. Profile photo upload in Settings. Run `npm run storage:setup` once to create the buckets.
 - Chat: edit a message for 15 minutes (shows Edited), typing bubble and typing line under the avatar, swipe right to reply, reactions that update at once and roll back with a clear error, block that shows the blocked person only an unavailable chat, report a chat with the last 20 messages kept as evidence, chat settings, starred messages list, audio and video call buttons with a confirmation modal, and a quick actions button on the chat list. Run `npm run db:migrate` for the new editedAt column.

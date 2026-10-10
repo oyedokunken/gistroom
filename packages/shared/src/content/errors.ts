@@ -38,6 +38,10 @@ export const errors = {
   friendLimitDay: "You have reached the daily limit for friend requests. Try again tomorrow.",
   notFriends: "You can only do that with friends.",
   blocked: "You cannot do that with this person.",
+  callsOff: "Calls are not switched on yet. Try again later.",
+  callBusy: "On another call.",
+  callAlready: "You are already in a call.",
+  callOver: "That call is over.",
   uploadsOff: "File uploads are not switched on yet. Try again later.",
   uploadType:
     "That file type is not allowed. Send a photo, video, voice note, PDF, Word, Excel, PowerPoint, text or CSV file.",

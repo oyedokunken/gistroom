@@ -168,6 +168,9 @@ export class FakeStore implements Store {
   async counts() {
     return this.counts_;
   }
+  async callForDelivery(): Promise<null> {
+    return null;
+  }
   async notificationBundle(id: string) {
     return this.notifications.get(id) ?? null;
   }

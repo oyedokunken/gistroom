@@ -25,6 +25,13 @@ const realtime = createRealtime({
   log: logger,
   passSecret: env.REALTIME_PASS_SECRET,
   internalToken: env.INTERNAL_SERVICE_TOKEN,
+  expireCalls: async () => {
+    await fetch(`${env.WEB_APP_URL.replace(/\/$/, "")}/api/internal/jobs/sweep`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${env.INTERNAL_SERVICE_TOKEN}` },
+      signal: AbortSignal.timeout(10_000),
+    }).catch(() => undefined);
+  },
   allowedOrigins: env.ALLOWED_ORIGINS.split(",")
     .map((o) => o.trim())
     .filter(Boolean),

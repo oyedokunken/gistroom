@@ -1,0 +1,12 @@
+import type { CallJoin, CallMedia } from "@gistroom/shared";
+import { apiFetch } from "@/lib/api";
+
+export const startCallRequest = (conversationId: string, media: CallMedia) =>
+  apiFetch<CallJoin & { merged: boolean }>("/api/calls", { body: { conversationId, media } });
+
+export const callAction = (
+  id: string,
+  action: "accept" | "decline" | "cancel" | "end" | "timeout",
+) => apiFetch<CallJoin>(`/api/calls/${id}/${action}`, { body: {} });
+
+export const fetchCall = (id: string) => apiFetch<CallJoin>(`/api/calls/${id}`);

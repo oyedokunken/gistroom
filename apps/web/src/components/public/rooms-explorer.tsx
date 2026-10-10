@@ -68,6 +68,18 @@ export function RoomsExplorer({
     };
   }, [query, retryTick]);
 
+  // A failed request is retried quietly: once after 5 seconds, and again when the tab is focused.
+  useEffect(() => {
+    if (!failed) return;
+    const timer = window.setTimeout(() => setRetryTick((n) => n + 1), 5000);
+    const onFocus = () => setRetryTick((n) => n + 1);
+    window.addEventListener("focus", onFocus);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [failed]);
+
   const live = rooms.filter((r) => r.status === "LIVE");
   const soon = rooms.filter((r) => r.status === "SCHEDULED");
   const term = query.trim();
@@ -134,29 +146,29 @@ export function RoomsExplorer({
       </div>
 
       <p role="status" aria-live="polite" className="mt-8 text-sm font-medium text-text-muted">
-        {loading ? copy.searching : failed ? "" : copy.results(rooms.length)}
+        {loading ? copy.searching : failed || rooms.length === 0 ? "" : copy.results(rooms.length)}
       </p>
 
-      {failed ? (
-        <div className="mt-4 flex flex-col items-start gap-3">
-          <p className="text-text-muted">{roomsPage.loadError}</p>
-          <button
-            type="button"
-            onClick={() => setRetryTick((n) => n + 1)}
-            className={buttonStyles("secondary")}
-          >
-            {copy.retry}
-          </button>
-        </div>
-      ) : rooms.length === 0 && !loading ? (
+      {rooms.length === 0 && !loading ? (
         <EmptyState
           artId="empty-rooms"
           title={term ? copy.noResultsTitle(term) : roomsPage.emptyTitle}
           body={term ? copy.noResultsBody : roomsPage.emptyBody}
           action={
-            <Link href="/app/rooms?new=1" className={buttonStyles("primary")}>
-              {roomsPage.start}
-            </Link>
+            <div className="flex flex-col items-center gap-2">
+              <Link href="/app/rooms?new=1" className={buttonStyles("primary")}>
+                {roomsPage.start}
+              </Link>
+              {bare ? (
+                <button
+                  type="button"
+                  onClick={() => setRetryTick((n) => n + 1)}
+                  className="min-h-11 px-3 text-sm font-semibold text-green-700 underline-offset-4 hover:underline"
+                >
+                  {roomsPage.refresh}
+                </button>
+              ) : null}
+            </div>
           }
         />
       ) : (

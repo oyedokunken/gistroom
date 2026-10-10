@@ -308,8 +308,9 @@ export const roomsPage = {
   lead: "Public rooms happening now, and the ones coming up.",
   liveHeading: "Live now",
   soonHeading: "Coming up",
-  emptyTitle: "No live rooms right now",
-  emptyBody: "Be the first. Start a room and the gist will come.",
+  emptyTitle: "No rooms live right now",
+  emptyBody: "Start one and let people join the gist.",
+  refresh: "Refresh rooms",
   start: "Start a room",
   topicLabel: "Topic",
   languageLabel: "Language",
@@ -317,7 +318,6 @@ export const roomsPage = {
   allLanguages: "All languages",
   join: "Join",
   scheduled: (when: string) => `Starts ${when}`,
-  loadError: "We could not load rooms right now.",
 };
 
 export const topicsPage = {

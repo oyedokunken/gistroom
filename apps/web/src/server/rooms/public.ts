@@ -1,3 +1,4 @@
+import { logger } from "../logger";
 import { unstable_cache } from "next/cache";
 import { getDb, type Language } from "@gistroom/db";
 import type { PublicRoomCard } from "@gistroom/shared";
@@ -59,7 +60,11 @@ export async function listPublicRooms(
 ): Promise<{ rooms: PublicRoomCard[]; failed: boolean }> {
   try {
     return { rooms: await cached(filters), failed: false };
-  } catch {
+  } catch (error) {
+    logger.error(
+      { err: error instanceof Error ? error.message : String(error) },
+      "public rooms query failed",
+    );
     return { rooms: [], failed: true };
   }
 }

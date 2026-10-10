@@ -392,6 +392,5 @@ export const roomsSearch = {
   results: (n: number) => (n === 1 ? "1 room found" : `${n} rooms found`),
   noResultsTitle: (q: string) => `No rooms match "${q}"`,
   noResultsBody: "Try another word, or start a room on this topic yourself.",
-  retry: "Try again",
   sampleNote: "Rooms are listed as they happen. Nothing here is sample content.",
 } as const;

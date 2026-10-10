@@ -233,6 +233,14 @@ export const chat = {
     micBlocked:
       "Gistroom can't reach your microphone. Allow it in your browser settings, then try again.",
   },
+  anniversary: {
+    title: (years: number) =>
+      years === 1 ? "1 year of friendship" : `${years} years of friendship`,
+    body: (name: string, years: number) =>
+      `You and ${name} have been friends on Gistroom for ${years === 1 ? "a year" : `${years} years`}. Say something nice.`,
+    celebrate: "Celebrate",
+    year: (years: number) => (years === 1 ? "year" : "years"),
+  },
   back: "Back to chats",
   reactionQuick: "Quick reactions",
   starredBadge: "Starred",

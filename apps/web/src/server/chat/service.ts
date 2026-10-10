@@ -19,6 +19,7 @@ import { decodeCursor, encodeCursor } from "../cursor";
 import { AppError, forbidden, notFound } from "../http";
 import { enforce, policies } from "../rate-limit";
 import { isUniqueViolation } from "../db-errors";
+import { celebrateIfDue } from "../friends/anniversary";
 import { areFriends, isBlockedEitherWay } from "../friends/relations";
 import { notify } from "../notifications/service";
 import { publish } from "../realtime";
@@ -593,6 +594,8 @@ export async function starredMessages(
 export async function getConversation(me: User, conversationId: string): Promise<ConversationDto> {
   const db = getDb();
   const access = await accessFor(me.id, conversationId);
+  // Opening a chat is when a friendship anniversary shows up. It never blocks the chat from loading.
+  await celebrateIfDue(me.id, access.peerId, conversationId).catch(() => undefined);
   const [peer, member, last, unread] = await Promise.all([
     db.user.findUniqueOrThrow({ where: { id: access.peerId } }),
     db.conversationMember.findUniqueOrThrow({

@@ -16,6 +16,8 @@ export function previewText(input: {
       return `${prefix}Voice note`;
     case "FILE":
       return `${prefix}File`;
+    case "SYSTEM":
+      return "Friendship anniversary";
     case "ROOM_INVITE":
       return `${prefix}Room invite`;
     default:

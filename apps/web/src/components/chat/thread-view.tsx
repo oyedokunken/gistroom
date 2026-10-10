@@ -21,6 +21,7 @@ import { buildRows, type Row } from "@/lib/chat/rows";
 import { presenceLabel } from "@/lib/presence";
 import { useRealtime } from "@/lib/realtime/provider";
 import { useRealtimeStore } from "@/lib/realtime/store";
+import { AnniversaryCard } from "./anniversary-card";
 import { ChatBubble } from "./chat-bubble";
 import { ChatSettings, ReportDialog, StarredDialog } from "./chat-dialogs";
 import { Composer } from "./composer";
@@ -315,6 +316,10 @@ export function ThreadView({
 
   function renderMessage(row: Extract<Row, { kind: "message" }>) {
     const m = row.message;
+    const meta = m.meta as { kind?: string; years?: number } | null;
+    if (m.type === "SYSTEM" && meta?.kind === "FRIENDIVERSARY") {
+      return <AnniversaryCard id={m.id} years={meta.years ?? 1} name={peer?.name ?? ""} />;
+    }
     const age = Date.now() - new Date(m.createdAt).getTime();
     const settled = row.mine && !row.pending && !m.deletedForEveryone;
     return (

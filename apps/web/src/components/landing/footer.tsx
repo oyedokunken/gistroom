@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRef } from "react";
 import { motion, useInView, useReducedMotion } from "motion/react";
 import { ExternalLink } from "lucide-react";
-import { ScrollToTop } from "@/components/ui/scroll-to-top";
+import { ScrollWave } from "@/components/ui/scroll-wave";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { footer, social } from "@/content/landing";
 
@@ -18,12 +18,14 @@ function Wordmark() {
   const run = inView && !reduced;
   return (
     <div ref={ref} className="relative select-none overflow-x-clip pt-10">
-      <p
-        aria-hidden
-        className="relative z-10 pb-[0.2em] text-center text-[clamp(4rem,19vw,15rem)] font-black leading-[0.85] tracking-[-0.05em] text-green-600"
+      <button
+        type="button"
+        aria-label={footer.scrollTop}
+        onClick={() => window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" })}
+        className="relative z-10 block w-full cursor-pointer pb-[0.2em] text-center text-[clamp(4rem,19vw,15rem)] font-black leading-[0.85] tracking-[-0.05em] text-green-600"
       >
-        {footer.wordmark}
-      </p>
+        <span aria-hidden>{footer.wordmark}</span>
+      </button>
       <div
         aria-hidden
         className="absolute inset-x-[6%] bottom-0 z-0 flex h-full items-end justify-between"
@@ -55,7 +57,7 @@ export function Footer() {
   return (
     <footer
       aria-label={footer.label}
-      className="border-t border-border bg-surface-2 pb-44 md:pb-10"
+      className="border-t border-border bg-surface-2 pb-40 md:pb-10"
     >
       <div className="mx-auto max-w-[1200px] px-6 pt-14">
         <div className="grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-4 lg:gap-10">
@@ -97,24 +99,31 @@ export function Footer() {
         ) : null}
 
         <Wordmark />
+        <p className="mt-2 text-center text-sm text-text-muted">{footer.replayHint}</p>
 
-        <div className="mt-6 grid grid-cols-2 items-center gap-y-3 text-sm text-text-muted md:flex md:justify-between">
-          <ThemeToggle className="order-first col-span-2 justify-self-center md:order-2" />
-          <p className="md:order-1">{footer.madeIn}</p>
-          <p className="justify-self-end text-right md:order-3">
-            {footer.builtBy}{" "}
-            <a
-              href={footer.builder.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-11 items-center font-semibold text-green-700 underline-offset-4 hover:underline"
-            >
-              {footer.builder.label}
-            </a>
-          </p>
+        <div className="mt-6 grid grid-cols-1 items-center gap-y-3 text-sm text-text-muted md:flex md:justify-between">
+          <ThemeToggle className="order-first justify-self-center md:order-2" />
+          {/* One centered row with a dot on phones. From tablet up the two sit at either end. */}
+          <div className="flex items-center justify-center gap-2 md:contents">
+            <p className="md:order-1">{footer.madeIn}</p>
+            <span aria-hidden className="md:hidden">
+              {footer.dot}
+            </span>
+            <p className="md:order-3">
+              {footer.builtBy}{" "}
+              <a
+                href={footer.builder.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-11 items-center font-semibold text-green-700 underline-offset-4 hover:underline"
+              >
+                {footer.builder.label}
+              </a>
+            </p>
+          </div>
         </div>
       </div>
-      <ScrollToTop />
+      <ScrollWave />
     </footer>
   );
 }

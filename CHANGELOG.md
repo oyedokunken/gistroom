@@ -6,6 +6,9 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ### Changed
 
+- Back to top is now ScrollWave: the page is a voice note with a waveform scrubber (drag, tap or keys) and the footer wordmark replays from the top (D27).
+- Footer on phones: Made in Nigeria and the builder link share one row, separated by a dot.
+
 - Light mode is the default. Theme control offers Light, Dark and System (D24).
 - Attribution: Gistroom is built by @oyedokunken (D25).
 - Hero: text left and image right on desktop at equal height, image first on mobile.

@@ -88,6 +88,9 @@ export const footer = {
   },
   followTitle: "Follow",
   scrollTop: "Back to top",
+  pagePosition: "Page position",
+  replayHint: "Tap gistroom to play again from the top.",
+  dot: "•",
 } as const;
 
 export const social = [

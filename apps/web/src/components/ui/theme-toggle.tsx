@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import * as RadixPopover from "@radix-ui/react-popover";
 import { Monitor, Moon, Sun, type LucideIcon } from "lucide-react";
 import { footer } from "@/content/landing";
 import { cn } from "@/lib/cn";
@@ -32,10 +33,11 @@ export function ThemeToggle({
   compact,
 }: {
   className?: string;
-  /** Icons only, for the floating control. Each button keeps its label for screen readers. */
+  /** Collapses to one circular button showing the active theme. Clicking opens the picker. */
   compact?: boolean;
 }) {
   const [pref, setPref] = useState<ThemePreference>(DEFAULT_THEME);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     setPref(read());
@@ -51,6 +53,7 @@ export function ThemeToggle({
 
   function choose(next: ThemePreference) {
     setPref(next);
+    setOpen(false);
     try {
       window.localStorage.setItem(THEME_KEY, next);
     } catch {
@@ -59,7 +62,7 @@ export function ThemeToggle({
     apply(next);
   }
 
-  return (
+  const group = (
     <div
       role="radiogroup"
       aria-label={footer.theme.label}
@@ -84,5 +87,31 @@ export function ThemeToggle({
         </button>
       ))}
     </div>
+  );
+
+  if (!compact) return group;
+
+  const ActiveIcon = (options.find((o) => o.value === pref) ?? options[2]!).icon;
+  return (
+    <RadixPopover.Root open={open} onOpenChange={setOpen}>
+      <RadixPopover.Trigger
+        type="button"
+        aria-label={footer.theme.label}
+        className="inline-flex size-11 items-center justify-center rounded-full bg-surface text-text shadow-soft transition-colors hover:text-green-700"
+      >
+        <ActiveIcon aria-hidden className="size-4" />
+      </RadixPopover.Trigger>
+      <RadixPopover.Portal>
+        <RadixPopover.Content
+          align="end"
+          side="top"
+          sideOffset={8}
+          collisionPadding={12}
+          className="z-50"
+        >
+          {group}
+        </RadixPopover.Content>
+      </RadixPopover.Portal>
+    </RadixPopover.Root>
   );
 }

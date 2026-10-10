@@ -19,7 +19,7 @@ function Wordmark() {
   const inView = useInView(ref, { amount: 0.05 });
   const run = inView && !reduced;
   return (
-    <div ref={ref} className="relative select-none overflow-x-clip pt-10">
+    <div ref={ref} data-wordmark className="relative select-none overflow-x-clip pt-10">
       <button
         type="button"
         aria-label={footer.scrollTop}
@@ -110,17 +110,20 @@ export function Footer({ year = new Date().getUTCFullYear() }: { year?: number }
         {/* One row, exactly as wide as the wordmark above it. */}
         <div
           data-legal-row
-          className="mt-2 flex items-center justify-between gap-1 whitespace-nowrap text-[clamp(0.5625rem,2.9vw,0.875rem)] tracking-tight text-text-muted"
+          className="mx-[6%] mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-0 whitespace-nowrap text-[clamp(0.5625rem,2.9vw,0.875rem)] tracking-tight text-text-muted md:justify-between"
         >
           <p className="min-h-11 content-center">{footer.copyright(year)}</p>
-          <a
-            href={builderCredit.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex min-h-11 items-center font-semibold text-green-700 underline-offset-4 hover:underline"
-          >
-            {builderCredit.text}
-          </a>
+          <p className="min-h-11 content-center">
+            {builderCredit.prefix}{" "}
+            <a
+              href={builderCredit.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-11 items-center font-semibold text-green-700 underline-offset-4 hover:underline"
+            >
+              {builderCredit.label}
+            </a>
+          </p>
           <button
             type="button"
             onClick={() => window.dispatchEvent(new Event(OPEN_CONSENT_EVENT))}

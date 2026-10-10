@@ -40,6 +40,14 @@ for (const a of manifest.assets ?? []) {
   if (!a.alt && !a.decorative) fail(`${a.id}: missing alt text`);
   if (release && a.status === "PLACEHOLDER")
     fail(`${a.id}: still a placeholder in a release build`);
+  if (a.animated) {
+    // Animated art is animated WebP with a static PNG fallback and a loop count. Never GIF (Section 17).
+    if (!a.static || !existsSync(path.join(root, "apps", "web", "public", "images", a.static)))
+      fail(`${a.id}: animated asset has no static fallback`);
+    if (!(a.loopCount > 0)) fail(`${a.id}: animated asset has no loop count`);
+    if ((a.sizes ?? []).some((x) => /\.gif$/i.test(x.file))) fail(`${a.id}: GIF is not allowed`);
+    if (!(a.sizes ?? []).some((x) => x.animated)) fail(`${a.id}: no animated file listed`);
+  }
   for (const s of a.sizes ?? []) {
     const p = path.join(root, "apps", "web", "public", "images", s.file);
     if (!existsSync(p)) {
@@ -47,7 +55,7 @@ for (const a of manifest.assets ?? []) {
       continue;
     }
     const kb = statSync(p).size / KB;
-    const budget = a.id === "hero-back" || a.id === "hero-mid" ? 250 : 180;
+    const budget = s.animated ? 400 : a.id === "hero-back" || a.id === "hero-mid" ? 250 : 180;
     if (kb > budget) fail(`${a.id}: ${s.file} is ${Math.round(kb)} KB, budget is ${budget} KB`);
   }
 }

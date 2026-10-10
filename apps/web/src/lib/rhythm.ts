@@ -5,6 +5,21 @@ import type { Tone } from "@/components/public/sections";
  * No two neighbours may share a strong background (green, ink or yellow). tests/unit/rhythm.test.ts enforces it.
  */
 export const rhythm = {
+  home: [
+    "plain",
+    "soft",
+    "green",
+    "plain",
+    "ink",
+    "soft",
+    "plain",
+    "soft",
+    "plain",
+    "ink",
+    "soft",
+    "plain",
+    "green",
+  ],
   features: ["green", "plain", "soft", "ink", "green"],
   about: ["green", "plain", "soft", "yellow", "green"],
   security: ["green", "plain", "soft", "ink", "green"],

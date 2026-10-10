@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { contactSchema, type ContactInput } from "@gistroom/shared";
@@ -12,7 +11,6 @@ import { ApiClientError, apiFetch } from "@/lib/api";
 
 export function ContactForm() {
   const { showError, showSuccess } = useFeedback();
-  const [sent, setSent] = useState(false);
   const form = useForm<ContactInput>({
     resolver: zodResolver(contactSchema),
     defaultValues: { name: "", email: "", message: "", website: "" },
@@ -23,7 +21,6 @@ export function ContactForm() {
     try {
       await apiFetch("/api/contact", { body: values });
       form.reset();
-      setSent(true);
       showSuccess(copy.doneBody, copy.doneTitle);
     } catch (e) {
       if (e instanceof ApiClientError && e.fields && Object.keys(e.fields).length > 0) {
@@ -42,7 +39,6 @@ export function ContactForm() {
     <form
       noValidate
       onSubmit={form.handleSubmit(onSubmit)}
-      onChange={() => setSent(false)}
       className="flex max-w-xl flex-col gap-4"
     >
       <Field label={copy.nameLabel} error={errors.name?.message}>
@@ -75,11 +71,6 @@ export function ContactForm() {
         <Button type="submit" loading={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? copy.sending : copy.send}
         </Button>
-        {sent ? (
-          <p role="status" className="text-sm font-medium text-green-700">
-            {copy.doneTitle}
-          </p>
-        ) : null}
       </div>
     </form>
   );

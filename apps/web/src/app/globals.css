@@ -141,3 +141,10 @@ body,
 *::-webkit-scrollbar {
   display: none;
 }
+
+/* The visitor chose Reduce animations: every CSS loop stops. Motion components read the same choice. */
+html[data-calm] *,
+html[data-calm] *::before,
+html[data-calm] *::after {
+  animation: none !important;
+}

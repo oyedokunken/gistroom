@@ -265,7 +265,7 @@ export function SignupForm({ next, error }: AuthFormProps) {
           )}
         </Field>
         <Button type="submit" loading={form.formState.isSubmitting} className="min-h-12">
-          {form.formState.isSubmitting ? auth.sendingCode : auth.sendCode}
+          {form.formState.isSubmitting ? auth.sendingCode : auth.continue}
         </Button>
       </form>
       <Divider />

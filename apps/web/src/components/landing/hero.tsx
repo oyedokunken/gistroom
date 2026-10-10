@@ -12,6 +12,7 @@ import {
   useSpring,
   useTransform,
 } from "motion/react";
+import { AnimatedArt } from "@/components/public/animated-art";
 import { buttonStyles } from "@/components/ui/button";
 import { hero } from "@/content/landing";
 
@@ -158,7 +159,7 @@ export function Hero() {
       >
         <motion.div className="absolute -inset-4" style={{ x: backX, y: backY }}>
           <Image
-            src="/images/hero-back-640.png"
+            src="/images/scenes/hero-back.png"
             alt=""
             fill
             priority
@@ -167,12 +168,13 @@ export function Hero() {
           />
         </motion.div>
         <motion.div className="absolute inset-0" style={{ x: midX, y: midY }}>
-          <Image
-            src="/images/hero-mid-640.png"
+          <AnimatedArt
+            id="hero-mid"
             alt=""
-            fill
-            sizes="(max-width: 768px) 100vw, 540px"
-            className="object-cover"
+            width={720}
+            height={480}
+            priority
+            className="absolute inset-0 size-full object-cover"
           />
           <SpeakingRing className="left-[22%] top-[38%] size-[14%]" run={run} />
           <SpeakingRing className="right-[24%] top-[46%] size-[12%]" run={run} delay={0.6} />
@@ -184,7 +186,7 @@ export function Hero() {
           style={{ x: frontX, y: frontY }}
         >
           <Image
-            src="/images/hero-front-640.png"
+            src="/images/scenes/hero-front.png"
             alt=""
             fill
             sizes="(max-width: 768px) 100vw, 540px"

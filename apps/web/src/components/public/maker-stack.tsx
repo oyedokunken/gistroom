@@ -14,7 +14,7 @@ const PHOTOS = [
 const spring = { type: "spring", stiffness: 260, damping: 26 } as const;
 
 /**
- * Four portraits piled like a stack of cards. Every few seconds the top card slides off and drops to the back.
+ * Four circular portraits piled in a loose stack. Every few seconds the top one slides off and drops to the back.
  * It pauses off screen and stands still for visitors who prefer reduced motion.
  */
 export function MakerStack({ alt }: { alt: string }) {
@@ -44,7 +44,7 @@ export function MakerStack({ alt }: { alt: string }) {
       ref={ref}
       role="img"
       aria-label={alt}
-      className="relative mx-auto aspect-[4/5] w-[min(18rem,72vw)] shrink-0 md:w-72"
+      className="relative mx-auto aspect-square w-[min(18rem,72vw)] shrink-0 md:w-72"
     >
       <AnimatePresence initial={false}>
         {order
@@ -52,7 +52,6 @@ export function MakerStack({ alt }: { alt: string }) {
           .reverse()
           .map(({ photo, depth }) => {
             const out = leaving === photo;
-            const tilt = [0, -5, 5, -9][depth] ?? 0;
             return (
               <motion.div
                 key={photo}
@@ -61,13 +60,13 @@ export function MakerStack({ alt }: { alt: string }) {
                 animate={{
                   x: out ? 150 : depth * 10,
                   y: depth * -10,
-                  rotate: out ? 14 : tilt,
+                  rotate: out ? 14 : 0,
                   scale: 1 - depth * 0.04,
                   opacity: out ? 0.2 : 1,
                   zIndex: out ? 5 : 10 - depth,
                 }}
                 transition={reduced ? { duration: 0 } : spring}
-                className="absolute inset-0 overflow-hidden rounded-card border-4 border-white bg-surface-2 shadow-lift"
+                className="absolute inset-0 overflow-hidden rounded-full border-4 border-white bg-surface-2 shadow-lift"
               >
                 <Image
                   src={PHOTOS[photo] ?? PHOTOS[0]}

@@ -47,8 +47,8 @@ export const featuresPage = {
   rows: [
     {
       id: "chats",
-      title: "Chats that feel right",
-      body: "Bubbles with the time on every message. Swipe a message to reply, tap it to react, star it or delete it. Made a typo? Edit it for 15 minutes after you send it.",
+      title: "Chat all you want, anytime",
+      body: "Every message carries its time. Swipe to reply, tap to react, star what matters and delete what does not. Made a typo? You have 15 minutes to fix it.",
       points: [
         "Typing, delivered and read, with read receipts you can switch off",
         "Delete for yourself, or for everyone in the first hour",
@@ -58,8 +58,8 @@ export const featuresPage = {
     },
     {
       id: "calls",
-      title: "Calls that switch",
-      body: "Call a friend with audio and turn on your camera in the middle, no hanging up. If the network gets weak, Gistroom offers to drop to audio so the talk keeps going.",
+      title: "Switch anytime",
+      body: "Start a call on audio and turn your camera on in the middle of it, or drop the video and keep talking when data gets tight. No hanging up, no calling back.",
       points: [
         "Audio or video from any chat",
         "One tap to add or remove video",
@@ -69,8 +69,8 @@ export const featuresPage = {
     },
     {
       id: "rooms",
-      title: "Rooms for the whole conversation",
-      body: "Start a room on the spot or schedule one. Pick a topic and a language, then keep it public or private. Up to 32 people can join, and moderators keep it civil.",
+      title: "A room for every gist",
+      body: "Start one on the spot or schedule it for later. Pick a topic and a language, go public or keep it private. Up to 32 people can join, and moderators keep it civil.",
       points: [
         "English, Pidgin, Yoruba, Igbo and Hausa tags",
         "Mute, remove, ban and lock from the moderator tools",
@@ -81,7 +81,7 @@ export const featuresPage = {
     {
       id: "alerts",
       title: "Alerts that find you",
-      body: "Turn alerts on once and calls, messages and friend requests reach you through your browser or installed app, even if you closed the tab last night.",
+      body: "Turn alerts on once and calls, messages and friend requests reach you through the browser or installed app, even if you closed the tab last night.",
       points: [
         "Quiet hours for when you need peace",
         "Missed calls always show in your call log",
@@ -102,7 +102,7 @@ export const featuresPage = {
     },
   ],
   more: {
-    title: "And the small things that add up",
+    title: "The small things that add up",
     items: [
       {
         title: "Friends first",
@@ -135,9 +135,9 @@ export const featuresPage = {
         body: "Light by default. Switch to dark, or let your device decide.",
       },
       {
-        title: "Install it",
+        title: "No app store needed",
         icon: "install" as const,
-        body: "Add Gistroom to your Home Screen or desktop. No app store, no big download.",
+        body: "Add Gistroom to your Home Screen or desktop straight from the browser. No big download.",
       },
       {
         title: "Works offline",

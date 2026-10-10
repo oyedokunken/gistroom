@@ -515,14 +515,15 @@ export function AlertsScreen() {
 
 // ---------- Data saver ----------
 
-export function DataScreen() {
+export function DataScreen({ level: fixed }: { level?: number } = {}) {
   const { ref, run } = useRunning();
-  const [level, setLevel] = useState(4);
+  const [auto, setLevel] = useState(4);
+  const level = fixed ?? auto;
   useEffect(() => {
-    if (!run) return;
+    if (!run || fixed !== undefined) return;
     const id = window.setInterval(() => setLevel((l) => (l <= 1 ? 4 : l - 1)), 1800);
     return () => window.clearInterval(id);
-  }, [run]);
+  }, [run, fixed]);
   const audioOnly = level <= 2;
   return (
     <div ref={ref} className="flex min-h-0 flex-1 flex-col items-center justify-between px-3 py-5">

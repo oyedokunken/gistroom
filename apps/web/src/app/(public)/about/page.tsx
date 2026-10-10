@@ -70,7 +70,7 @@ export default function Page() {
       </Band>
 
       <Band tone={tones[3]} labelledBy="maker-h">
-        <div className="grid items-center gap-10 md:grid-cols-[auto_1fr]">
+        <div data-maker className="grid items-center gap-10 md:grid-cols-[auto_1fr_auto]">
           <MakerStack alt={p.maker.photosAlt} />
           <div>
             <h2
@@ -80,15 +80,15 @@ export default function Page() {
               {p.maker.title}
             </h2>
             <p className="mt-3 max-w-[56ch] text-lg">{p.maker.body}</p>
-            <Link
-              href={p.maker.link.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-6 inline-flex min-h-12 items-center justify-center rounded-full bg-ink-950 px-8 font-semibold text-white hover:bg-ink-700"
-            >
-              {p.maker.link.label}
-            </Link>
           </div>
+          <Link
+            href={p.maker.link.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-12 items-center justify-center rounded-full bg-ink-950 px-8 font-semibold text-white hover:bg-ink-700"
+          >
+            {p.maker.link.label}
+          </Link>
         </div>
       </Band>
 

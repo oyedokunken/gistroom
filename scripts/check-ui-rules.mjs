@@ -3,7 +3,7 @@ import path from "node:path";
 import { checkSource } from "./lib/ui-rules.mjs";
 
 const root = process.cwd();
-const SKIP = new Set(["node_modules", ".next", "dist", "fonts"]);
+const SKIP = new Set(["node_modules", ".next", ".next-e2e", "dist", "fonts"]);
 const targets = ["apps/web/src", "apps/realtime/src", "packages/shared/src"];
 
 function walk(dir, out) {

@@ -14,7 +14,7 @@ for (const [file, name] of sources) {
   const info = await sharp(file)
     .rotate()
     .trim({ threshold: 25 })
-    .resize(640, 800, { fit: "cover", position: "attention" })
+    .resize(640, 640, { fit: "cover", position: "attention" })
     .webp({ quality: 78 })
     .toFile(path.join(out, `${name}.webp`));
   process.stdout.write(`${name}: ${Math.round(info.size / 1024)} KB\n`);

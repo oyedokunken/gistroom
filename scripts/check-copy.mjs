@@ -7,6 +7,7 @@ const SKIP_DIRS = new Set([
   "generated",
   "node_modules",
   ".next",
+  ".next-e2e",
   "dist",
   ".git",
   ".mail-preview",

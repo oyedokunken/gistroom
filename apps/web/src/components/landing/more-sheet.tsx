@@ -37,9 +37,9 @@ const ICONS: Record<string, LucideIcon> = {
 export const moreIconFor = (href: string): LucideIcon => ICONS[href] ?? Info;
 
 /**
- * The "More" sheet on phones. Each row has an icon tile, a 56 pixel hit area, a pressed state that tints the row and
- * turns the tile green, a hover lift on pointers, and a green bar for the page you are on. Swipe down or press
- * Escape to close. Reduced motion removes the scale and the lift.
+ * The "More" sheet on phones. Each row has an icon tile, a 56 pixel hit area, a hover state that turns the row
+ * green with a white icon and label, a pressed tint, and a green bar for the page you are on. Swipe down or
+ * press Escape to close. Reduced motion removes the scale and the lift.
  */
 export function MoreSheet({
   open,
@@ -68,7 +68,7 @@ export function MoreSheet({
                 className={cn(
                   "group relative flex min-h-14 items-center gap-4 rounded-2xl px-3 text-lg font-medium text-text",
                   "transition-[background-color,transform] duration-150",
-                  "hover:bg-surface-2 active:bg-green-100 motion-safe:active:scale-[0.98]",
+                  "hover:bg-green-600 hover:text-white active:bg-green-100 active:text-text motion-safe:active:scale-[0.98]",
                   current && "bg-green-100",
                 )}
               >
@@ -83,7 +83,7 @@ export function MoreSheet({
                   className={cn(
                     "flex size-11 shrink-0 items-center justify-center rounded-xl bg-surface-2 text-green-700",
                     "transition-[background-color,color,transform] duration-150",
-                    "motion-safe:group-hover:-translate-y-0.5 group-active:bg-green-600 group-active:text-white",
+                    "motion-safe:group-hover:-translate-y-0.5 group-hover:bg-transparent group-hover:text-white group-active:bg-green-600 group-active:text-white",
                     current && "bg-green-600 text-white",
                   )}
                 >

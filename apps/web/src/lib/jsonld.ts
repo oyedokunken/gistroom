@@ -7,7 +7,7 @@ export function organizationJsonLd() {
     name: site.name,
     url: site.url,
     logo: `${site.url}/brand/icon-512.png`,
-    parentOrganization: { "@type": "Organization", name: "Rexta Technologies" },
+    creator: { "@type": "Person", name: "oyedokunken", url: "https://www.oyedokun.dev/" },
   };
 }
 

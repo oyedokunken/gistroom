@@ -4,6 +4,13 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ## [Unreleased]
 
+### Changed
+
+- Light mode is the default. Theme control offers Light, Dark and System (D24).
+- Attribution: Gistroom is built by @oyedokunken (D25).
+- Hero: text left and image right on desktop at equal height, image first on mobile.
+- Mobile header: the capsule contracts into the mic bubble on scroll, the dock has an entrance, press blob and a pulsing center button. The footer waveform plays on touch screens.
+
 ### Added
 
 - Monorepo with npm workspaces: `apps/web`, `apps/realtime`, `packages/shared`, `packages/db`.

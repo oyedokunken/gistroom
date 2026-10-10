@@ -127,7 +127,7 @@ function DesktopDock() {
   return (
     <nav
       aria-label={nav.label}
-      className="pointer-events-none fixed inset-x-0 top-4 z-40 hidden justify-center md:flex"
+      className="pointer-events-none fixed inset-x-0 top-3 z-40 flex justify-center px-4 md:top-4"
     >
       <AnimatePresence mode="popLayout" initial={false}>
         {!condensed ? (
@@ -138,7 +138,7 @@ function DesktopDock() {
             exit={{ opacity: 0, scale: 0.35 }}
             transition={spring}
             style={{ transformOrigin: "50% 0%" }}
-            className="pointer-events-auto flex items-center gap-2 rounded-full border border-border bg-surface/95 py-2 pl-4 pr-2 shadow-soft backdrop-blur"
+            className="pointer-events-auto flex max-w-full items-center gap-2 rounded-full border border-border bg-surface/95 py-1.5 pl-3 pr-1.5 shadow-soft backdrop-blur md:py-2 md:pl-4 md:pr-2"
           >
             <Link
               href="/"
@@ -148,7 +148,7 @@ function DesktopDock() {
               <LogoMark size={32} className="text-text" />
             </Link>
             <LayoutGroup id="dock">
-              <ul className="flex items-center" onMouseLeave={() => setActive(null)}>
+              <ul className="hidden items-center md:flex" onMouseLeave={() => setActive(null)}>
                 {nav.items.map((item) => {
                   const current = pathname === item.href;
                   return (
@@ -178,7 +178,7 @@ function DesktopDock() {
               </ul>
             </LayoutGroup>
             {liveCount ? <LivePill count={liveCount} /> : null}
-            <Link href={nav.cta.href} className={buttonStyles("primary")}>
+            <Link href={nav.cta.href} className={buttonStyles("primary", "px-4 md:px-6")}>
               {nav.cta.label}
             </Link>
           </motion.div>
@@ -278,27 +278,45 @@ function DesktopDock() {
 
 /** Thumb zone dock for phones: four icon items around a center call to action. */
 function MobileDock() {
+  const reduced = useReducedMotion();
+  const { scrollY } = useScroll();
+  const velocity = useSpring(useVelocity(scrollY), { stiffness: 220, damping: 28 });
+  const ringScale = useTransform(velocity, (v) => 1 + Math.min(Math.abs(v) / 2400, 1) * 0.5);
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
   const [first, second, third, fourth] = nav.items;
   const left = [first, second];
   const right = [third, fourth];
 
+  const [pressed, setPressed] = useState<string | null>(null);
+
   const item = (i: (typeof nav.items)[number] | undefined) => {
     if (!i) return null;
     const Icon = icons[i.id] ?? Sparkles;
     const current = pathname === i.href;
     return (
-      <li key={i.id}>
+      <li key={i.id} className="relative">
         <Link
           href={i.href}
           aria-current={current ? "page" : undefined}
+          onPointerDown={() => setPressed(i.id)}
+          onPointerUp={() => setPressed(null)}
+          onPointerLeave={() => setPressed(null)}
           className={cn(
-            "flex min-h-12 min-w-12 flex-col items-center justify-center gap-0.5 rounded-2xl px-2 text-xs font-medium",
+            "relative flex min-h-12 min-w-12 flex-col items-center justify-center gap-0.5 rounded-2xl px-2 text-xs font-medium",
             current ? "text-green-700" : "text-text-muted",
           )}
         >
-          <Icon aria-hidden className="size-5" />
+          {pressed === i.id || current ? (
+            <motion.span
+              layoutId="mobile-dock-blob"
+              transition={spring}
+              className="absolute inset-0 -z-10 rounded-2xl bg-green-100"
+            />
+          ) : null}
+          <motion.span whileTap={{ scale: 0.85 }} transition={spring} className="flex">
+            <Icon aria-hidden className="size-5" />
+          </motion.span>
           {i.label}
         </Link>
       </li>
@@ -307,35 +325,55 @@ function MobileDock() {
 
   return (
     <>
-      <nav
-        aria-label={nav.label}
+      <motion.nav
+        aria-label={nav.quickLabel}
+        initial={reduced ? false : { y: 96 }}
+        animate={{ y: 0 }}
+        transition={{ ...spring, delay: 0.25 }}
         className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
       >
-        <ul className="mx-auto flex max-w-md items-center justify-around px-2 py-1.5">
-          {left.map(item)}
-          <li>
-            <Link
-              href={nav.cta.href}
-              aria-label={nav.cta.label}
-              className="-mt-6 flex size-14 items-center justify-center rounded-full bg-green-600 text-white shadow-lift"
-            >
-              <DoorOpen aria-hidden className="size-6" />
-            </Link>
-          </li>
-          {right.slice(0, 1).map(item)}
-          <li>
-            <button
-              type="button"
-              onClick={() => setMoreOpen(true)}
-              aria-haspopup="dialog"
-              className="flex min-h-12 min-w-12 flex-col items-center justify-center gap-0.5 rounded-2xl px-2 text-xs font-medium text-text-muted"
-            >
-              <Ellipsis aria-hidden className="size-5" />
-              {nav.more}
-            </button>
-          </li>
-        </ul>
-      </nav>
+        <LayoutGroup id="mobile-dock">
+          <ul className="mx-auto flex max-w-md items-center justify-around px-2 py-1.5">
+            {left.map(item)}
+            <li className="relative">
+              <span aria-hidden className="pointer-events-none absolute inset-0 -mt-6 size-14">
+                <motion.span
+                  style={{ scale: ringScale }}
+                  className="absolute inset-0 rounded-full border-2 border-green-600/40"
+                />
+                {reduced ? null : (
+                  <motion.span
+                    className="absolute inset-0 rounded-full border-2 border-green-600"
+                    animate={{ scale: [1, 1.7], opacity: [0.6, 0] }}
+                    transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
+                  />
+                )}
+              </span>
+              <motion.div whileTap={{ scale: 0.92 }} transition={spring}>
+                <Link
+                  href={nav.cta.href}
+                  aria-label={nav.cta.label}
+                  className="relative -mt-6 flex size-14 items-center justify-center rounded-full bg-green-600 text-white shadow-lift"
+                >
+                  <DoorOpen aria-hidden className="size-6" />
+                </Link>
+              </motion.div>
+            </li>
+            {right.slice(0, 1).map(item)}
+            <li>
+              <button
+                type="button"
+                onClick={() => setMoreOpen(true)}
+                aria-haspopup="dialog"
+                className="flex min-h-12 min-w-12 flex-col items-center justify-center gap-0.5 rounded-2xl px-2 text-xs font-medium text-text-muted"
+              >
+                <Ellipsis aria-hidden className="size-5" />
+                {nav.more}
+              </button>
+            </li>
+          </ul>
+        </LayoutGroup>
+      </motion.nav>
       <Sheet open={moreOpen} onOpenChange={setMoreOpen} title={nav.moreTitle}>
         <ul className="flex flex-col">
           {[

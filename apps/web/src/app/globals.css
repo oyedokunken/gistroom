@@ -90,16 +90,6 @@
   --border: #e3e3e6;
   color-scheme: light;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --surface: #0f1210;
-    --surface-2: #171b18;
-    --text: #f1f1f3;
-    --text-muted: #a4aaa6;
-    --border: #2a302c;
-    color-scheme: dark;
-  }
-}
 :root[data-theme="dark"] {
   --surface: #0f1210;
   --surface-2: #171b18;

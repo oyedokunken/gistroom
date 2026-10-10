@@ -7,6 +7,7 @@ export const nav = {
     { id: "about", label: "About", href: "/about" },
   ],
   cta: { label: "Enter Gistroom", href: "/login" },
+  quickLabel: "Quick links",
   home: "Gistroom home",
   openMenu: "Open menu",
   closeMenu: "Close menu",
@@ -77,7 +78,14 @@ export const footer = {
     },
   ],
   madeIn: "Made in Nigeria",
-  smallPrint: "Gistroom is built by Rexta Technologies.",
+  builtBy: "Built by",
+  builder: { label: "@oyedokunken", href: "https://www.oyedokun.dev/" },
+  theme: {
+    label: "Theme",
+    light: "Light",
+    dark: "Dark",
+    system: "System",
+  },
   followTitle: "Follow",
   scrollTop: "Back to top",
 } as const;

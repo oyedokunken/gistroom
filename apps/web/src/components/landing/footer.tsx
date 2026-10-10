@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { useRef, useState } from "react";
+import { motion, useInView, useReducedMotion } from "motion/react";
 import { ExternalLink } from "lucide-react";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { footer, social } from "@/content/landing";
 
 const BARS = [0.35, 0.7, 0.5, 0.95, 0.6, 0.85, 0.45, 0.75, 0.55, 0.9, 0.4, 0.7];
@@ -12,12 +13,19 @@ const BARS = [0.35, 0.7, 0.5, 0.95, 0.6, 0.85, 0.45, 0.75, 0.55, 0.9, 0.4, 0.7];
 /** Oversized wordmark. Hover or focus raises a row of waveform bars behind the letters. */
 function Wordmark() {
   const reduced = useReducedMotion();
-  const [on, setOn] = useState(false);
+  const [hover, setHover] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { amount: 0.6 });
+  // No hover on touch screens, so the waveform plays while the wordmark is on screen.
+  const on =
+    hover ||
+    (inView && typeof window !== "undefined" && window.matchMedia("(hover: none)").matches);
   return (
     <div
       className="relative select-none overflow-hidden pt-10"
-      onPointerEnter={() => setOn(true)}
-      onPointerLeave={() => setOn(false)}
+      ref={ref}
+      onPointerEnter={() => setHover(true)}
+      onPointerLeave={() => setHover(false)}
     >
       <p
         aria-hidden
@@ -93,7 +101,18 @@ export function Footer() {
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3 text-sm text-text-muted">
           <p>{footer.madeIn}</p>
-          <p>{footer.smallPrint}</p>
+          <ThemeToggle />
+          <p>
+            {footer.builtBy}{" "}
+            <a
+              href={footer.builder.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-11 items-center font-semibold text-green-700 underline-offset-4 hover:underline"
+            >
+              {footer.builder.label}
+            </a>
+          </p>
         </div>
       </div>
       <ScrollToTop />

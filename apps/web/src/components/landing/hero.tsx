@@ -133,8 +133,8 @@ export function Hero() {
   }
 
   return (
-    <section className="mx-auto grid max-w-[1200px] items-center gap-10 px-6 pb-24 pt-28 md:grid-cols-[1.05fr_1fr] md:pb-28 md:pt-36">
-      <div className="flex flex-col items-start gap-6">
+    <section className="mx-auto grid max-w-[1200px] items-stretch gap-8 px-6 pb-24 pt-24 md:grid-cols-2 md:gap-12 md:pb-28 md:pt-32">
+      <div className="flex flex-col items-start justify-center gap-6 md:min-h-[34rem]">
         <h1 className="text-[clamp(2.75rem,8.5vw,5rem)] font-black leading-[1.02] tracking-[-0.035em] text-text">
           {hero.headline}
         </h1>
@@ -154,7 +154,7 @@ export function Hero() {
         onPointerMove={onMove}
         role="img"
         aria-label={hero.stageLabel}
-        className="relative aspect-[3/2] w-full overflow-hidden rounded-hero bg-green-100 shadow-lift md:aspect-[4/5]"
+        className="relative order-first aspect-[4/3] min-h-[20rem] w-full overflow-hidden rounded-hero bg-green-100 shadow-lift md:order-none md:aspect-auto md:min-h-[34rem]"
       >
         <motion.div className="absolute -inset-4" style={{ x: backX, y: backY }}>
           <Image

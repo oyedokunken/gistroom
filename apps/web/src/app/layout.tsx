@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { headers } from "next/headers";
 import { Providers } from "@/components/providers";
 import { site } from "@/content/site";
+import { themeInitScript } from "@/lib/theme";
 import { colors } from "@/lib/tokens";
 import "./globals.css";
 
@@ -53,10 +54,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: colors.green600 },
-    { media: "(prefers-color-scheme: dark)", color: colors.darkSurface },
-  ],
+  themeColor: colors.green600,
 };
 
 // Nonce based CSP needs per-request rendering, so every page opts out of static prerendering.
@@ -64,16 +62,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // Reading request headers also opts the page into per request rendering.
   const nonce = (await headers()).get("x-nonce");
   return (
-    <html lang="en-NG" className={graphik.variable}>
+    <html lang="en-NG" className={graphik.variable} data-theme="light" suppressHydrationWarning>
       <head>
         {nonce ? (
-          // Libraries that inject style tags (react-style-singleton behind Radix) read this global.
-          <script
-            nonce={nonce}
-            dangerouslySetInnerHTML={{
-              __html: `window.__webpack_nonce__=${JSON.stringify(nonce)}`,
-            }}
-          />
+          <>
+            {/* Libraries that inject style tags (react-style-singleton behind Radix) read this global. */}
+            <script
+              nonce={nonce}
+              dangerouslySetInnerHTML={{
+                __html: `window.__webpack_nonce__=${JSON.stringify(nonce)}`,
+              }}
+            />
+            <script nonce={nonce} dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+          </>
         ) : null}
       </head>
       <body>

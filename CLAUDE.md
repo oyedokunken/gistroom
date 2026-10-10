@@ -2,7 +2,7 @@
 
 Gistroom. The single source of truth for how this product is built, how it looks, how it sounds and how every change is verified. Read all of it before you write any code. Re-read the relevant sections before starting each phase.
 
-Owner: Kenny (Rexta Technologies). Personal showcase project, built to production standard. The owner develops on Windows (PowerShell), so every script must run there.
+Owner: Kenny (@oyedokunken, https://www.oyedokun.dev/). Gistroom is built by @oyedokunken, not by any company. Personal showcase project, built to production standard. The owner develops on Windows (PowerShell), so every script must run there.
 
 ---
 
@@ -532,7 +532,7 @@ Rules:
 
 - Yellow is a fill with `ink-950` text on top. Never yellow text on white, never white text on yellow.
 - Green text on white passes AA at `green-600`. Use `green-700` for small text.
-- Dark mode is first class. Surfaces `#0F1210` and `#171B18` with green-tinted greys, same accents. Respect `prefers-color-scheme` with a manual override in Settings. Define tokens for both modes.
+- Light mode is the default for everyone (D24). Dark mode is first class and opt in: surfaces `#0F1210` and `#171B18` with green-tinted greys, same accents. The theme control offers Light, Dark and System, and only System follows `prefers-color-scheme`. Define tokens for both modes.
 - Radius scale with intent, not one radius everywhere: inputs 10px, buttons full pill, bubbles 18px with a squared tail corner, cards 24px, hero surfaces 32px.
 - Shadows: two levels only, tinted with the green or ink, never generic grey stacks.
 - Spacing on a 4px grid. Max content width 1200 on marketing pages, line length under 80 characters.

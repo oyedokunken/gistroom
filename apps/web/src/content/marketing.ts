@@ -106,31 +106,42 @@ export const featuresPage = {
     items: [
       {
         title: "Friends first",
+        icon: "friends" as const,
         body: "Nobody can message you out of the blue. Send a request, chat once it is accepted.",
       },
       {
         title: "Voice notes",
+        icon: "voice" as const,
         body: "Hold to record up to five minutes, with a waveform and playback at 1x, 1.5x or 2x.",
       },
       {
         title: "Photos, video and files",
+        icon: "media" as const,
         body: "Share images, video, PDF, Word, Excel and PowerPoint files, with a clean preview for each.",
       },
       {
         title: "Starred messages",
+        icon: "starred" as const,
         body: "Star the things you want to find later and open them from one list.",
       },
       {
         title: "Block and report",
+        icon: "shield-slash" as const,
         body: "Block anyone. They see the chat as unavailable and are never told why.",
       },
-      { title: "Dark mode", body: "Light by default. Switch to dark, or let your device decide." },
+      {
+        title: "Dark mode",
+        icon: "theme" as const,
+        body: "Light by default. Switch to dark, or let your device decide.",
+      },
       {
         title: "Install it",
+        icon: "install" as const,
         body: "Add Gistroom to your Home Screen or desktop. No app store, no big download.",
       },
       {
         title: "Works offline",
+        icon: "offline" as const,
         body: "Open your recent chats without a network. New messages wait in the outbox.",
       },
     ],
@@ -257,13 +268,34 @@ export const safetyPage = {
   guidelines: {
     title: "Community guidelines",
     items: [
-      { title: "Be respectful", body: "Argue about ideas, not about who people are." },
-      { title: "No hate or threats", body: "No harassment, bullying or abuse of any kind." },
-      { title: "Keep it private", body: "Do not share private information about other people." },
-      { title: "No scams", body: "No fraud, no impersonation, no tricking people out of money." },
-      { title: "Protect children", body: "No sexual content involving anyone under 18, ever." },
+      {
+        title: "Be respectful",
+        icon: "respect" as const,
+        body: "Argue about ideas, not about who people are.",
+      },
+      {
+        title: "No hate or threats",
+        icon: "no-hate" as const,
+        body: "No harassment, bullying or abuse of any kind.",
+      },
+      {
+        title: "Keep it private",
+        icon: "private" as const,
+        body: "Do not share private information about other people.",
+      },
+      {
+        title: "No scams",
+        icon: "no-scams" as const,
+        body: "No fraud, no impersonation, no tricking people out of money.",
+      },
+      {
+        title: "Protect children",
+        icon: "children" as const,
+        body: "No sexual content involving anyone under 18, ever.",
+      },
       {
         title: "Follow the law",
+        icon: "law" as const,
         body: "The Cybercrimes Act applies to what you say and share here.",
       },
     ],
@@ -273,16 +305,27 @@ export const safetyPage = {
     items: [
       {
         title: "Block",
+        icon: "block" as const,
         body: "Block anyone from a profile, a chat, a call or a room. They see the chat as unavailable and are not told.",
       },
       {
         title: "Report",
+        icon: "report" as const,
         body: "Report a person, a message, a room or a room message. We keep the last 20 messages as evidence.",
       },
-      { title: "Invites", body: "Choose who can invite you to rooms: friends only, or everyone." },
-      { title: "Privacy", body: "Turn off read receipts and presence whenever you like." },
+      {
+        title: "Invites",
+        icon: "invites" as const,
+        body: "Choose who can invite you to rooms: friends only, or everyone.",
+      },
+      {
+        title: "Privacy",
+        icon: "privacy" as const,
+        body: "Turn off read receipts and presence whenever you like.",
+      },
       {
         title: "Private rooms",
+        icon: "private-room" as const,
         body: "Keep a room private and share the link only with people you trust.",
       },
     ],

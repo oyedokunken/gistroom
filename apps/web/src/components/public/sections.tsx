@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Check } from "lucide-react";
 import { buttonStyles } from "@/components/ui/button";
+import { CardIcon, type CardIconName } from "./card-icon";
 import { cn } from "@/lib/cn";
 
 export type Tone = "plain" | "soft" | "green" | "ink" | "yellow";
@@ -194,6 +195,8 @@ export function FeatureRow({
 export interface TileItem {
   title: string;
   body: string;
+  /** Custom PNG icon shown above the heading. */
+  icon?: CardIconName;
 }
 
 /** A grid of tiles with different spans, so it does not read as identical cards. */
@@ -224,11 +227,12 @@ export function Bento({ items, tone = "plain" }: { items: readonly TileItem[]; t
         <li
           key={item.title}
           className={cn(
-            "flex flex-col justify-end rounded-card p-6 shadow-soft md:min-h-44",
+            "group flex flex-col justify-end rounded-card p-6 shadow-soft md:min-h-44",
             spans[i % spans.length],
             tone === "soft" ? fills[i % fills.length] : fills[i % fills.length],
           )}
         >
+          {item.icon ? <CardIcon name={item.icon} className="mb-3" /> : null}
           <h3 className="text-xl font-bold tracking-tight">{item.title}</h3>
           <p className="mt-2 max-w-[48ch] opacity-85">{item.body}</p>
         </li>
@@ -242,7 +246,8 @@ export function StatementGrid({ items }: { items: readonly TileItem[] }) {
   return (
     <ul className="grid gap-x-12 gap-y-8 md:grid-cols-2">
       {items.map((item) => (
-        <li key={item.title} className="border-t-4 border-green-600 pt-4">
+        <li key={item.title} className="group border-t-4 border-green-600 pt-4">
+          {item.icon ? <CardIcon name={item.icon} className="mb-3" /> : null}
           <h3 className="text-xl font-bold tracking-tight">{item.title}</h3>
           <p className="mt-2 max-w-[48ch] text-text-muted">{item.body}</p>
         </li>

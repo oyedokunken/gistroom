@@ -866,6 +866,329 @@
       "prompt": "Drawn in code by scripts/graphics/avatars.mjs: flat vector portrait, brand palette, no text.",
       "status": "DRAFT",
       "createdAt": "2026-10-10T12:14:55.768Z"
+    },
+    {
+      "id": "icon-friends",
+      "placement": "Card icon: friends",
+      "master": "design/masters/icons/friends.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/friends.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:31:54.006Z"
+    },
+    {
+      "id": "icon-voice",
+      "placement": "Card icon: voice",
+      "master": "design/masters/icons/voice.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/voice.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:31:54.006Z"
+    },
+    {
+      "id": "icon-media",
+      "placement": "Card icon: media",
+      "master": "design/masters/icons/media.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/media.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:31:54.006Z"
+    },
+    {
+      "id": "icon-starred",
+      "placement": "Card icon: starred",
+      "master": "design/masters/icons/starred.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/starred.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:31:54.006Z"
+    },
+    {
+      "id": "icon-shield-slash",
+      "placement": "Card icon: shield slash",
+      "master": "design/masters/icons/shield-slash.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/shield-slash.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:31:54.006Z"
+    },
+    {
+      "id": "icon-theme",
+      "placement": "Card icon: theme",
+      "master": "design/masters/icons/theme.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/theme.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:31:54.006Z"
+    },
+    {
+      "id": "icon-install",
+      "placement": "Card icon: install",
+      "master": "design/masters/icons/install.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/install.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:31:54.006Z"
+    },
+    {
+      "id": "icon-offline",
+      "placement": "Card icon: offline",
+      "master": "design/masters/icons/offline.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/offline.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:31:54.006Z"
+    },
+    {
+      "id": "icon-respect",
+      "placement": "Card icon: respect",
+      "master": "design/masters/icons/respect.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/respect.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:31:54.006Z"
+    },
+    {
+      "id": "icon-no-hate",
+      "placement": "Card icon: no hate",
+      "master": "design/masters/icons/no-hate.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/no-hate.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:31:54.006Z"
+    },
+    {
+      "id": "icon-private",
+      "placement": "Card icon: private",
+      "master": "design/masters/icons/private.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/private.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:31:54.006Z"
+    },
+    {
+      "id": "icon-no-scams",
+      "placement": "Card icon: no scams",
+      "master": "design/masters/icons/no-scams.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/no-scams.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:31:54.006Z"
+    },
+    {
+      "id": "icon-children",
+      "placement": "Card icon: children",
+      "master": "design/masters/icons/children.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/children.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:31:54.006Z"
+    },
+    {
+      "id": "icon-law",
+      "placement": "Card icon: law",
+      "master": "design/masters/icons/law.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/law.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:31:54.006Z"
+    },
+    {
+      "id": "icon-block",
+      "placement": "Card icon: block",
+      "master": "design/masters/icons/block.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/block.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:31:54.006Z"
+    },
+    {
+      "id": "icon-report",
+      "placement": "Card icon: report",
+      "master": "design/masters/icons/report.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/report.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:31:54.006Z"
+    },
+    {
+      "id": "icon-invites",
+      "placement": "Card icon: invites",
+      "master": "design/masters/icons/invites.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/invites.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:31:54.006Z"
+    },
+    {
+      "id": "icon-privacy",
+      "placement": "Card icon: privacy",
+      "master": "design/masters/icons/privacy.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/privacy.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:31:54.006Z"
+    },
+    {
+      "id": "icon-private-room",
+      "placement": "Card icon: private room",
+      "master": "design/masters/icons/private-room.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/private-room.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-10T12:31:54.006Z"
     }
   ]
 }

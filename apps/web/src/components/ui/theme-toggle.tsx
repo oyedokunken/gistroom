@@ -27,7 +27,14 @@ function apply(pref: ThemePreference) {
 }
 
 /** Light, Dark or System. The choice is a per viewer convenience, so localStorage is fine here. */
-export function ThemeToggle({ className }: { className?: string }) {
+export function ThemeToggle({
+  className,
+  compact,
+}: {
+  className?: string;
+  /** Icons only, for the floating control. Each button keeps its label for screen readers. */
+  compact?: boolean;
+}) {
   const [pref, setPref] = useState<ThemePreference>(DEFAULT_THEME);
 
   useEffect(() => {
@@ -64,14 +71,16 @@ export function ThemeToggle({ className }: { className?: string }) {
           type="button"
           role="radio"
           aria-checked={pref === value}
+          aria-label={compact ? label : undefined}
           onClick={() => choose(value)}
           className={cn(
-            "inline-flex min-h-11 items-center gap-2 rounded-full px-4 text-sm font-medium transition-colors",
+            "inline-flex min-h-11 items-center gap-2 rounded-full text-sm font-medium transition-colors",
+            compact ? "min-w-11 justify-center px-0" : "px-4",
             pref === value ? "bg-green-600 text-white" : "text-text-muted hover:text-text",
           )}
         >
           <Icon aria-hidden className="size-4" />
-          {label}
+          {compact ? null : label}
         </button>
       ))}
     </div>

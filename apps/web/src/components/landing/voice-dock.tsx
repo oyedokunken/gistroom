@@ -26,6 +26,7 @@ import {
 import { LogoMark } from "@/components/brand/logo-mark";
 import { buttonStyles } from "@/components/ui/button";
 import { ScrollGauge, ScrollWave } from "@/components/ui/scroll-wave";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Sheet } from "@/components/ui/sheet";
 import { nav } from "@/content/landing";
 import { cn } from "@/lib/cn";
@@ -44,8 +45,8 @@ function LivePill({ count }: { count: number }) {
   return (
     <span className="tabular inline-flex min-h-8 items-center gap-2 rounded-full bg-yellow-400 px-3 text-sm font-semibold text-ink-950">
       <span className="relative flex size-2">
-        <span className="absolute inline-flex size-full animate-ping rounded-full bg-ink-950 opacity-60" />
-        <span className="relative inline-flex size-2 rounded-full bg-ink-950" />
+        <span className="absolute inline-flex size-full animate-ping rounded-full bg-text opacity-60" />
+        <span className="relative inline-flex size-2 rounded-full bg-text" />
       </span>
       {nav.liveNow(count)}
     </span>
@@ -220,9 +221,9 @@ function DesktopDock() {
                 aria-expanded={fanned}
                 aria-label={fanned ? nav.closeMenu : nav.openMenu}
                 onClick={() => setFanned((v) => !v)}
-                className="pointer-events-auto relative flex size-14 items-center justify-center rounded-full bg-ink-950 shadow-lift"
+                className="pointer-events-auto relative flex size-14 items-center justify-center rounded-full border border-border bg-surface shadow-lift"
               >
-                <LogoMark size={36} className="text-white" />
+                <LogoMark size={36} className="text-text" />
               </button>
             </div>
             <div ref={fanRef} className="absolute left-1/2 top-7 size-0">
@@ -404,6 +405,9 @@ export function VoiceDock() {
       <DesktopDock />
       <MobileDock />
       <ScrollWave />
+      <div className="fixed bottom-5 right-5 z-30 hidden md:block">
+        <ThemeToggle compact />
+      </div>
     </>
   );
 }

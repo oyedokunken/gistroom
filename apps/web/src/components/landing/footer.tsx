@@ -7,6 +7,7 @@ import { ExternalLink } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { consent } from "@/content/consent";
 import { footer, social } from "@/content/landing";
+import { builderCredit } from "@/content/site";
 import { OPEN_CONSENT_EVENT } from "@/components/system/consent-banner";
 
 const BARS = [0.35, 0.7, 0.5, 0.95, 0.6, 0.85, 0.45, 0.75, 0.55, 0.9, 0.4, 0.7];
@@ -54,13 +55,13 @@ function Wordmark() {
   );
 }
 
-export function Footer() {
+export function Footer({ year = new Date().getUTCFullYear() }: { year?: number }) {
   return (
     <footer
       aria-label={footer.label}
-      className="border-t border-border bg-surface-2 pb-40 md:pb-10"
+      className="border-t border-border bg-surface-2 pb-40 md:pb-24"
     >
-      <div className="mx-auto max-w-[1200px] px-6 pt-14">
+      <div className="mx-auto max-w-[1200px] px-4 pt-14 md:px-6">
         <div className="grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-4 lg:gap-10">
           {footer.columns.map((col) => (
             <div key={col.title}>
@@ -100,37 +101,33 @@ export function Footer() {
         ) : null}
 
         <Wordmark />
-        <p className="mt-2 text-center text-sm text-text-muted">{footer.replayHint}</p>
 
-        <div className="mt-6 grid grid-cols-1 items-center gap-y-3 text-sm text-text-muted md:flex md:justify-between">
-          <div className="order-first flex flex-wrap items-center justify-center gap-3 md:order-2">
-            <ThemeToggle />
-            <button
-              type="button"
-              onClick={() => window.dispatchEvent(new Event(OPEN_CONSENT_EVENT))}
-              className="inline-flex min-h-11 items-center text-sm font-semibold text-green-700 underline-offset-4 hover:underline"
-            >
-              {consent.settings}
-            </button>
-          </div>
-          {/* One centered row with a dot on phones. From tablet up the two sit at either end. */}
-          <div className="flex items-center justify-center gap-2 md:contents">
-            <p className="md:order-1">{footer.madeIn}</p>
-            <span aria-hidden className="md:hidden">
-              {footer.dot}
-            </span>
-            <p className="md:order-3">
-              {footer.builtBy}{" "}
-              <a
-                href={footer.builder.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center font-semibold text-green-700 underline-offset-4 hover:underline"
-              >
-                {footer.builder.label}
-              </a>
-            </p>
-          </div>
+        {/* Phones keep the theme control here. From tablet up it floats at the bottom right. */}
+        <div className="mt-4 flex justify-center md:hidden">
+          <ThemeToggle />
+        </div>
+
+        {/* One row, exactly as wide as the wordmark above it. */}
+        <div
+          data-legal-row
+          className="mt-2 flex items-center justify-between gap-1 whitespace-nowrap text-[clamp(0.5625rem,2.9vw,0.875rem)] tracking-tight text-text-muted"
+        >
+          <p className="min-h-11 content-center">{footer.copyright(year)}</p>
+          <a
+            href={builderCredit.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-11 items-center font-semibold text-green-700 underline-offset-4 hover:underline"
+          >
+            {builderCredit.text}
+          </a>
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event(OPEN_CONSENT_EVENT))}
+            className="inline-flex min-h-11 items-center font-semibold text-green-700 underline-offset-4 hover:underline"
+          >
+            {consent.settings}
+          </button>
         </div>
       </div>
     </footer>

@@ -12,7 +12,7 @@ export function PublicPage({ children, jsonLd }: { children: ReactNode; jsonLd?:
     <>
       <VoiceDock />
       <main id="main">{children}</main>
-      <Footer />
+      <Footer year={new Date().getUTCFullYear()} />
       {jsonLd?.length ? (
         <script
           type="application/ld+json"

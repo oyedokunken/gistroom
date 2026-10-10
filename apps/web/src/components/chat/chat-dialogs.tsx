@@ -9,6 +9,7 @@ import {
   Bell,
   BellOff,
   Flag,
+  Settings,
   ShieldOff,
   Star,
   Trash2,
@@ -103,6 +104,7 @@ export function ChatSettings({
     <Modal
       open={open}
       onOpenChange={onOpenChange}
+      icon={Settings}
       title={chat.settings.title}
       description={conversation.peer.name}
     >
@@ -190,6 +192,8 @@ export function ReportDialog({
     <Modal
       open={open}
       onOpenChange={onOpenChange}
+      icon={Flag}
+      tone="error"
       title={chat.report.title}
       description={chat.report.body}
       footer={
@@ -273,7 +277,7 @@ export function StarredDialog({
     (m) => !conversationId || m.conversationId === conversationId,
   );
   return (
-    <Modal open={open} onOpenChange={onOpenChange} title={chat.starredDialog.title}>
+    <Modal open={open} onOpenChange={onOpenChange} icon={Star} title={chat.starredDialog.title}>
       {starred.isPending ? (
         <p className="text-text-muted">{chat.loadingOlder}</p>
       ) : starred.isError ? (

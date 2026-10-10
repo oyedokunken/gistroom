@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { LIMITS } from "@gistroom/shared";
 import { PublicPage } from "@/components/public/public-page";
 import { AlertsMock, CallMock, ChatMock, DataMock, RoomMock } from "@/components/public/mocks";
 import {
@@ -15,7 +16,18 @@ import {
 import { cta, featuresPage as p } from "@/content/marketing";
 import { features } from "@/content/pages";
 import { breadcrumbJsonLd, softwareAppJsonLd } from "@/lib/jsonld";
+import { rhythm } from "@/lib/rhythm";
 import { pageMetadata } from "@/lib/seo";
+
+const tones = rhythm.features;
+
+/** Read from LIMITS so the page can never disagree with the app. */
+const facts = [
+  { value: String(LIMITS.ROOM_MAX_PARTICIPANTS), label: p.facts.labels.room },
+  { value: `${LIMITS.EDIT_WINDOW_MIN} min`, label: p.facts.labels.edit },
+  { value: `${LIMITS.CALL_RING_TIMEOUT_SEC} sec`, label: p.facts.labels.ring },
+  { value: `${LIMITS.VOICE_NOTE_MAX_SEC / 60} min`, label: p.facts.labels.voice },
+];
 
 export const metadata: Metadata = pageMetadata({
   title: features.title,
@@ -60,7 +72,7 @@ export default function Page() {
         }
       />
 
-      <Band tone="plain">
+      <Band tone={tones[1]}>
         {p.rows.map((row, i) => (
           <FeatureRow
             key={row.id}
@@ -74,14 +86,14 @@ export default function Page() {
         ))}
       </Band>
 
-      <Band tone="soft" labelledBy="more-h">
+      <Band tone={tones[2]} labelledBy="more-h">
         <SectionHead id="more-h" title={p.more.title} />
         <Bento items={p.more.items} />
       </Band>
 
-      <Band tone="green" labelledBy="facts-h">
+      <Band tone={tones[3]} labelledBy="facts-h">
         <SectionHead id="facts-h" title={p.facts.title} lead={p.facts.lead} />
-        <Facts items={p.facts.items} />
+        <Facts items={facts} />
       </Band>
 
       <CtaBand

@@ -8,6 +8,7 @@ import {
   File as FileIcon,
   FileSpreadsheet,
   FileText,
+  Image as ImageIcon,
   Pause,
   Play,
   Presentation,
@@ -46,6 +47,7 @@ function ImageView({ a, caption }: { a: AttachmentDto; caption: string }) {
       <Modal
         open={open}
         onOpenChange={setOpen}
+        icon={ImageIcon}
         title={caption || chat.media.imageAlt}
         className="w-[min(96vw,64rem)]"
       >

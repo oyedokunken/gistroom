@@ -16,7 +16,10 @@ import {
 import { cta, safetyPage as p } from "@/content/marketing";
 import { safety } from "@/content/pages";
 import { breadcrumbJsonLd } from "@/lib/jsonld";
+import { rhythm } from "@/lib/rhythm";
 import { pageMetadata } from "@/lib/seo";
+
+const tones = rhythm.safety;
 
 export const metadata: Metadata = pageMetadata({
   title: safety.title,
@@ -47,26 +50,26 @@ export default function Page() {
         visual={<SafetyMock />}
       />
 
-      <Band tone="plain" labelledBy="guidelines-h">
+      <Band tone={tones[1]} labelledBy="guidelines-h">
         <SectionHead id="guidelines-h" title={p.guidelines.title} />
         <StatementGrid items={p.guidelines.items} />
       </Band>
 
-      <Band tone="soft" labelledBy="tools-h">
+      <Band tone={tones[2]} labelledBy="tools-h">
         <SectionHead id="tools-h" title={p.tools.title} />
         <Bento items={p.tools.items} />
       </Band>
 
-      <Band tone="green" labelledBy="how-h">
+      <Band tone={tones[3]} labelledBy="how-h">
         <SectionHead id="how-h" title={p.how.title} />
         <Steps items={p.how.steps} />
       </Band>
 
-      <Band tone="plain">
+      <Band tone={tones[4]}>
         <Callout title={p.moderators.title} body={p.moderators.body} tone="soft" />
       </Band>
 
-      <Band tone="ink" labelledBy="contact-h">
+      <Band tone={tones[5]} labelledBy="contact-h">
         <div className="grid items-center gap-8 md:grid-cols-[1fr_auto]">
           <div>
             <h2

@@ -9,8 +9,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { AlertTriangle, CheckCircle2, Info } from "lucide-react";
-import { Modal } from "@/components/ui/modal";
+import { AlertTriangle, CheckCircle2, HelpCircle, Info, type LucideIcon } from "lucide-react";
+import { Modal, type ModalTone } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { ui } from "@/content/ui";
 
@@ -43,11 +43,11 @@ export interface Feedback {
 
 const FeedbackContext = createContext<Feedback | null>(null);
 
-const icons: Record<Kind, ReactNode> = {
-  info: <Info aria-hidden className="size-6 text-green-600" />,
-  error: <AlertTriangle aria-hidden className="size-6 text-danger-600" />,
-  success: <CheckCircle2 aria-hidden className="size-6 text-green-600" />,
-  confirm: <AlertTriangle aria-hidden className="size-6 text-text" />,
+const icons: Record<Kind, { icon: LucideIcon; tone: ModalTone }> = {
+  info: { icon: Info, tone: "info" },
+  error: { icon: AlertTriangle, tone: "error" },
+  success: { icon: CheckCircle2, tone: "success" },
+  confirm: { icon: HelpCircle, tone: "neutral" },
 };
 
 /** All form-level and system feedback goes through here (R4). No toasts. */
@@ -95,6 +95,8 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
           if (!open) settle(false);
         }}
         title={dialog?.title ?? ""}
+        icon={icons[dialog?.kind ?? "info"].icon}
+        tone={icons[dialog?.kind ?? "info"].tone}
         description={dialog?.message}
         hideClose={isConfirm}
         footer={
@@ -116,9 +118,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
             )
           ) : null
         }
-      >
-        {dialog ? <div className="flex items-center gap-3">{icons[dialog.kind]}</div> : null}
-      </Modal>
+      ></Modal>
     </FeedbackContext.Provider>
   );
 }

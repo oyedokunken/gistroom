@@ -7,7 +7,10 @@ import { Band, Callout, CtaBand, HeroActions, PageHero } from "@/components/publ
 import { cta, securityPage as p } from "@/content/marketing";
 import { security } from "@/content/pages";
 import { breadcrumbJsonLd } from "@/lib/jsonld";
+import { rhythm } from "@/lib/rhythm";
 import { pageMetadata } from "@/lib/seo";
+
+const tones = rhythm.security;
 
 export const metadata: Metadata = pageMetadata({
   title: security.title,
@@ -36,7 +39,7 @@ export default function Page() {
         visual={<DevicesMock />}
       />
 
-      <Band tone="plain" labelledBy="pillars-h">
+      <Band tone={tones[1]} labelledBy="pillars-h">
         <h2 id="pillars-h" className="sr-only">
           How we protect you
         </h2>
@@ -79,11 +82,11 @@ export default function Page() {
         </div>
       </Band>
 
-      <Band tone="soft">
+      <Band tone={tones[2]}>
         <Callout title={p.honest.title} body={p.honest.body} tone="yellow" />
       </Band>
 
-      <Band tone="ink" labelledBy="report-h">
+      <Band tone={tones[3]} labelledBy="report-h">
         <div className="grid items-center gap-8 md:grid-cols-[1fr_auto]">
           <div>
             <h2

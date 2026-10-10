@@ -14,7 +14,10 @@ import {
 import { aboutPage as p, cta } from "@/content/marketing";
 import { about } from "@/content/pages";
 import { breadcrumbJsonLd } from "@/lib/jsonld";
+import { rhythm } from "@/lib/rhythm";
 import { pageMetadata } from "@/lib/seo";
+
+const tones = rhythm.about;
 
 export const metadata: Metadata = pageMetadata({
   title: about.title,
@@ -43,7 +46,7 @@ export default function Page() {
         visual={<RoomMock />}
       />
 
-      <Band tone="plain" labelledBy="story-h">
+      <Band tone={tones[1]} labelledBy="story-h">
         <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
           <h2
             id="story-h"
@@ -61,12 +64,12 @@ export default function Page() {
         </div>
       </Band>
 
-      <Band tone="soft" labelledBy="principles-h">
+      <Band tone={tones[2]} labelledBy="principles-h">
         <SectionHead id="principles-h" title={p.principles.title} />
         <StatementGrid items={p.principles.items} />
       </Band>
 
-      <Band tone="yellow" labelledBy="maker-h">
+      <Band tone={tones[3]} labelledBy="maker-h">
         <div className="grid items-center gap-10 md:grid-cols-[auto_1fr]">
           <MakerStack alt={p.maker.photosAlt} />
           <div>

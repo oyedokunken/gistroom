@@ -272,12 +272,14 @@ export function Facts({ items }: { items: readonly { value: string; label: strin
   return (
     <dl className="grid grid-cols-2 gap-6 lg:grid-cols-4">
       {items.map((f) => (
-        <div key={f.label} className="rounded-card bg-white/10 p-6">
-          <dt className="sr-only">{f.label}</dt>
+        <div
+          key={f.label}
+          className="flex flex-col-reverse justify-end rounded-card bg-white/10 p-6"
+        >
+          <dt className="mt-2 text-white/85">{f.label}</dt>
           <dd className="tabular text-[clamp(2.25rem,5vw,3.5rem)] font-black leading-none tracking-[-0.03em] text-yellow-400">
             {f.value}
           </dd>
-          <dd className="mt-2 text-white/85">{f.label}</dd>
         </div>
       ))}
     </dl>

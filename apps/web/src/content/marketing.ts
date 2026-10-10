@@ -135,12 +135,13 @@ export const featuresPage = {
   facts: {
     title: "The settings behind the promise",
     lead: "These are real limits in the app today.",
-    items: [
-      { value: "32", label: "people in a room" },
-      { value: "15 min", label: "to edit a message" },
-      { value: "45 sec", label: "a call rings before it counts as missed" },
-      { value: "5 min", label: "longest voice note" },
-    ],
+    /** The numbers come from LIMITS on the page, so they can never drift from the app. */
+    labels: {
+      room: "people in a room",
+      edit: "to edit a message",
+      ring: "a call rings before it counts as missed",
+      voice: "longest voice note",
+    },
   },
   closing: {
     title: "Your people are waiting.",

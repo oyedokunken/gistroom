@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Mic } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -82,6 +83,7 @@ export function CreateRoomModal({
     <Modal
       open={open}
       onOpenChange={onOpenChange}
+      icon={Mic}
       title={copy.title}
       description={copy.description}
     >

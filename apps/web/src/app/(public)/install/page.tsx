@@ -12,7 +12,10 @@ import {
 import { cta, installPage as p } from "@/content/marketing";
 import { install } from "@/content/pages";
 import { breadcrumbJsonLd, softwareAppJsonLd } from "@/lib/jsonld";
+import { rhythm } from "@/lib/rhythm";
 import { pageMetadata } from "@/lib/seo";
+
+const tones = rhythm.install;
 
 export const metadata: Metadata = pageMetadata({
   title: install.title,
@@ -42,7 +45,7 @@ export default function Page() {
         visual={<InstallMock />}
       />
 
-      <Band tone="plain" labelledBy="platforms-h">
+      <Band tone={tones[1]} labelledBy="platforms-h">
         <h2 id="platforms-h" className="sr-only">
           Install steps for your device
         </h2>
@@ -77,7 +80,7 @@ export default function Page() {
         </div>
       </Band>
 
-      <Band tone="soft" labelledBy="why-h">
+      <Band tone={tones[2]} labelledBy="why-h">
         <SectionHead id="why-h" title={p.why.title} />
         <Bento items={p.why.items} />
       </Band>

@@ -42,7 +42,10 @@ export function buildCsp({ nonce, isDev, realtimeUrl, livekitUrl, supabaseUrl }:
       "'strict-dynamic'",
       ...(isDev ? ["'unsafe-eval'"] : []),
     ],
-    "style-src": ["'self'", `'nonce-${nonce}'`, ...EXTERNAL_STYLE_HASHES.map((h) => `'${h}'`)],
+    // The dev server injects style tags with no nonce, so development allows inline styles. Production stays strict.
+    "style-src": isDev
+      ? ["'self'", "'unsafe-inline'"]
+      : ["'self'", `'nonce-${nonce}'`, ...EXTERNAL_STYLE_HASHES.map((h) => `'${h}'`)],
     "style-src-attr": ["'unsafe-inline'"],
     "img-src": ["'self'", "data:", "blob:", "https://*.supabase.co"],
     "media-src": ["'self'", "blob:", "https://*.supabase.co"],

@@ -64,7 +64,14 @@ export function api<Args extends unknown[]>(
           new AppError(400, "INVALID", errors.invalidRequest, { fields: fieldErrors(error) }),
         );
       }
-      process.stderr.write(`api error: ${error instanceof Error ? error.name : "unknown"}\n`);
+      // Outside production the message helps; in production only the error name is logged.
+      const detail =
+        process.env.NODE_ENV !== "production" && error instanceof Error
+          ? `: ${error.message.slice(0, 300)}`
+          : "";
+      process.stderr.write(
+        `api error: ${error instanceof Error ? error.name : "unknown"}${detail}\n`,
+      );
       return errorResponse(new AppError(500, "SERVER", errors.server));
     }
   };

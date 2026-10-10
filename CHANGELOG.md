@@ -13,4 +13,7 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 - Core UI components: Button, IconButton, Input, Textarea, Field, Modal, Sheet, Select, Tabs, Tooltip, Badge, Avatar, Skeleton, EmptyState, ConnectionBanner.
 - FeedbackProvider with showInfo, showError, showSuccess and confirm (no toasts).
 - Nonce based CSP and static security headers through the Next 16 proxy file; pages render per request so scripts carry the nonce.
+- Brand build (`npm run brand`): logo mark, wordmark and lockups, favicon, PWA icons, push badge and default Open Graph image.
+- Illustration manifest, prompts with the style lock, generated alt text and 33 pattern placeholders; budgets enforced by `lint:graphics`.
+- Web App Manifest, icons and default Open Graph metadata.
 - Placeholder landing page, health endpoints and the realtime service skeleton.

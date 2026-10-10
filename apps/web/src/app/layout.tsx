@@ -36,6 +36,20 @@ export const metadata: Metadata = {
   title: { default: site.name, template: "%s | Gistroom" },
   description: site.description,
   applicationName: site.name,
+  icons: {
+    icon: [
+      { url: "/brand/favicon.ico", sizes: "48x48" },
+      { url: "/brand/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: "/brand/apple-touch-icon.png",
+  },
+  openGraph: {
+    type: "website",
+    siteName: site.name,
+    locale: "en_NG",
+    images: [{ url: "/brand/og-default.png", width: 1200, height: 630, alt: site.tagline }],
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 export const viewport: Viewport = {

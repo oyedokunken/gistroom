@@ -42,7 +42,9 @@ export default tseslint.config(
   { files: ["scripts/**/*.mjs", "tests/**"], rules: { "no-console": "off" } },
   {
     files: ["scripts/**/*.mjs"],
-    languageOptions: { globals: { process: "readonly", console: "readonly", URL: "readonly" } },
+    languageOptions: {
+      globals: { process: "readonly", console: "readonly", URL: "readonly", Buffer: "readonly" },
+    },
   },
   {
     files: ["apps/web/**/*.{ts,tsx}"],

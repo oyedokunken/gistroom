@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="256" viewBox="0 0 1100 256"><g transform="scale(0.5) translate(0 0)">
+  <circle cx="236" cy="236" r="150" fill="#0B0B0C"/>
+  <path d="M372 150 V318 Q372 410 272 410 H190" fill="none" stroke="#0B0B0C" stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M170 392 L128 452 L212 432 Z" fill="#0B0B0C"/>
+  <rect x="172" y="196" width="34" height="80" rx="17" fill="#0E7A43"/>
+  <rect x="219" y="150" width="34" height="172" rx="17" fill="#FFC20E"/>
+  <rect x="266" y="178" width="34" height="116" rx="17" fill="#0E7A43"/></g>
+     <text x="270" y="190" font-family="Graphik" font-weight="700" font-size="150" letter-spacing="-5" fill="#0B0B0C">gistroom</text></svg>

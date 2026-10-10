@@ -247,7 +247,7 @@ export function CallScreen({
           ) : null}
         </div>
 
-        { }
+        {}
         <video
           ref={lk.localVideo}
           autoPlay

@@ -16,4 +16,6 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 - Brand build (`npm run brand`): logo mark, wordmark and lockups, favicon, PWA icons, push badge and default Open Graph image.
 - Illustration manifest, prompts with the style lock, generated alt text and 33 pattern placeholders; budgets enforced by `lint:graphics`.
 - Web App Manifest, icons and default Open Graph metadata.
-- Placeholder landing page, health endpoints and the realtime service skeleton.
+- Landing v1: the Voice Dock header (capsule with sliding highlight, live room pill, mic bubble with scroll reactive rings, radial menu, mobile thumb zone dock with More sheet), hero with parallax layers, speaking rings, sound bars and drifting sample gist, footer with oversized wordmark and scroll to top ring button.
+- `/api/public/stats` live room count (reports zero on any failure), `/api/csp-report`, Organization and WebSite JSON-LD.
+- Health endpoints and the realtime service skeleton.

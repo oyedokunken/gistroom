@@ -13,6 +13,15 @@ const variants: Record<ButtonVariant, string> = {
   danger: "bg-danger-600 text-white hover:bg-danger-600/90",
 };
 
+/** Shared look so links can be styled as buttons. */
+export function buttonStyles(variant: ButtonVariant = "primary", className?: string): string {
+  return cn(
+    "inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-6 text-[0.9375rem] font-semibold transition-colors",
+    variants[variant],
+    className,
+  );
+}
+
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   loading?: boolean;

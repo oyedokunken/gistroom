@@ -17,6 +17,14 @@ function origins(url: string | undefined): string[] {
   }
 }
 
+/** Hashes of style tags injected by third party libraries that cannot take a nonce. See tests/unit/vaul-style-hash.test.ts. */
+export const EXTERNAL_STYLE_HASHES = [
+  // vaul drawer styles
+  "sha256-YIjArHm2rkb5J7hX9lUM1bnQ3Kp61MTfluMGkuyKwDw=",
+  // empty style tag: vaul inserts the element before it appends the text node
+  "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+] as const;
+
 /** Content Security Policy from Section 20. A fresh nonce is generated per request. */
 export function buildCsp({ nonce, isDev, realtimeUrl, livekitUrl, supabaseUrl }: CspInput): string {
   const connect = [
@@ -34,7 +42,7 @@ export function buildCsp({ nonce, isDev, realtimeUrl, livekitUrl, supabaseUrl }:
       "'strict-dynamic'",
       ...(isDev ? ["'unsafe-eval'"] : []),
     ],
-    "style-src": ["'self'", `'nonce-${nonce}'`],
+    "style-src": ["'self'", `'nonce-${nonce}'`, ...EXTERNAL_STYLE_HASHES.map((h) => `'${h}'`)],
     "style-src-attr": ["'unsafe-inline'"],
     "img-src": ["'self'", "data:", "blob:", "https://*.supabase.co"],
     "media-src": ["'self'", "blob:", "https://*.supabase.co"],

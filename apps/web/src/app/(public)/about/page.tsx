@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PublicPage } from "@/components/public/public-page";
+import { MakerStack } from "@/components/public/maker-stack";
 import { RoomMock } from "@/components/public/mocks";
 import {
   Band,
@@ -66,7 +67,8 @@ export default function Page() {
       </Band>
 
       <Band tone="yellow" labelledBy="maker-h">
-        <div className="grid items-center gap-8 md:grid-cols-[1fr_auto]">
+        <div className="grid items-center gap-10 md:grid-cols-[auto_1fr]">
+          <MakerStack alt={p.maker.photosAlt} />
           <div>
             <h2
               id="maker-h"
@@ -75,15 +77,15 @@ export default function Page() {
               {p.maker.title}
             </h2>
             <p className="mt-3 max-w-[56ch] text-lg">{p.maker.body}</p>
+            <Link
+              href={p.maker.link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-6 inline-flex min-h-12 items-center justify-center rounded-full bg-ink-950 px-8 font-semibold text-white hover:bg-ink-700"
+            >
+              {p.maker.link.label}
+            </Link>
           </div>
-          <Link
-            href={p.maker.link.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex min-h-12 items-center justify-center rounded-full bg-ink-950 px-8 font-semibold text-white hover:bg-ink-700"
-          >
-            {p.maker.link.label}
-          </Link>
         </div>
       </Band>
 

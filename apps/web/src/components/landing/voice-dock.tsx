@@ -27,7 +27,7 @@ import { LogoMark } from "@/components/brand/logo-mark";
 import { buttonStyles } from "@/components/ui/button";
 import { ScrollGauge, ScrollWave } from "@/components/ui/scroll-wave";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { Sheet } from "@/components/ui/sheet";
+import { MoreSheet } from "./more-sheet";
 import { nav } from "@/content/landing";
 import { cn } from "@/lib/cn";
 import { useLiveCount } from "@/lib/use-live-count";
@@ -377,24 +377,15 @@ function MobileDock() {
           </ul>
         </LayoutGroup>
       </motion.nav>
-      <Sheet open={moreOpen} onOpenChange={setMoreOpen} title={nav.moreTitle}>
-        <ul className="flex flex-col">
-          {[
-            ...(right[1] ? [{ label: right[1].label, href: right[1].href }] : []),
-            ...nav.moreItems,
-          ].map((l) => (
-            <li key={l.href}>
-              <Link
-                href={l.href}
-                onClick={() => setMoreOpen(false)}
-                className="flex min-h-12 items-center text-lg font-medium text-text"
-              >
-                {l.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </Sheet>
+      <MoreSheet
+        open={moreOpen}
+        onOpenChange={setMoreOpen}
+        title={nav.moreTitle}
+        items={[
+          ...(right[1] ? [{ label: right[1].label, href: right[1].href }] : []),
+          ...nav.moreItems,
+        ]}
+      />
     </>
   );
 }

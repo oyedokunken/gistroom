@@ -1,6 +1,15 @@
 import type { Metadata } from "next";
 import { PublicPage } from "@/components/public/public-page";
-import { ProsePage } from "@/components/public/prose-page";
+import { InstallMock } from "@/components/public/mocks";
+import {
+  Band,
+  Bento,
+  CtaBand,
+  HeroActions,
+  PageHero,
+  SectionHead,
+} from "@/components/public/sections";
+import { cta, installPage as p } from "@/content/marketing";
 import { install } from "@/content/pages";
 import { breadcrumbJsonLd, softwareAppJsonLd } from "@/lib/jsonld";
 import { pageMetadata } from "@/lib/seo";
@@ -22,17 +31,58 @@ export default function Page() {
         softwareAppJsonLd(),
       ]}
     >
-      <ProsePage
-        title={install.title}
-        lead={install.lead}
-
-        sections={install.sections}
+      <PageHero
+        title={p.hero.title}
+        lead={p.hero.lead}
         crumbs={[
           { name: "Home", href: "/" },
           { name: install.title, href: "/install" },
         ]}
-        cta={{ label: "Enter Gistroom", href: "/signup" }}
+        actions={<HeroActions primary={cta.enter} />}
+        visual={<InstallMock />}
       />
+
+      <Band tone="plain" labelledBy="platforms-h">
+        <h2 id="platforms-h" className="sr-only">
+          Install steps for your device
+        </h2>
+        <div className="grid gap-6 lg:grid-cols-3">
+          {p.platforms.map((pl, i) => (
+            <section
+              key={pl.id}
+              id={pl.id}
+              aria-labelledby={`${pl.id}-h`}
+              className={
+                i === 1
+                  ? "rounded-hero bg-green-600 p-8 text-white"
+                  : "rounded-hero bg-surface-2 p-8"
+              }
+            >
+              <h3 id={`${pl.id}-h`} className="text-2xl font-bold tracking-[-0.02em]">
+                {pl.title}
+              </h3>
+              {"note" in pl && pl.note ? <p className="mt-3 opacity-90">{pl.note}</p> : null}
+              <ol className="mt-5 flex flex-col gap-4">
+                {pl.steps.map((step, n) => (
+                  <li key={step} className="flex items-start gap-3">
+                    <span className="tabular flex size-8 shrink-0 items-center justify-center rounded-full bg-yellow-400 font-black text-ink-950">
+                      {n + 1}
+                    </span>
+                    <span className="pt-0.5">{step}</span>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          ))}
+        </div>
+      </Band>
+
+      <Band tone="soft" labelledBy="why-h">
+        <SectionHead id="why-h" title={p.why.title} />
+        <Bento items={p.why.items} />
+      </Band>
+
+      <CtaBand title={p.closing.title} body={p.closing.body} primary={cta.enter} />
     </PublicPage>
   );
 }

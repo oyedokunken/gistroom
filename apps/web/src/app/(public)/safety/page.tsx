@@ -1,6 +1,19 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { PublicPage } from "@/components/public/public-page";
-import { ProsePage } from "@/components/public/prose-page";
+import { SafetyMock } from "@/components/public/mocks";
+import {
+  Band,
+  Bento,
+  Callout,
+  CtaBand,
+  HeroActions,
+  PageHero,
+  SectionHead,
+  StatementGrid,
+  Steps,
+} from "@/components/public/sections";
+import { cta, safetyPage as p } from "@/content/marketing";
 import { safety } from "@/content/pages";
 import { breadcrumbJsonLd } from "@/lib/jsonld";
 import { pageMetadata } from "@/lib/seo";
@@ -21,16 +34,63 @@ export default function Page() {
         ]),
       ]}
     >
-      <ProsePage
-        title={safety.title}
-        lead={safety.lead}
-
-        sections={safety.sections}
+      <PageHero
+        title={p.hero.title}
+        lead={p.hero.lead}
         crumbs={[
           { name: "Home", href: "/" },
           { name: safety.title, href: "/safety" },
         ]}
-        cta={{ label: "Enter Gistroom", href: "/signup" }}
+        actions={
+          <HeroActions primary={cta.enter} secondary={{ label: "Contact us", href: "/support" }} />
+        }
+        visual={<SafetyMock />}
+      />
+
+      <Band tone="plain" labelledBy="guidelines-h">
+        <SectionHead id="guidelines-h" title={p.guidelines.title} />
+        <StatementGrid items={p.guidelines.items} />
+      </Band>
+
+      <Band tone="soft" labelledBy="tools-h">
+        <SectionHead id="tools-h" title={p.tools.title} />
+        <Bento items={p.tools.items} />
+      </Band>
+
+      <Band tone="green" labelledBy="how-h">
+        <SectionHead id="how-h" title={p.how.title} />
+        <Steps items={p.how.steps} />
+      </Band>
+
+      <Band tone="plain">
+        <Callout title={p.moderators.title} body={p.moderators.body} tone="soft" />
+      </Band>
+
+      <Band tone="ink" labelledBy="contact-h">
+        <div className="grid items-center gap-8 md:grid-cols-[1fr_auto]">
+          <div>
+            <h2
+              id="contact-h"
+              className="text-[clamp(1.75rem,4vw,2.5rem)] font-bold tracking-[-0.02em]"
+            >
+              {p.contact.title}
+            </h2>
+            <p className="mt-3 max-w-[56ch] text-lg text-white/85">{p.contact.body}</p>
+          </div>
+          <Link
+            href={p.contact.action.href}
+            className="inline-flex min-h-12 items-center justify-center rounded-full bg-yellow-400 px-8 font-semibold text-ink-950 hover:bg-yellow-100"
+          >
+            {p.contact.action.label}
+          </Link>
+        </div>
+      </Band>
+
+      <CtaBand
+        title="Talk freely. Stay safe."
+        body="You decide who can reach you, and you can block or report in one tap."
+        primary={cta.enter}
+        secondary={cta.features}
       />
     </PublicPage>
   );

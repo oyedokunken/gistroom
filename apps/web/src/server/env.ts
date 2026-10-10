@@ -56,3 +56,11 @@ export function getEnv(): ServerEnv {
 export function resetEnvCache() {
   cached = undefined;
 }
+
+/**
+ * The public origin of the app, read without validating the rest of the environment. Routes that need no
+ * database (cookie consent, the contact form origin check) use this so a missing secret cannot break them.
+ */
+export function getAppUrl(): string {
+  return process.env.APP_URL || "http://localhost:3000";
+}

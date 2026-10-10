@@ -14,3 +14,7 @@ playwright-report
 .DS_Store
 next-env.d.ts
 .mail-capture
+
+apps/web/public/sw.js
+apps/web/public/sw.version.json
+apps/web/AGENTS.md

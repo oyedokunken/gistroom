@@ -6,6 +6,8 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ### Changed
 
+- Phase 2 client: realtime provider (fresh pass on every reconnect, resync after any gap, focus reporting, app badge), chat list, virtualised thread, bubbles with receipts, reply, star, react and delete, composer with drafts and typing, own emoji picker, offline outbox in IndexedDB that flushes in order, friends page (friends, requests, sent, find people), profiles, notifications page, push opt in with a primer, service worker (push, notification clicks, offline page, update modal), install card and settings for notifications and install.
+
 - Phase 2 backend: friends (requests, auto accept on mutual requests, 7 day rejection cooldown that never says rejected, unfriend, block), DMs (idempotent send, delete for me and for everyone, star, react, archive, clear, receipts), notifications (aggregated DMs, preferences, quiet hours, read, clear), Web Push subscriptions, and the realtime service (pass auth, per event authorization, presence with privacy, typing, receipts, rate limits, internal event fan out, push delivery with TTLs, scheduler). 42 socket tests run against an in memory store.
 
 - Phase 1 identity (built without a database, integration tests skip until Supabase exists): OTP request and verify routes, sessions and devices, Google sign in with a mock mode, onboarding with live username check, people search (name and username trigram), realtime pass, DB backed rate limiter, login, signup, verify and onboarding pages, the signed in app shell (rail and tab bar) and settings (profile, privacy, devices, appearance, data saver).

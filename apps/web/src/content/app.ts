@@ -31,10 +31,6 @@ export const pages = {
     emptyTitle: "No calls yet",
     emptyBody: "Call a friend from their chat or profile.",
   },
-  notifications: {
-    title: "Notifications",
-    empty: "Nothing new. We will tell you when something happens.",
-  },
 } as const;
 
 export const settings = {
@@ -55,6 +51,12 @@ export const settings = {
       href: "/app/settings/privacy",
     },
     {
+      id: "notifications",
+      label: "Notifications",
+      description: "Alerts, email and do not disturb",
+      href: "/app/settings/notifications",
+    },
+    {
       id: "devices",
       label: "Devices",
       description: "Where you are signed in",
@@ -65,6 +67,12 @@ export const settings = {
       label: "Appearance",
       description: "Light, dark or system",
       href: "/app/settings/appearance",
+    },
+    {
+      id: "install",
+      label: "Install app",
+      description: "Add Gistroom to your device",
+      href: "/app/settings/install",
     },
     {
       id: "data",
@@ -130,4 +138,103 @@ export const settings = {
     saving: "Saving",
     saved: "Data saver setting saved.",
   },
+} as const;
+
+export const notices = {
+  title: "Notifications",
+  filterLabel: "Show",
+  all: "All",
+  unread: "Unread",
+  markAllRead: "Mark all read",
+  clearAll: "Clear all",
+  markRead: "Mark as read",
+  markUnread: "Mark as unread",
+  remove: "Delete",
+  more: "Notification actions",
+  emptyAll: "Nothing new. We will tell you when something happens.",
+  emptyUnread: "You are all caught up.",
+  loadError: "We could not load your notifications.",
+  retry: "Try again",
+  loadMore: "Show more",
+  clearTitle: "Clear all notifications?",
+  clearBody: "Every notification is removed from this list. This cannot be undone.",
+  clearConfirm: "Clear all",
+  unreadDot: "Unread",
+  push: {
+    heading: "Alerts on this device",
+    body: "Get calls and messages even when Gistroom is closed.",
+    enable: "Turn on alerts",
+    enabled: "Alerts are on for this device.",
+    disable: "Turn off alerts",
+    blocked:
+      "Alerts are blocked in your browser. Allow notifications for Gistroom in your browser settings, then try again.",
+    unsupported: "This browser does not support alerts.",
+    iosNeedsInstall:
+      "On iPhone, add Gistroom to your Home Screen first. Then turn on alerts from here.",
+    primerTitle: "Turn on alerts?",
+    primerBody:
+      "Gistroom can tell you about calls, messages and friend requests, even when the app is closed. Your browser will ask for permission next. You can change this any time in Settings.",
+    primerConfirm: "Continue",
+    primerCancel: "Not now",
+    test: "Send me a test alert",
+    testSent: "Sent. You should see it in a moment.",
+    unavailable: "Alerts are not set up on this server yet.",
+  },
+} as const;
+
+export const offline = {
+  title: "Offline",
+  heading: "You are offline",
+  body: "Your messages will send when the network returns. Chats you opened before are still here.",
+  retry: "Try again",
+} as const;
+
+export const pwa = {
+  updateTitle: "New version ready",
+  updateBody: "A new version of Gistroom is ready. Refresh to get it. It takes a second.",
+  updateConfirm: "Refresh",
+  updateLater: "Later",
+  installTitle: "Install Gistroom",
+  installBody: "Add Gistroom to your device for faster opening and alerts when the app is closed.",
+  installAction: "Install",
+  installDismiss: "Not now",
+  installedNote: "Gistroom is installed on this device.",
+  iosTitle: "Add Gistroom to your Home Screen",
+  iosBody: "Add Gistroom to your Home Screen to get call and message alerts.",
+  iosSteps: [
+    "Tap the Share button in Safari.",
+    "Scroll down and tap Add to Home Screen.",
+    "Tap Add, then open Gistroom from your Home Screen.",
+  ],
+} as const;
+
+export const notifySettings = {
+  heading: "Notifications",
+  intro: "Choose what reaches you, and where.",
+  channels: { inApp: "In the app", push: "Alerts", email: "Email" },
+  types: {
+    FRIEND_REQUEST_RECEIVED: "Friend requests",
+    FRIEND_REQUEST_ACCEPTED: "Accepted requests",
+    DM_MESSAGE: "Messages",
+    CALL_MISSED: "Missed calls",
+    ROOM_INVITE: "Room invites",
+    ROOM_STARTING: "Rooms starting soon",
+    ROOM_ROLE_CHANGED: "Room role changes",
+    SECURITY_NEW_DEVICE: "New sign in on your account",
+    REPORT_UPDATE: "Report updates",
+    SYSTEM: "Gistroom notices",
+  } as Record<string, string>,
+  previews: "Show message previews",
+  previewsHelp: "When off, alerts say New message instead of showing the text.",
+  quietHeading: "Do not disturb",
+  quietHelp: "Alerts and emails stay quiet in this window. The list in the app still fills up.",
+  quietStart: "From",
+  quietEnd: "Until",
+  quietClear: "Turn off",
+  save: "Save",
+  saving: "Saving",
+  saved: "Notification settings saved.",
+  timeInvalid: "Use a time like 22:00.",
+  installHeading: "Install app",
+  installIntro: "Installing gives you alerts when Gistroom is closed and a faster start.",
 } as const;

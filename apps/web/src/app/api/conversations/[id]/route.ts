@@ -1,7 +1,14 @@
 import { conversationPatchSchema } from "@gistroom/shared";
 import { api, assertSameOrigin, json, parseJson } from "@/server/http";
 import { requireOnboarded } from "@/server/auth/session";
-import { clearChat, setArchived, setMuted } from "@/server/chat/service";
+import { clearChat, getConversation, setArchived, setMuted } from "@/server/chat/service";
+
+export const dynamic = "force-dynamic";
+
+export const GET = api(async (_request, ctx: { params: Promise<{ id: string }> }) => {
+  const { user } = await requireOnboarded();
+  return json({ conversation: await getConversation(user, (await ctx.params).id) });
+});
 
 export const PATCH = api(async (request, ctx: { params: Promise<{ id: string }> }) => {
   const { user } = await requireOnboarded();

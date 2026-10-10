@@ -17,6 +17,7 @@ export default tseslint.config(
       "**/.next/**",
       "**/dist/**",
       "**/next-env.d.ts",
+      "apps/web/public/sw.js",
       ".mail-preview/**",
       "coverage/**",
     ],

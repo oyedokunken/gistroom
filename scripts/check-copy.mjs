@@ -34,6 +34,8 @@ const TEXT_EXT = new Set([
 ]);
 // These files must name the forbidden things in order to define them.
 const SKIP_FILES = new Set([
+  // Written by next dev, not by us.
+  path.join("apps", "web", "AGENTS.md"),
   "CLAUDE.md",
   "package-lock.json",
   path.join("scripts", "banned-phrases.json"),

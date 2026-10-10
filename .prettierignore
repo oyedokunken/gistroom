@@ -10,3 +10,4 @@ apps/web/src/content/alt.ts
 .mail-capture
 .mail-preview
 apps/web/src/lib/art.generated.ts
+apps/web/public/sw.js

@@ -487,3 +487,34 @@ export async function starredMessages(
         : null,
   };
 }
+
+/** One conversation as the list shows it, even if it is archived or was cleared. Used by the thread header. */
+export async function getConversation(me: User, conversationId: string): Promise<ConversationDto> {
+  const db = getDb();
+  const access = await accessFor(me.id, conversationId);
+  const [peer, member, last, unread] = await Promise.all([
+    db.user.findUniqueOrThrow({ where: { id: access.peerId } }),
+    db.conversationMember.findUniqueOrThrow({
+      where: { conversationId_userId: { conversationId, userId: me.id } },
+    }),
+    db.message.findFirst({
+      where: {
+        conversationId,
+        hiddenBy: { none: { userId: me.id } },
+        ...(access.clearedAt ? { createdAt: { gt: access.clearedAt } } : {}),
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      include: messageInclude(me.id),
+    }),
+    unreadByConversation(me.id),
+  ]);
+  return {
+    id: conversationId,
+    peer: toPublicUser(peer),
+    lastMessage: last ? messageDto(last, me.id) : null,
+    lastMessageAt: last?.createdAt.toISOString() ?? null,
+    unread: unread.get(conversationId) ?? 0,
+    archived: member.archivedAt !== null,
+    muted: member.mutedUntil !== null && member.mutedUntil > new Date(),
+  };
+}

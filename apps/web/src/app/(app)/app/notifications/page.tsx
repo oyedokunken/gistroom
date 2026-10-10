@@ -1,15 +1,21 @@
 import type { Metadata } from "next";
+import { InstallCard } from "@/components/app/install-card";
+import { NotificationsList } from "@/components/app/notifications-list";
 import { PageHeader } from "@/components/app/page-header";
-import { EmptyState } from "@/components/ui/empty-state";
-import { pages } from "@/content/app";
+import { PushCard } from "@/components/app/push-card";
+import { notices } from "@/content/app";
 
-export const metadata: Metadata = { title: pages.notifications.title };
+export const metadata: Metadata = { title: notices.title };
 
-export default function Page() {
+export default function NotificationsPage() {
   return (
     <>
-      <PageHeader title={pages.notifications.title} />
-      <EmptyState artId="empty-notifications" title={pages.notifications.empty} />
+      <PageHeader title={notices.title} />
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 p-4">
+        <PushCard />
+        <InstallCard />
+        <NotificationsList />
+      </div>
     </>
   );
 }

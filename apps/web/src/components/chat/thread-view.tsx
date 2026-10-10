@@ -476,6 +476,10 @@ export function ThreadView({
           editing={editing}
           onSaveEdit={(text) => void saveEdit(text)}
           onCancelEdit={() => setEditing(null)}
+          onUploaded={(m) => {
+            replace(m);
+            void queryClient.invalidateQueries({ queryKey: ["conversations"] });
+          }}
           onSend={(text) => {
             useOutbox
               .getState()

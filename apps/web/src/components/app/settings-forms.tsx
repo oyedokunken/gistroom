@@ -8,6 +8,7 @@ import { z } from "zod";
 import { BIO_MAX, nameSchema, type MeUser, type UpdateProfileInput } from "@gistroom/shared";
 import { useFeedback } from "@/components/feedback/feedback-provider";
 import { Button } from "@/components/ui/button";
+import { AvatarUploader } from "./avatar-uploader";
 import { Field, Input, Textarea } from "@/components/ui/field";
 import { Select } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
@@ -58,6 +59,7 @@ export function ProfileForm({ user }: { user: MeUser }) {
       })}
       className="flex max-w-lg flex-col gap-4"
     >
+      <AvatarUploader name={user.name} avatarUrl={user.avatarUrl} />
       <Field label={copy.nameLabel} error={errors.name?.message}>
         {(props) => <Input {...props} autoComplete="name" {...form.register("name")} />}
       </Field>

@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { Check, SendHorizontal, X } from "lucide-react";
+import { Check, Mic, SendHorizontal, X } from "lucide-react";
 import { IconButton } from "@/components/ui/icon-button";
 import { chat } from "@/content/chat";
-import { LIMITS, validation } from "@gistroom/shared";
+import { LIMITS, validation, type MessageDto } from "@gistroom/shared";
 import { useDrafts } from "@/lib/chat/drafts";
 import { useRealtime } from "@/lib/realtime/provider";
 import { cn } from "@/lib/cn";
 import { EmojiButton } from "./emoji-button";
+import { AttachButton, UploadTray, useUploads } from "./uploads";
+import { VoiceRecorderBar, useVoiceRecorder } from "./voice-recorder";
 
 export interface ComposerProps {
   conversationId: string;
@@ -21,6 +23,8 @@ export interface ComposerProps {
   editing?: { id: string; text: string } | null;
   onSaveEdit?: (text: string) => void;
   onCancelEdit?: () => void;
+  /** A photo, video, voice note or file finished uploading and became a message. */
+  onUploaded?: (message: MessageDto) => void;
 }
 
 const TYPING_REFRESH_MS = 2500;
@@ -36,12 +40,20 @@ export function Composer({
   editing,
   onSaveEdit,
   onCancelEdit,
+  onUploaded,
 }: ComposerProps) {
   const realtime = useRealtime();
   const draft = useDrafts((s) => s.drafts[conversationId] ?? "");
   const setDraft = useDrafts((s) => s.set);
   const [text, setText] = useState(draft);
   const ref = useRef<HTMLTextAreaElement>(null);
+  const uploads = useUploads({
+    conversationId,
+    replyToId: replyingTo?.id ?? null,
+    onUploaded: (m) => onUploaded?.(m),
+    onSent: onCancelReply,
+  });
+  const voice = useVoiceRecorder(uploads.addVoice);
   const lastTyping = useRef(0);
   const idle = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -159,36 +171,52 @@ export function Composer({
           </IconButton>
         </div>
       ) : null}
-      <div className="flex items-end gap-1">
-        <EmojiButton onPick={insert} />
-        <textarea
-          ref={ref}
-          value={text}
-          rows={1}
-          aria-label={chat.composerLabel}
-          placeholder={chat.composerPlaceholder}
-          onChange={(e) => change(e.target.value)}
-          onKeyDown={onKeyDown}
-          onBlur={() => realtime.typing(conversationId, false)}
-          enterKeyHint="send"
-          className={cn(
-            "max-h-40 min-h-11 flex-1 resize-none rounded-[1.375rem] border bg-surface-2 px-4 py-2.5 text-base text-text placeholder:text-text-muted",
-            over ? "border-danger-600" : "border-transparent focus-visible:border-green-600",
-          )}
-        />
-        <IconButton
-          label={editing ? chat.edit.save : chat.send}
-          onClick={submit}
-          disabled={!text.trim() || over}
-          className="bg-green-600 text-white hover:bg-green-700"
-        >
-          {editing ? (
-            <Check aria-hidden className="size-5" />
+      <UploadTray items={uploads.items} onRetry={uploads.retry} onCancel={uploads.cancel} />
+      {voice.recording ? (
+        <VoiceRecorderBar elapsed={voice.elapsed} onStop={voice.stop} onCancel={voice.cancel} />
+      ) : (
+        <div className="flex items-end gap-1">
+          <EmojiButton onPick={insert} />
+          {editing ? null : <AttachButton onFiles={uploads.addFiles} />}
+          <textarea
+            ref={ref}
+            value={text}
+            rows={1}
+            aria-label={chat.composerLabel}
+            placeholder={chat.composerPlaceholder}
+            onChange={(e) => change(e.target.value)}
+            onKeyDown={onKeyDown}
+            onBlur={() => realtime.typing(conversationId, false)}
+            enterKeyHint="send"
+            className={cn(
+              "max-h-40 min-h-11 flex-1 resize-none rounded-[1.375rem] border bg-surface-2 px-4 py-2.5 text-base text-text placeholder:text-text-muted",
+              over ? "border-danger-600" : "border-transparent focus-visible:border-green-600",
+            )}
+          />
+          {!text.trim() && !editing ? (
+            <IconButton
+              label={chat.media.voiceStart}
+              onClick={() => void voice.start()}
+              className="bg-green-600 text-white hover:bg-green-700"
+            >
+              <Mic aria-hidden className="size-5" />
+            </IconButton>
           ) : (
-            <SendHorizontal aria-hidden className="size-5" />
+            <IconButton
+              label={editing ? chat.edit.save : chat.send}
+              onClick={submit}
+              disabled={!text.trim() || over}
+              className="bg-green-600 text-white hover:bg-green-700"
+            >
+              {editing ? (
+                <Check aria-hidden className="size-5" />
+              ) : (
+                <SendHorizontal aria-hidden className="size-5" />
+              )}
+            </IconButton>
           )}
-        </IconButton>
-      </div>
+        </div>
+      )}
       {over ? (
         <p role="alert" className="px-2 pt-1 text-sm font-medium text-danger-600">
           {validation.messageTooLong(LIMITS.MESSAGE_MAX_CHARS)}

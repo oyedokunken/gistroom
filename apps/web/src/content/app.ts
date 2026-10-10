@@ -259,3 +259,16 @@ export const passwordSettings = {
   saved: "Your password is updated.",
   forgot: "Forgot your current password?",
 } as const;
+
+export const avatarUploader = {
+  label: "Profile photo",
+  change: "Change photo",
+  add: "Add a photo",
+  remove: "Remove photo",
+  uploading: "Uploading",
+  help: "JPEG, PNG or WebP, up to 5 MB.",
+  removeTitle: "Remove your photo?",
+  removeBody: "People will see your initials again.",
+  removeConfirm: "Remove",
+  failed: "We could not save that photo. Check your connection and try again.",
+} as const;

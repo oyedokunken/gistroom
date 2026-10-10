@@ -10,6 +10,7 @@ export * from "./reserved-usernames";
 export * from "./content/validation";
 export * from "./content/errors";
 export * from "./chat";
+export * from "./media";
 export * from "./content/push";
 export * from "./chat-preview";
 export * from "./contact";

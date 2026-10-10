@@ -246,6 +246,16 @@ export interface SendInput {
   body: string | null;
   replyToId?: string | null;
   meta?: Record<string, unknown> | null;
+  attachment?: {
+    storagePath: string;
+    thumbPath?: string | null;
+    mime: string;
+    sizeBytes: number;
+    width?: number | null;
+    height?: number | null;
+    durationMs?: number | null;
+    waveform?: number[];
+  };
 }
 
 /**
@@ -295,6 +305,22 @@ export async function sendMessage(
         body: input.body?.trim() || null,
         replyToId: input.replyToId ?? null,
         meta: (input.meta ?? undefined) as Prisma.InputJsonValue | undefined,
+        ...(input.attachment
+          ? {
+              attachments: {
+                create: {
+                  storagePath: input.attachment.storagePath,
+                  thumbPath: input.attachment.thumbPath ?? null,
+                  mime: input.attachment.mime,
+                  sizeBytes: input.attachment.sizeBytes,
+                  width: input.attachment.width ?? null,
+                  height: input.attachment.height ?? null,
+                  durationMs: input.attachment.durationMs ?? null,
+                  waveform: input.attachment.waveform ?? [],
+                },
+              },
+            }
+          : {}),
       },
       include: messageInclude(me.id),
     });

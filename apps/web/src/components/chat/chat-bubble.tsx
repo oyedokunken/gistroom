@@ -2,7 +2,7 @@
 
 import * as Menu from "@radix-ui/react-dropdown-menu";
 import { motion } from "motion/react";
-import { Copy, CornerUpLeft, Pencil, Star, Trash2, Trash } from "lucide-react";
+import { ChevronDown, Copy, CornerUpLeft, Pencil, Star, Trash2, Trash } from "lucide-react";
 import type { ReceiptStatus } from "@gistroom/shared";
 import {
   DropdownContent,
@@ -11,6 +11,7 @@ import {
   DropdownSeparator,
   DropdownTrigger,
 } from "@/components/ui/dropdown-menu";
+import { AttachmentView } from "./attachment-views";
 import { ReceiptTicks } from "./receipt-ticks";
 import { chat, QUICK_REACTIONS } from "@/content/chat";
 import { cn } from "@/lib/cn";
@@ -64,6 +65,7 @@ export function ChatBubble({
   );
 
   const body = message.deletedForEveryone ? chat.deletedMessage : (message.body ?? "");
+  const hasMedia = !message.deletedForEveryone && message.attachments.length > 0;
 
   const content = (
     <>
@@ -82,7 +84,8 @@ export function ChatBubble({
           </span>
         </span>
       ) : null}
-      <span>{body}</span>
+      {hasMedia ? <AttachmentView message={message} mine={mine} /> : null}
+      {!hasMedia || body ? <span className={cn(hasMedia && "mt-1.5 block")}>{body}</span> : null}
       <span className="mt-1 flex items-center justify-end gap-1.5 text-[0.6875rem] leading-none opacity-80">
         {message.editedAt ? <span>{chat.edit.label}</span> : null}
         {message.starred ? (
@@ -137,15 +140,30 @@ export function ChatBubble({
           <div className={bubbleClass}>{content}</div>
         ) : (
           <DropdownMenu>
-            <DropdownTrigger asChild>
-              <button
-                type="button"
-                aria-haspopup="menu"
-                className={cn(bubbleClass, "cursor-pointer")}
-              >
+            {hasMedia ? (
+              <div className={bubbleClass}>
                 {content}
-              </button>
-            </DropdownTrigger>
+                <DropdownTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label={chat.messageActions}
+                    className="absolute right-1 top-1 flex size-8 items-center justify-center rounded-full bg-ink-950/45 text-white"
+                  >
+                    <ChevronDown aria-hidden className="size-4" />
+                  </button>
+                </DropdownTrigger>
+              </div>
+            ) : (
+              <DropdownTrigger asChild>
+                <button
+                  type="button"
+                  aria-haspopup="menu"
+                  className={cn(bubbleClass, "cursor-pointer")}
+                >
+                  {content}
+                </button>
+              </DropdownTrigger>
+            )}
             <DropdownContent align={mine ? "end" : "start"}>
               <div
                 role="group"

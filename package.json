@@ -38,7 +38,8 @@
     "db:seed": "node scripts/assert-safe-db.mjs prisma db seed",
     "db:reset": "node scripts/assert-safe-db.mjs prisma migrate reset --force",
     "db:studio": "npm run studio -w packages/db",
-    "prepare": "husky"
+    "prepare": "husky",
+    "storage:setup": "node scripts/setup-storage.mjs"
   },
   "lint-staged": {
     "*.{ts,tsx,mjs,js,json,md,css}": [

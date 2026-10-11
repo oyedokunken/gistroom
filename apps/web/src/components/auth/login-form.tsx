@@ -145,7 +145,11 @@ export function LoginForm({ next, error }: AuthFormProps) {
       const res = await apiFetch<{ needsOnboarding: boolean }>("/api/auth/login", {
         body: { email, password: values.password },
       });
-      router.replace(res.needsOnboarding ? `/onboarding?next=${encodeURIComponent(next)}` : next);
+      router.replace(
+        res.needsOnboarding
+          ? `/onboarding?next=${encodeURIComponent(next)}`
+          : `${next}${next.includes("?") ? "&" : "?"}back=1`,
+      );
       router.refresh();
     } catch (e) {
       if (

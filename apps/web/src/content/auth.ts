@@ -127,4 +127,5 @@ export const authArt = {
   verify: "scene-auth-verify",
   forgot: "scene-auth-forgot",
   onboarding: "scene-auth-onboarding",
+  interests: "scene-auth-interests",
 } as const;

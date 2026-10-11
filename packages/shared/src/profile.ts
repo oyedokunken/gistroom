@@ -72,3 +72,10 @@ export interface DiscoverData {
   rooms: PublicRoomCard[];
   people: SuggestedPerson[];
 }
+
+export interface SearchResults {
+  people: PersonResult[];
+  chats: { conversationId: string; peer: PublicUser }[];
+  rooms: PublicRoomCard[];
+  notes: { id: string; body: string; where: string; href: string }[];
+}

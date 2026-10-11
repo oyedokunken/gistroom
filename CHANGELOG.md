@@ -10,6 +10,12 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ### Added
 
+- Private notes for every chat and every room, kept by the person who wrote them, with add, edit, delete and search.
+- One search for people by name or username, your chats, public rooms and your notes, opened with Ctrl K, a slash or the search button.
+- The Gistroom floating button on every main screen with Start a room, Find a friend, New chat, Starred and Take the tour, plus a Welcome back message after sign in.
+- Seeding that reads the whole schema: the eighteen topics for any database, and a labelled demo world for dev and test schemas only.
+- Real art for For you and interests: two animated scenes and seven new icons.
+
 - A set password step between the email code and the profile, a sign in check that sends unknown emails to sign up and half finished sign ups back to their code, and plain messages for emails with or without an account.
 - A keepalive workflow that pings the realtime and web health checks every 14 minutes, and a web health check that reads the database.
 

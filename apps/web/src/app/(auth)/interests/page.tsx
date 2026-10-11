@@ -27,7 +27,7 @@ export default async function InterestsPage({
   // Only the first time, straight after sign up, the walkthrough follows. Changing interests later just goes back.
   const to = params.first ? `${next}${next.includes("?") ? "&" : "?"}welcome=1` : next;
   return (
-    <AuthShell artId={authArt.onboarding}>
+    <AuthShell artId={authArt.interests}>
       <div className="flex flex-col gap-2">
         <h1 className="text-[clamp(1.875rem,5vw,2.5rem)] font-bold leading-[1.1] tracking-tight text-text">
           {copy.heading}

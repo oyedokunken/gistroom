@@ -1146,6 +1146,110 @@ export const SCENES = [
     },
   },
   {
+    id: "scene-auth-interests",
+    w: 1000,
+    h: 1000,
+    animated: true,
+    placement: "Interests page, a person picking topics that float around them",
+    alt: "A person on a phone with football, music, food and tech bubbles floating around them",
+    draw: (t) =>
+      rect(0, 0, 1000, 1000, C.white) +
+      circle(500, 470, 380, C.greenTint) +
+      circle(500, 470, 270, C.yellowTint, 'opacity="0.8"') +
+      // a football bubble
+      `<g transform="translate(220 300) translate(0 ${wave(t, 0, 1) * 12})">` +
+      circle(0, 0, 80, C.white, `stroke="${C.ink200}" stroke-width="5"`) +
+      circle(0, 0, 44, C.white, `stroke="${C.ink}" stroke-width="5"`) +
+      poly(
+        [
+          [0, -24],
+          [22, -8],
+          [14, 18],
+          [-14, 18],
+          [-22, -8],
+        ],
+        C.ink,
+      ) +
+      "</g>" +
+      // a music bubble
+      `<g transform="translate(790 280) translate(0 ${wave(t, 0.25, 1) * 12})">` +
+      circle(0, 0, 80, C.yellow) +
+      `<path d="M-14 24 V-26 L26 -34 V16" stroke="${C.ink}" stroke-width="9" fill="none" stroke-linecap="round"/>` +
+      `<ellipse cx="-24" cy="26" rx="14" ry="10" fill="${C.ink}"/><ellipse cx="16" cy="18" rx="14" ry="10" fill="${C.ink}"/>` +
+      "</g>" +
+      // a food bowl bubble
+      `<g transform="translate(180 640) translate(0 ${wave(t, 0.5, 1) * 12})">` +
+      circle(0, 0, 80, C.greenTint, `stroke="${C.green}" stroke-width="5"`) +
+      `<path d="M-44 6 H44 C44 34 24 52 0 52 C-24 52 -44 34 -44 6 Z" fill="${C.green}"/>` +
+      `<ellipse cx="0" cy="6" rx="44" ry="9" fill="${C.yellow}"/>` +
+      `<path d="M-14 -6 C-14 -20 0 -20 0 -34 M10 -6 C10 -20 24 -20 24 -34" stroke="${C.ink700}" stroke-width="5" fill="none" stroke-linecap="round"/>` +
+      "</g>" +
+      // a mic bubble
+      `<g transform="translate(830 640) translate(0 ${wave(t, 0.75, 1) * 12})">` +
+      circle(0, 0, 80, C.green) +
+      rect(-16, -42, 32, 56, C.white, 16) +
+      `<path d="M-30 4 C-30 40 30 40 30 4 M0 40 V58" stroke="${C.white}" stroke-width="7" fill="none" stroke-linecap="round"/>` +
+      "</g>" +
+      // a laptop bubble
+      `<g transform="translate(500 130) translate(0 ${wave(t, 0.1, 1) * 10})">` +
+      circle(0, 0, 70, C.ink) +
+      rect(-34, -26, 68, 44, C.white, 6) +
+      rect(-44, 22, 88, 8, C.yellow, 4) +
+      rect(-22, -16, 30, 6, C.green, 3) +
+      rect(-22, -4, 44, 6, C.ink200, 3) +
+      "</g>" +
+      // the person in the middle, choosing
+      person(500, 850, {
+        skin: SKIN[2],
+        shirt: C.green,
+        size: 3.2,
+        arm: "phone",
+      }) +
+      rings(500, 494, 70, t, C.yellow, 0.3) +
+      ground(850, 1000),
+  },
+  {
+    id: "scene-discover",
+    w: 1200,
+    h: 600,
+    animated: true,
+    placement: "For you page banner, live rooms and friendly people",
+    alt: "Two live rooms with speaking rings and two friends waving at you",
+    draw: (t) =>
+      rect(0, 0, 1200, 600, C.greenTint) +
+      circle(1050, 120, 110, C.yellow, 'opacity="0.55"') +
+      circle(1050, 120, 70, C.yellow) +
+      // room one
+      rect(70, 90, 400, 330, C.white, 28, `stroke="${C.ink200}" stroke-width="4"`) +
+      circle(160, 190, 38, SKIN[2]) +
+      circle(270, 190, 38, SKIN[4]) +
+      circle(380, 190, 38, SKIN[1]) +
+      rings(270, 190, 40, t, C.green, 0) +
+      circle(210, 320, 38, SKIN[3]) +
+      circle(330, 320, 38, SKIN[5]) +
+      rings(210, 320, 40, t, C.yellow, 0.4) +
+      rect(110, 392, Math.max(60, 120 * (0.5 + pulse(t, 0, 1) * 0.5)), 10, C.green, 5) +
+      // room two
+      rect(520, 150, 360, 300, C.white, 28, `stroke="${C.ink200}" stroke-width="4"`) +
+      circle(610, 250, 36, SKIN[0]) +
+      circle(700, 250, 36, SKIN[4]) +
+      circle(790, 250, 36, SKIN[2]) +
+      rings(700, 250, 38, t, C.green, 0.2) +
+      soundBars(590, 410, 14, t, C.yellow, 12, 70) +
+      // two friends waving from the right
+      person(960, 560, {
+        skin: SKIN[3],
+        shirt: C.yellow,
+        hair: "wrap",
+        cap: C.green,
+        size: 2.4,
+        arm: "up",
+        armWave: wave(t, 0, 4) * 18,
+      }) +
+      person(1110, 570, { skin: SKIN[1], shirt: C.green, size: 2.1, arm: "phone" }) +
+      ground(560, 1200),
+  },
+  {
     id: "scene-final-cta",
     w: 1000,
     h: 800,

@@ -1,0 +1,26 @@
+import { LIMITS } from "@gistroom/shared";
+
+export const notes = {
+  title: "My notes",
+  privacy: "Only you can see these notes. The other people never do.",
+  label: "Write a note",
+  placeholder: "Jot something down",
+  add: "Save note",
+  adding: "Saving",
+  edit: "Edit note",
+  save: "Save changes",
+  cancel: "Cancel",
+  remove: "Delete note",
+  removeTitle: "Delete this note?",
+  removeBody: "The note is gone for good. This does not touch any message.",
+  removeConfirm: "Delete note",
+  emptyTitle: "No notes yet",
+  emptyBody: "Write down a name, a time or a thing you want to remember.",
+  loadError: "We could not load your notes. Check your connection and try again.",
+  retry: "Try again",
+  count: (n: number) => `${n} of ${LIMITS.NOTE_MAX_CHARS}`,
+  edited: "Edited",
+  chatTitle: "Notes for this chat",
+  roomTitle: "Notes for this room",
+  open: "Notes",
+} as const;

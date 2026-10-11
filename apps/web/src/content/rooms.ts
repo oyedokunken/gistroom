@@ -78,6 +78,7 @@ export const roomCopy = {
   panels: {
     chat: "Chat",
     people: "People",
+    notes: "Notes",
     log: "Moderator log",
     invite: "Invite",
     close: "Close panel",

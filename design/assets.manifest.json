@@ -1692,6 +1692,179 @@
       "prompt": "Drawn in code by scripts/graphics/scenes.mjs: flat vector scene, brand palette, no text.",
       "status": "DRAFT",
       "createdAt": "2026-10-10T18:37:37.046Z"
+    },
+    {
+      "id": "icon-discover",
+      "placement": "Card icon: discover",
+      "master": "design/masters/icons/discover.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/discover.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-11T15:13:55.307Z"
+    },
+    {
+      "id": "icon-rooms-for-you",
+      "placement": "Card icon: rooms for you",
+      "master": "design/masters/icons/rooms-for-you.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/rooms-for-you.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-11T15:13:55.307Z"
+    },
+    {
+      "id": "icon-people-like-you",
+      "placement": "Card icon: people like you",
+      "master": "design/masters/icons/people-like-you.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/people-like-you.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-11T15:13:55.307Z"
+    },
+    {
+      "id": "icon-interests",
+      "placement": "Card icon: interests",
+      "master": "design/masters/icons/interests.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/interests.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-11T15:13:55.307Z"
+    },
+    {
+      "id": "icon-notes",
+      "placement": "Card icon: notes",
+      "master": "design/masters/icons/notes.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/notes.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-11T15:13:55.307Z"
+    },
+    {
+      "id": "icon-search",
+      "placement": "Card icon: search",
+      "master": "design/masters/icons/search.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/search.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-11T15:13:55.307Z"
+    },
+    {
+      "id": "icon-welcome-back",
+      "placement": "Card icon: welcome back",
+      "master": "design/masters/icons/welcome-back.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/welcome-back.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-11T15:13:55.307Z"
+    },
+    {
+      "id": "scene-auth-interests",
+      "placement": "Interests page, a person picking topics that float around them",
+      "master": "design/masters/scenes/scene-auth-interests.svg",
+      "sizes": [
+        {
+          "width": 1024,
+          "height": 1024,
+          "file": "scenes/scene-auth-interests.png"
+        },
+        {
+          "width": 720,
+          "height": 720,
+          "file": "scenes/scene-auth-interests.webp",
+          "animated": true,
+          "bytes": 75256
+        }
+      ],
+      "alt": "A person on a phone with football, music, food and tech bubbles floating around them",
+      "decorative": false,
+      "animated": true,
+      "static": "scenes/scene-auth-interests.png",
+      "loopCount": 0,
+      "prompt": "Drawn in code by scripts/graphics/scenes.mjs: flat vector scene, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-11T15:13:56.773Z"
+    },
+    {
+      "id": "scene-discover",
+      "placement": "For you page banner, live rooms and friendly people",
+      "master": "design/masters/scenes/scene-discover.svg",
+      "sizes": [
+        {
+          "width": 1024,
+          "height": 512,
+          "file": "scenes/scene-discover.png"
+        },
+        {
+          "width": 720,
+          "height": 360,
+          "file": "scenes/scene-discover.webp",
+          "animated": true,
+          "bytes": 32704
+        }
+      ],
+      "alt": "Two live rooms with speaking rings and two friends waving at you",
+      "decorative": false,
+      "animated": true,
+      "static": "scenes/scene-discover.png",
+      "loopCount": 0,
+      "prompt": "Drawn in code by scripts/graphics/scenes.mjs: flat vector scene, brand palette, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-11T15:13:56.773Z"
     }
   ]
 }

@@ -12,6 +12,7 @@ export const interests = {
   tooMany: `You can pick up to ${MAX_INTERESTS} topics. Remove one to add another.`,
   edit: "Change interests",
   discoverTitle: "For you",
+  bannerAlt: "Two live rooms with speaking rings and two friends waving at you",
   discoverMeta: "For you",
   roomsTitle: "Public rooms you can join",
   roomsMatchedLead: "Live and upcoming rooms on the topics you picked.",

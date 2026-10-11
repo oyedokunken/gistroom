@@ -32,6 +32,7 @@ export const errors = {
   otpMissing: "Ask for a code first, then enter it here.",
   accountSuspended: "This account is suspended. Write to support@gistroom.ng to find out why.",
   accountDeleted: "This account was deleted. You can sign up again with the same email.",
+  notesFull: (max: number) => `You can keep up to ${max} notes here. Delete one to add another.`,
   usernameTaken: "That username is taken. Try another one.",
   alreadyOnboarded: "Your profile is already set up.",
   notOnboarded: "Finish setting up your profile to continue.",

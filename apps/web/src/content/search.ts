@@ -1,0 +1,18 @@
+export const search = {
+  open: "Search",
+  title: "Search Gistroom",
+  placeholder: "Search people, chats, rooms and notes",
+  label: "Search",
+  hint: "Type at least 2 letters. Try a name, a @username, a room topic or something from a note.",
+  none: (q: string) => `Nothing found for "${q}".`,
+  failed: "Search did not load. Check your connection and try again.",
+  retry: "Try again",
+  loading: "Searching",
+  people: "People",
+  chats: "Your chats",
+  rooms: "Public rooms",
+  notes: "Your notes",
+  live: "Live",
+  scheduled: "Scheduled",
+  close: "Close",
+} as const;

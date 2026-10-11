@@ -60,7 +60,7 @@ export function ForgotForm({ initialEmail }: { initialEmail: string }) {
       const res = await apiFetch<{ needsOnboarding: boolean }>("/api/auth/reset/verify", {
         body: { email: sentTo, ...values },
       });
-      router.replace(res.needsOnboarding ? "/onboarding" : "/app/chats");
+      router.replace(res.needsOnboarding ? "/onboarding" : "/app/chats?back=1");
       router.refresh();
     } catch (e) {
       if (e instanceof ApiClientError && e.fields.code)

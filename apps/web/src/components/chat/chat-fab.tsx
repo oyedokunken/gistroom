@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { MessageSquarePlus, Mic, Search, Star, X, type LucideIcon } from "lucide-react";
+import { MessageSquarePlus, Mic, Search, Sparkles, Star, X, type LucideIcon } from "lucide-react";
+import { startTour } from "@/components/app/tour";
 import { LogoMark } from "@/components/brand/logo-mark";
 import { chat } from "@/content/chat";
 import { cn } from "@/lib/cn";
@@ -17,8 +19,12 @@ interface Action {
   onSelect?: () => void;
 }
 
-/** The Gistroom button on the chat list. Opens a small speed dial of the things you do most. */
+/** Screens that need the whole corner: an open chat, a call and a live room. */
+const HIDDEN_ON = [/^\/app\/chats\/[^/]+/, /^\/app\/call\//, /^\/app\/rooms\/[^/]+/];
+
+/** The Gistroom button. It floats on every main screen and opens a speed dial of the things you do most. */
 export function ChatFab() {
+  const pathname = usePathname();
   const reduced = useReducedMotion();
   const [open, setOpen] = useState(false);
   const [starredOpen, setStarredOpen] = useState(false);
@@ -39,14 +45,20 @@ export function ChatFab() {
   }, [open]);
 
   const actions: Action[] = [
-    { id: "new", label: chat.fab.newChat, icon: MessageSquarePlus, href: "/app/friends" },
-    { id: "room", label: chat.fab.hostRoom, icon: Mic, href: "/app/rooms" },
+    { id: "room", label: chat.fab.hostRoom, icon: Mic, href: "/app/rooms?new=1" },
     { id: "find", label: chat.fab.findFriends, icon: Search, href: "/app/friends?tab=find" },
+    { id: "new", label: chat.fab.newChat, icon: MessageSquarePlus, href: "/app/friends" },
     { id: "starred", label: chat.fab.starred, icon: Star, onSelect: () => setStarredOpen(true) },
+    { id: "tour", label: chat.fab.tour, icon: Sparkles, onSelect: startTour },
   ];
 
+  if (HIDDEN_ON.some((re) => re.test(pathname))) return null;
+
   return (
-    <div ref={root} className="pointer-events-none absolute bottom-4 right-4 z-10 md:bottom-6">
+    <div
+      ref={root}
+      className="pointer-events-none fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom))] right-4 z-30 md:bottom-6 md:right-6"
+    >
       <AnimatePresence>
         {open ? (
           <motion.ul

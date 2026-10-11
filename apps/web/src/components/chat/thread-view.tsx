@@ -4,12 +4,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, Phone, Settings, Video } from "lucide-react";
+import { ChevronLeft, NotebookPen, Phone, Settings, Video } from "lucide-react";
 import { LIMITS, receiptStatus, type ConversationDto, type MessageDto } from "@gistroom/shared";
 import { useFeedback } from "@/components/feedback/feedback-provider";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { NotesPanel } from "@/components/notes/notes-panel";
 import { IconButton } from "@/components/ui/icon-button";
+import { Modal } from "@/components/ui/modal";
+import { notes as notesCopy } from "@/content/notes";
 import { Skeleton } from "@/components/ui/skeleton";
 import { chat } from "@/content/chat";
 import { ApiClientError, apiFetch } from "@/lib/api";
@@ -56,6 +59,7 @@ export function ThreadView({
   const [replyTo, setReplyTo] = useState<{ id: string; name: string; text: string } | null>(null);
   const [editing, setEditing] = useState<{ id: string; text: string } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [starredOpen, setStarredOpen] = useState(false);
 
@@ -426,6 +430,13 @@ export function ThreadView({
           </>
         ) : null}
         <IconButton
+          label={notesCopy.open}
+          onClick={() => setNotesOpen(true)}
+          disabled={!conversation}
+        >
+          <NotebookPen aria-hidden className="size-5" />
+        </IconButton>
+        <IconButton
           label={chat.settings.open}
           onClick={() => setSettingsOpen(true)}
           disabled={!conversation}
@@ -500,6 +511,20 @@ export function ThreadView({
           }}
         />
       )}
+
+      {conversation ? (
+        <Modal
+          open={notesOpen}
+          onOpenChange={setNotesOpen}
+          icon={NotebookPen}
+          title={notesCopy.chatTitle}
+          className="h-[min(80dvh,40rem)] w-[min(94vw,32rem)]"
+        >
+          <div className="-mx-6 -mb-6 flex h-[min(60dvh,28rem)] flex-col">
+            <NotesPanel scope={{ conversationId: conversation.id }} />
+          </div>
+        </Modal>
+      ) : null}
 
       {conversation ? (
         <ChatSettings

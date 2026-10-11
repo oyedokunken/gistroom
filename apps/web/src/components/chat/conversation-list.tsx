@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Archive, ChevronLeft, Search, UserPlus } from "lucide-react";
 import { previewText, type ConversationDto } from "@gistroom/shared";
-import { ChatFab } from "./chat-fab";
 import { Avatar } from "@/components/ui/avatar";
 import { buttonStyles } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -233,7 +232,6 @@ export function ConversationList({ viewerId }: { viewerId: string }) {
           </ul>
         )}
       </div>
-      <ChatFab />
     </div>
   );
 }

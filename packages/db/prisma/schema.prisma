@@ -220,6 +220,7 @@ model User {
   roomMemberships        RoomMember[]
   callLogs               CallLogEntry[]
   interests              UserInterest[]
+  notes                  Note[]
 
   @@index([status, discoverable])
 }
@@ -338,6 +339,7 @@ model Conversation {
   updatedAt     DateTime             @updatedAt
   members       ConversationMember[]
   messages      Message[]
+  notes         Note[]
 }
 
 model ConversationMember {
@@ -455,6 +457,23 @@ model FileAsset {
   @@index([status, createdAt])
 }
 
+/// A private note one person keeps about a chat or a room. Only the owner can ever read it.
+model Note {
+  id             String        @id @default(cuid(2))
+  userId         String
+  conversationId String?
+  roomId         String?
+  body           String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  room           Room?         @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([userId, conversationId, createdAt])
+  @@index([userId, roomId, createdAt])
+}
+
 // ---------- Notifications ----------
 model Notification {
   id        String    @id @default(cuid(2))
@@ -569,6 +588,7 @@ model Room {
   inviteLinks     RoomInviteLink[]
   modLogs         RoomModLog[]
   messages        RoomMessage[]
+  notes           Note[]
 
   @@index([visibility, status, startedAt])
   @@index([topicId, status])

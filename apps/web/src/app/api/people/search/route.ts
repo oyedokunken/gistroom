@@ -11,7 +11,7 @@ export const GET = api(async (request) => {
   await enforce(policies.peopleSearch, user.id);
   const params = new URL(request.url).searchParams;
   const input = peopleSearchSchema.parse({
-    q: params.get("q") ?? "",
+    q: (params.get("q") ?? "").replace(/^@+/, ""),
     cursor: params.get("cursor") ?? undefined,
     limit: params.get("limit") ? Number(params.get("limit")) : undefined,
   });

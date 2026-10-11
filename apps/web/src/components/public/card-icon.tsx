@@ -52,7 +52,14 @@ export type CardIconName =
   | "account"
   | "devices"
   | "moderator"
-  | "switch";
+  | "switch"
+  | "discover"
+  | "rooms-for-you"
+  | "people-like-you"
+  | "interests"
+  | "notes"
+  | "search"
+  | "welcome-back";
 
 /**
  * The custom Gistroom icon for a card. Every icon sits in the same square area, so cards line up. It lifts and

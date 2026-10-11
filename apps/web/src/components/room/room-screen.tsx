@@ -11,6 +11,7 @@ import {
   Lock,
   LockOpen,
   MessageSquare,
+  NotebookPen,
   Mic,
   MicOff,
   PhoneOff,
@@ -35,9 +36,10 @@ import { useRoomStore } from "@/lib/rooms/store";
 import { useRoomLiveKit } from "@/lib/rooms/use-room-livekit";
 import { formatFull } from "@/lib/time";
 import { ParticipantTile } from "./participant-tile";
+import { NotesPanel } from "@/components/notes/notes-panel";
 import { ChatPanel, InvitePanel, LogPanel, PeoplePanel } from "./room-panels";
 
-type Panel = "chat" | "people" | "invite" | "log" | null;
+type Panel = "chat" | "people" | "notes" | "invite" | "log" | null;
 type Block = "FULL" | "LOCKED" | "NOT_INVITED" | "ENDED" | "NOT_STARTED" | null;
 
 function blockFor(e: unknown): Block {
@@ -301,6 +303,7 @@ export function RoomScreen({
   const panels: { id: Exclude<Panel, null>; label: string; icon: typeof Users; show: boolean }[] = [
     { id: "chat", label: copy.panels.chat, icon: MessageSquare, show: true },
     { id: "people", label: copy.panels.people, icon: Users, show: true },
+    { id: "notes", label: copy.panels.notes, icon: NotebookPen, show: true },
     { id: "invite", label: copy.panels.invite, icon: UserPlus, show: canDo(role, "INVITE") },
     { id: "log", label: copy.panels.log, icon: ScrollText, show: canDo(role, "SEE_LOG") },
   ];
@@ -416,6 +419,7 @@ export function RoomScreen({
             </div>
             {panel === "chat" ? <ChatPanel room={room} meId={meId} role={role} /> : null}
             {panel === "people" ? <PeoplePanel room={room} meId={meId} role={role} /> : null}
+            {panel === "notes" ? <NotesPanel scope={{ roomSlug: room.slug }} /> : null}
             {panel === "invite" ? <InvitePanel room={room} /> : null}
             {panel === "log" ? <LogPanel room={room} /> : null}
           </aside>

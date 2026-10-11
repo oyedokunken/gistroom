@@ -3,6 +3,8 @@ import { Pencil, Sparkles } from "lucide-react";
 import { topicBySlug, type DiscoverData } from "@gistroom/shared";
 import { PersonActions } from "@/components/friends/person-actions";
 import { RoomCard } from "@/components/public/room-card";
+import { AnimatedArt } from "@/components/public/animated-art";
+import { CardIcon } from "@/components/public/card-icon";
 import { Avatar } from "@/components/ui/avatar";
 import { buttonStyles } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -13,7 +15,7 @@ export function DiscoverView({ data }: { data: DiscoverData }) {
   if (data.interests.length === 0) {
     return (
       <EmptyState
-        icon="open-gist"
+        icon="interests"
         title={copy.noInterestsTitle}
         body={copy.noInterestsBody}
         action={
@@ -26,6 +28,14 @@ export function DiscoverView({ data }: { data: DiscoverData }) {
   }
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-4 py-6 md:px-6">
+      <AnimatedArt
+        id="scene-discover"
+        alt={copy.bannerAlt}
+        width={1200}
+        height={600}
+        sizes="(max-width: 1024px) 100vw, 1024px"
+        className="h-auto max-h-56 w-full rounded-card object-cover"
+      />
       <section aria-label={copy.groupLabel} className="flex flex-wrap items-center gap-2">
         {data.interests.map((slug) => (
           <span
@@ -45,9 +55,12 @@ export function DiscoverView({ data }: { data: DiscoverData }) {
       </section>
 
       <section aria-labelledby="rooms-h">
-        <h2 id="rooms-h" className="text-xl font-bold text-text">
-          {copy.roomsTitle}
-        </h2>
+        <div className="flex items-center gap-3">
+          <CardIcon name="rooms-for-you" className="size-12" />
+          <h2 id="rooms-h" className="text-xl font-bold text-text">
+            {copy.roomsTitle}
+          </h2>
+        </div>
         <p className="mt-1 text-text-muted">
           {data.matched ? copy.roomsMatchedLead : copy.roomsUnmatchedLead}
         </p>
@@ -63,9 +76,12 @@ export function DiscoverView({ data }: { data: DiscoverData }) {
       </section>
 
       <section aria-labelledby="people-h">
-        <h2 id="people-h" className="text-xl font-bold text-text">
-          {copy.peopleTitle}
-        </h2>
+        <div className="flex items-center gap-3">
+          <CardIcon name="people-like-you" className="size-12" />
+          <h2 id="people-h" className="text-xl font-bold text-text">
+            {copy.peopleTitle}
+          </h2>
+        </div>
         <p className="mt-1 text-text-muted">{copy.peopleLead}</p>
         {data.people.length === 0 ? (
           <p className="mt-4 flex items-center gap-2 text-text-muted">

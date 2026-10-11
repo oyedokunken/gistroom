@@ -19,3 +19,4 @@ export * from "./chat-preview";
 export * from "./contact";
 export * from "./password";
 export * from "./topics";
+export * from "./notes";

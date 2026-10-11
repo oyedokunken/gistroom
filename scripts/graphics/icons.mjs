@@ -100,6 +100,13 @@ const ICONS = {
   devices: `<rect x="10" y="22" width="54" height="38" rx="5" fill="${W}" ${stroke(K, 4)}/><rect x="16" y="28" width="42" height="24" rx="2" fill="${GT}"/><path d="M30 60 V68 M44 60 V68 M24 70 H50" ${stroke(K, 4)}/><rect x="58" y="40" width="28" height="44" rx="6" fill="${G}" ${stroke(K, 3.5)}/><rect x="63" y="47" width="18" height="26" rx="2" fill="${W}"/><circle cx="72" cy="79" r="2.5" fill="${W}"/>`,
   moderator: `${person(38, 30, "#76492F", G)}${shield(68, 58, 20, Y)}<path d="M62 57 l4 4 l8 -8" ${stroke(K, 3.5)}/>`,
   switch: `<path d="M18 38 H68" ${stroke(G, 8)}/><path d="M56 26 L70 38 L56 50" ${stroke(G, 8)}/><path d="M78 60 H28" ${stroke(K, 8)}/><path d="M40 48 L26 60 L40 72" ${stroke(K, 8)}/>`,
+  discover: `<circle cx="48" cy="48" r="30" fill="${W}" ${stroke(G, 5)}/><path d="M60 36 L52 52 L36 60 L44 44 Z" fill="${Y}" ${stroke(K, 3.5)}/><circle cx="48" cy="48" r="3.5" fill="${K}"/><path d="M48 14 V20 M48 76 V82 M14 48 H20 M76 48 H82" ${stroke(G, 4)}/>`,
+  "rooms-for-you": `<rect x="12" y="24" width="72" height="48" rx="10" fill="${W}" ${stroke(G, 4)}/><circle cx="34" cy="48" r="9" fill="${G}"/><circle cx="34" cy="48" r="15" ${stroke(Y, 3.5)}/><circle cx="62" cy="40" r="6" fill="${GD}"/><circle cx="62" cy="58" r="6" fill="${Y}"/><path d="M52 40 H48 M52 58 H48" ${stroke(G, 3)}/>${star(76, 20, 9, Y)}`,
+  "people-like-you": `${person(32, 36, "#8C5B3A", G)}${person(62, 36, "#5E3825", GD)}<path d="M48 70 C44 62 34 64 34 72 C34 78 42 82 48 88 C54 82 62 78 62 72 C62 64 52 62 48 70 Z" fill="${Y}" ${stroke(K, 3)}/>`,
+  interests: `<path d="M10 40 L40 12 H70 V42 L40 70 Z" fill="${G}" ${stroke(K, 3.5)}/><circle cx="58" cy="26" r="5" fill="${W}"/><path d="M28 44 H44 M36 36 V52" ${stroke(Y, 4.5)}/>${star(72, 66, 12, Y)}<path d="M18 70 H40" ${stroke(G, 4)}/>`,
+  notes: `<rect x="20" y="14" width="44" height="62" rx="6" fill="${YT}" ${stroke(K, 3.5)}/><path d="M28 30 H56 M28 40 H56 M28 50 H46" ${stroke(G, 3.5)}/><path d="M60 52 L80 32 L88 40 L68 60 L58 62 Z" fill="${Y}" ${stroke(K, 3.5)}/><path d="M74 38 L82 46" ${stroke(K, 3)}/>`,
+  search: `<circle cx="42" cy="42" r="24" fill="${W}" ${stroke(G, 6)}/><path d="M60 60 L80 80" ${stroke(K, 7)}/>${star(66, 24, 10, Y)}<path d="M30 40 C32 34 38 32 42 33" ${stroke(G, 3.5)}/>`,
+  "welcome-back": `<path d="M22 46 L48 22 L74 46 V76 H22 Z" fill="${G}" ${stroke(K, 3.5)}/><rect x="40" y="52" width="16" height="24" rx="3" fill="${Y}"/><circle cx="52" cy="64" r="1.8" fill="${K}"/><path d="M16 48 L48 18 L80 48" ${stroke(K, 4.5)}/><path d="M72 18 C76 14 82 16 82 22 M78 12 C84 8 90 12 90 18" ${stroke(Y, 3.5)}/>`,
 };
 
 const manifestFile = path.join(root, "design", "assets.manifest.json");

@@ -185,9 +185,10 @@ export const chat = {
     open: "Open quick actions",
     close: "Close quick actions",
     newChat: "New chat",
-    hostRoom: "Host a room",
-    findFriends: "Find friends",
+    hostRoom: "Start a room",
+    findFriends: "Find a friend",
     starred: "Starred messages",
+    tour: "Take the tour",
   },
   media: {
     openImage: "Open photo",

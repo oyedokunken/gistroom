@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, type ReactNode } from "react";
+import { Suspense, useEffect, useState, type ReactNode } from "react";
 import {
   Bell,
   Compass,
@@ -19,6 +19,9 @@ import type { MeUser } from "@gistroom/shared";
 import { AppRuntime } from "@/components/app/app-runtime";
 import { LogoMark } from "@/components/brand/logo-mark";
 import { TourHost, startTour } from "@/components/app/tour";
+import { WelcomeBack } from "@/components/app/welcome-back";
+import { ChatFab } from "@/components/chat/chat-fab";
+import { SearchDialog, openSearch } from "@/components/search/search-dialog";
 import { Avatar } from "@/components/ui/avatar";
 import { appNav } from "@/content/app";
 import { nav } from "@/content/landing";
@@ -42,17 +45,20 @@ function isActive(pathname: string, href: string): boolean {
 }
 
 /** Starts the walkthrough once after onboarding, then removes the query flag. */
-function WelcomeGate() {
+function WelcomeGate({ name }: { name: string }) {
   const params = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
+  const [backOpen, setBackOpen] = useState(false);
   const welcome = params.get("welcome");
+  const back = params.get("back");
   useEffect(() => {
-    if (!welcome) return;
-    startTour();
+    if (!welcome && !back) return;
+    if (welcome) startTour();
+    else setBackOpen(true);
     router.replace(pathname);
-  }, [welcome, pathname, router]);
-  return null;
+  }, [welcome, back, pathname, router]);
+  return <WelcomeBack name={name} open={backOpen} onOpenChange={setBackOpen} />;
 }
 
 export function AppShell({ user, children }: { user: MeUser; children: ReactNode }) {
@@ -79,13 +85,14 @@ export function AppShell({ user, children }: { user: MeUser; children: ReactNode
                 gistroom
               </span>
             </Link>
-            <Link
-              href="/app/friends?tab=find"
+            <button
+              type="button"
+              onClick={openSearch}
               className="flex h-10 min-w-0 max-w-64 flex-1 items-center gap-2 rounded-full bg-surface-2 px-4 text-sm text-text-muted hover:bg-green-100"
             >
               <Search aria-hidden className="size-4 shrink-0" />
               <span className="truncate">{appNav.searchPeople}</span>
-            </Link>
+            </button>
           </div>
           <nav aria-label={appNav.label} className="flex items-stretch gap-1 self-stretch">
             {mainItems.map((item) => {
@@ -165,18 +172,28 @@ export function AppShell({ user, children }: { user: MeUser; children: ReactNode
               <LogoMark size={30} className="text-text" />
               <span className="text-lg font-bold tracking-tight text-text">gistroom</span>
             </Link>
-            <Link
-              href="/app/notifications"
-              aria-label={appNav.notificationsAria(unread.notifications)}
-              className="relative flex size-11 items-center justify-center rounded-full text-text hover:bg-surface-2"
-            >
-              <Bell aria-hidden className="size-5" />
-              {unread.notifications > 0 ? (
-                <span className="tabular absolute right-1 top-1 flex min-w-5 items-center justify-center rounded-full bg-yellow-400 px-1 text-xs font-bold text-ink-950">
-                  {unread.notifications > 99 ? "99+" : unread.notifications}
-                </span>
-              ) : null}
-            </Link>
+            <div className="flex items-center">
+              <button
+                type="button"
+                onClick={openSearch}
+                aria-label={appNav.searchLabel}
+                className="flex size-11 items-center justify-center rounded-full text-text hover:bg-surface-2"
+              >
+                <Search aria-hidden className="size-5" />
+              </button>
+              <Link
+                href="/app/notifications"
+                aria-label={appNav.notificationsAria(unread.notifications)}
+                className="relative flex size-11 items-center justify-center rounded-full text-text hover:bg-surface-2"
+              >
+                <Bell aria-hidden className="size-5" />
+                {unread.notifications > 0 ? (
+                  <span className="tabular absolute right-1 top-1 flex min-w-5 items-center justify-center rounded-full bg-yellow-400 px-1 text-xs font-bold text-ink-950">
+                    {unread.notifications > 99 ? "99+" : unread.notifications}
+                  </span>
+                ) : null}
+              </Link>
+            </div>
           </header>
           <AppRuntime />
           <div className="flex min-h-0 flex-1 flex-col">{children}</div>
@@ -215,9 +232,11 @@ export function AppShell({ user, children }: { user: MeUser; children: ReactNode
           </ul>
         </nav>
 
+        <ChatFab />
+        <SearchDialog />
         <TourHost autoStart={false} />
         <Suspense fallback={null}>
-          <WelcomeGate />
+          <WelcomeGate name={user.name} />
         </Suspense>
       </div>
     </RealtimeProvider>

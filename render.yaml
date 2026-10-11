@@ -7,7 +7,7 @@ services:
     plan: free
     region: frankfurt
     rootDir: .
-    buildCommand: npm install && npm run build -w @gistroom/realtime
+    buildCommand: npm install --include=dev && npm run generate -w @gistroom/db && npm run build -w @gistroom/realtime
     startCommand: npm run start -w @gistroom/realtime
     healthCheckPath: /health
     autoDeploy: true

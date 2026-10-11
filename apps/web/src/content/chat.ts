@@ -180,11 +180,6 @@ export const chat = {
     newChat: "Start a new chat",
     findFriends: "Find friends",
     hostRoom: "Host a room",
-    tips: [
-      "Swipe a message to the right to reply.",
-      "Edit a message for 15 minutes after you send it.",
-      "Tap a message to react, star or delete it.",
-    ],
   },
   fab: {
     open: "Open quick actions",

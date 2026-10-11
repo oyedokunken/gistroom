@@ -219,8 +219,20 @@ model User {
   hostedRooms            Room[]
   roomMemberships        RoomMember[]
   callLogs               CallLogEntry[]
+  interests              UserInterest[]
 
   @@index([status, discoverable])
+}
+
+/// Topics a person picked at onboarding. The slug comes from the shared topic list, so there is no Topic row to seed.
+model UserInterest {
+  userId    String
+  topicSlug String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, topicSlug])
+  @@index([topicSlug])
 }
 
 model AuthAccount {

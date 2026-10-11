@@ -11,6 +11,14 @@ import { revokeOtherSessions } from "./session";
 
 const FIELD = "password";
 
+/** Finds a person by email or by username. An email always has an @, a username never does. */
+async function findByIdentifier(identifier: string) {
+  const db = getDb();
+  return identifier.includes("@")
+    ? db.user.findUnique({ where: { email: identifier } })
+    : db.user.findUnique({ where: { username: identifier } });
+}
+
 /** Start sign up. An email that already has a finished account is told so plainly. A half finished sign up gets a fresh code. */
 export async function startSignup(email: string, ip: string): Promise<RequestOtpResult> {
   const db = getDb();
@@ -59,7 +67,7 @@ export async function login(email: string, password: string, ip: string): Promis
   await enforce(policies.loginIp, ip);
   await enforce(policies.loginEmail, email);
 
-  const user = await getDb().user.findUnique({ where: { email } });
+  const user = await findByIdentifier(email);
   const stored = user?.passwordHash ?? (await dummyHash());
   const ok = await verifyPassword(password, stored);
   if (!user || !user.passwordHash || !ok || user.status === "DELETED") {
@@ -87,25 +95,20 @@ export async function startReset(email: string, ip: string): Promise<RequestOtpR
 }
 
 /** What sign in should do next for this email. Rate limited like a sign in attempt. */
-export async function identifyAccount(email: string, ip: string): Promise<AccountState> {
+export async function identifyAccount(identifier: string, ip: string): Promise<AccountState> {
   await enforce(policies.loginIp, ip);
-  await enforce(policies.loginEmail, email);
-  const user = await getDb().user.findUnique({
-    where: { email },
-    select: {
-      status: true,
-      passwordHash: true,
-      onboardedAt: true,
-      _count: { select: { authAccounts: true } },
-    },
+  await enforce(policies.loginEmail, identifier);
+  const found = await findByIdentifier(identifier);
+  if (found?.status === "SUSPENDED") throw new AppError(403, "FORBIDDEN", errors.accountSuspended);
+  if (!found || found.status === "DELETED") return "NONE";
+  const googleLinked = (await getDb().authAccount.count({ where: { userId: found.id } })) > 0;
+  const state = accountState({
+    passwordHash: found.passwordHash,
+    onboardedAt: found.onboardedAt,
+    googleLinked,
   });
-  if (user?.status === "SUSPENDED") throw new AppError(403, "FORBIDDEN", errors.accountSuspended);
-  if (!user || user.status === "DELETED") return "NONE";
-  return accountState({
-    passwordHash: user.passwordHash,
-    onboardedAt: user.onboardedAt,
-    googleLinked: user._count.authAccounts > 0,
-  });
+  // A half finished sign up has no real username yet, so it can only be continued with the email.
+  return state === "UNFINISHED" && !identifier.includes("@") ? "NONE" : state;
 }
 
 export async function completeReset(

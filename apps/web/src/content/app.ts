@@ -2,6 +2,7 @@ export const appNav = {
   label: "App",
   mobileLabel: "App tabs",
   items: [
+    { id: "discover", label: "For you", href: "/app/discover" },
     { id: "chats", label: "Chats", href: "/app/chats" },
     { id: "rooms", label: "Rooms", href: "/app/rooms" },
     { id: "calls", label: "Calls", href: "/app/calls" },
@@ -9,6 +10,9 @@ export const appNav = {
     { id: "notifications", label: "Alerts", href: "/app/notifications" },
     { id: "settings", label: "Settings", href: "/app/settings" },
   ],
+  searchPeople: "Search people",
+  alertsLabel: "Alerts",
+  settingsLabel: "Settings",
   admin: { id: "admin", label: "Admin", href: "/app/admin" },
   notificationsAria: (count: number) =>
     count > 0 ? `Notifications, ${count} unread` : "Notifications",

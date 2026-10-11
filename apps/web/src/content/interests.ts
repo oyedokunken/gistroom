@@ -1,0 +1,27 @@
+import { MAX_INTERESTS } from "@gistroom/shared";
+
+export const interests = {
+  metaTitle: "Pick your interests",
+  heading: "What do you like to gist about?",
+  subhead: `Pick up to ${MAX_INTERESTS} topics. We use them to suggest rooms and people.`,
+  groupLabel: "Topics",
+  count: (n: number) => `${n} of ${MAX_INTERESTS} picked`,
+  save: "Save and continue",
+  saving: "Saving",
+  skip: "Skip for now",
+  tooMany: `You can pick up to ${MAX_INTERESTS} topics. Remove one to add another.`,
+  edit: "Change interests",
+  discoverTitle: "For you",
+  discoverMeta: "For you",
+  roomsTitle: "Public rooms you can join",
+  roomsMatchedLead: "Live and upcoming rooms on the topics you picked.",
+  roomsUnmatchedLead: "Nothing matches your topics yet, so here is what is on right now.",
+  roomsEmpty: "No public rooms are on yet. Start one and call your people.",
+  peopleTitle: "People who like the same things",
+  peopleLead: "They picked some of the same topics as you.",
+  peopleEmpty: "No one matches yet. Check back soon, or search for a friend by name.",
+  noInterestsTitle: "Tell us what you like",
+  noInterestsBody: "Pick a few topics and we will find rooms and people that fit.",
+  pick: "Pick topics",
+  shared: (names: string) => `Likes ${names}`,
+} as const;

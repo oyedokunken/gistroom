@@ -1,7 +1,8 @@
 /** Validation messages shared by web forms and API responses (R10). Plain, no apology, say what to do. */
 export const validation = {
   emailRequired: "Enter your email address.",
-  emailInvalid: "Enter a valid email address, like name@example.com.",
+  emailInvalid: "Enter a valid email address.",
+  identifierRequired: "Enter your email or username.",
   emailTooLong: "That email address is too long.",
   codeInvalid: "Enter the 6 digit code from your email.",
   nameRequired: "Enter your name.",
@@ -14,6 +15,8 @@ export const validation = {
   messageTooLong: (max: number) => `Messages can be up to ${max} characters.`,
   contactMessageShort: "Tell us a little more, at least 10 characters.",
   contactMessageLong: (max: number) => `Keep it to ${max} characters or fewer.`,
+  topicUnknown: "Pick topics from the list.",
+  interestsTooMany: (max: number) => `Pick up to ${max} topics.`,
   searchTooShort: (min: number) => `Type at least ${min} characters to search.`,
 } as const;
 

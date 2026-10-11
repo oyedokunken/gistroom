@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { MessageSquarePlus, Mic, Search, Sparkles } from "lucide-react";
+import { MessageSquarePlus, Mic, Search } from "lucide-react";
+import { TourButton } from "@/components/app/tour";
 import { LogoMark } from "@/components/brand/logo-mark";
 import { chat } from "@/content/chat";
 
@@ -50,14 +51,7 @@ export default function ChatsIndexPage() {
             </li>
           ))}
         </ul>
-        <ul className="flex flex-col gap-2 text-sm text-text-muted">
-          {chat.emptyPane.tips.map((tip) => (
-            <li key={tip} className="flex items-center justify-center gap-2">
-              <Sparkles aria-hidden className="size-4 shrink-0 text-green-600" />
-              {tip}
-            </li>
-          ))}
-        </ul>
+        <TourButton />
       </div>
     </div>
   );

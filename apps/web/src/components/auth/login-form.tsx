@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  emailSchema,
+  identifierSchema,
   loginSchema,
   requestOtpSchema,
   type LoginInput,
@@ -102,7 +102,7 @@ export function LoginForm({ next, error }: AuthFormProps) {
   }, [error, showError]);
 
   const emailForm = useForm<{ email: string }>({
-    resolver: zodResolver(requestOtpSchema.pick({ email: true })),
+    resolver: zodResolver(loginSchema.pick({ email: true })),
     defaultValues: { email: "" },
   });
   const passwordForm = useForm<Pick<LoginInput, "password">>({
@@ -112,7 +112,7 @@ export function LoginForm({ next, error }: AuthFormProps) {
 
   /** Ask what this email is before asking for a password, so nobody types a password into the wrong place. */
   async function submitEmail(values: { email: string }) {
-    const address = emailSchema.parse(values.email);
+    const address = identifierSchema.parse(values.email);
     try {
       const res = await apiFetch<{ state: "NONE" | "UNFINISHED" | "PASSWORD" | "GOOGLE_ONLY" }>(
         "/api/auth/identify",
@@ -173,7 +173,7 @@ export function LoginForm({ next, error }: AuthFormProps) {
           onSubmit={emailForm.handleSubmit(submitEmail)}
           className="flex flex-col gap-4"
         >
-          <Field label={auth.emailLabel} error={emailForm.formState.errors.email?.message}>
+          <Field label={auth.identifierLabel} error={emailForm.formState.errors.email?.message}>
             {(props) => (
               <Input
                 {...props}
@@ -182,7 +182,7 @@ export function LoginForm({ next, error }: AuthFormProps) {
                 autoComplete="username"
                 autoCapitalize="none"
                 spellCheck={false}
-                placeholder={auth.emailPlaceholder}
+                placeholder={auth.identifierPlaceholder}
                 {...emailForm.register("email")}
               />
             )}

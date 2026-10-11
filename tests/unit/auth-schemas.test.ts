@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  MAX_INTERESTS,
+  TOPICS,
   emailSchema,
+  identifierSchema,
+  interestsSchema,
   onboardingSchema,
   otpCodeSchema,
   peopleSearchSchema,
@@ -66,5 +70,24 @@ describe("peopleSearchSchema", () => {
     expect(peopleSearchSchema.safeParse({ q: "a" }).success).toBe(false);
     expect(peopleSearchSchema.parse({ q: " ke " })).toMatchObject({ q: "ke", limit: 20 });
     expect(peopleSearchSchema.safeParse({ q: "ke", limit: 7 }).success).toBe(false);
+  });
+});
+
+describe("interests and the sign in identifier", () => {
+  it("accepts known topics and refuses unknown or too many", () => {
+    expect(interestsSchema.safeParse({ topics: ["football", "comedy"] }).success).toBe(true);
+    expect(interestsSchema.safeParse({ topics: ["not-a-topic"] }).success).toBe(false);
+    expect(interestsSchema.safeParse({ topics: [] }).success).toBe(true);
+    const many = TOPICS.slice(0, MAX_INTERESTS + 1).map((t) => t.slug);
+    expect(interestsSchema.safeParse({ topics: many }).success).toBe(false);
+  });
+  it("takes an email or a username at sign in, lowercased", () => {
+    expect(identifierSchema.parse("  Ada_Eze ")).toBe("ada_eze");
+    expect(identifierSchema.parse("Ada@Example.com")).toBe("ada@example.com");
+    expect(identifierSchema.safeParse("").success).toBe(false);
+  });
+  it("keeps the email message short", () => {
+    const r = emailSchema.safeParse("nope");
+    expect(r.success ? "" : r.error.issues[0]?.message).toBe("Enter a valid email address.");
   });
 });

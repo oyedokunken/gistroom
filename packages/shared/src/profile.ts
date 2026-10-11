@@ -1,3 +1,4 @@
+import type { PublicRoomCard } from "./dto";
 import { z } from "zod";
 import { nameSchema } from "./auth";
 import { validation } from "./content/validation";
@@ -58,3 +59,16 @@ export interface SessionInfo {
 
 export const userIdSchema = z.object({ userId: z.string().trim().min(1).max(64) });
 export type UserIdInput = z.infer<typeof userIdSchema>;
+
+/** Someone who shares at least one interest with the viewer. */
+export interface SuggestedPerson extends PersonResult {
+  sharedTopics: string[];
+}
+
+export interface DiscoverData {
+  interests: string[];
+  /** True when the rooms are the ones that match the interests, false when it is just what is live. */
+  matched: boolean;
+  rooms: PublicRoomCard[];
+  people: SuggestedPerson[];
+}

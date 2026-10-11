@@ -5,9 +5,11 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, type ReactNode } from "react";
 import {
   Bell,
+  Compass,
   MessageCircle,
   Phone,
   Radio,
+  Search,
   Settings,
   ShieldCheck,
   Users,
@@ -16,7 +18,7 @@ import {
 import type { MeUser } from "@gistroom/shared";
 import { AppRuntime } from "@/components/app/app-runtime";
 import { LogoMark } from "@/components/brand/logo-mark";
-import { useFeedback } from "@/components/feedback/feedback-provider";
+import { TourHost, startTour } from "@/components/app/tour";
 import { Avatar } from "@/components/ui/avatar";
 import { appNav } from "@/content/app";
 import { nav } from "@/content/landing";
@@ -25,6 +27,7 @@ import { RealtimeProvider } from "@/lib/realtime/provider";
 import { useUnreadCounts } from "@/lib/use-unread";
 
 const icons: Record<string, LucideIcon> = {
+  discover: Compass,
   chats: MessageCircle,
   rooms: Radio,
   calls: Phone,
@@ -38,47 +41,54 @@ function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-/** Shows the welcome modal once after onboarding, then removes the query flag. */
+/** Starts the walkthrough once after onboarding, then removes the query flag. */
 function WelcomeGate() {
   const params = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
-  const { showSuccess } = useFeedback();
   const welcome = params.get("welcome");
   useEffect(() => {
     if (!welcome) return;
-    showSuccess(appNav.welcome, appNav.welcomeTitle);
+    startTour();
     router.replace(pathname);
-  }, [welcome, pathname, router, showSuccess]);
+  }, [welcome, pathname, router]);
   return null;
 }
 
 export function AppShell({ user, children }: { user: MeUser; children: ReactNode }) {
   const pathname = usePathname();
   const unread = useUnreadCounts();
-  const railItems = user.role === "ADMIN" ? [...appNav.items, appNav.admin] : appNav.items;
+  // The top bar carries the four places people live in. Alerts, settings and the profile sit on its right.
+  const mainItems = appNav.items.filter((i) =>
+    ["discover", "chats", "rooms", "calls", "friends"].includes(i.id),
+  );
   // Phones get five tabs. Alerts move to a bell in the top bar.
-  const tabItems = appNav.items.filter((i) => i.id !== "notifications");
+  const tabItems = appNav.items.filter((i) => i.id !== "notifications" && i.id !== "discover");
 
   const badge = (id: string): number =>
     id === "notifications" ? unread.notifications : id === "chats" ? unread.chats : 0;
 
   return (
     <RealtimeProvider userId={user.id}>
-      <div className="flex min-h-dvh">
-        <aside className="sticky top-0 hidden h-dvh w-[4.75rem] shrink-0 flex-col items-center gap-1 border-r border-border bg-surface py-4 md:flex lg:w-56 lg:items-stretch lg:px-3">
-          <Link
-            href="/app/chats"
-            aria-label={nav.home}
-            className="mb-4 flex items-center gap-2 px-2 py-1"
-          >
-            <LogoMark size={34} className="shrink-0 text-text" />
-            <span className="hidden text-lg font-bold tracking-tight text-text lg:inline">
-              gistroom
-            </span>
-          </Link>
-          <nav aria-label={appNav.label} className="flex flex-1 flex-col gap-1">
-            {railItems.map((item) => {
+      <div className="flex min-h-dvh flex-col">
+        <header className="sticky top-0 z-30 hidden h-14 shrink-0 items-center gap-4 border-b border-border bg-surface/95 px-4 backdrop-blur md:grid md:grid-cols-[1fr_auto_1fr]">
+          <div className="flex items-center gap-3">
+            <Link href="/app/chats" aria-label={nav.home} className="flex items-center gap-2">
+              <LogoMark size={36} className="shrink-0 text-text" />
+              <span className="hidden text-lg font-bold tracking-tight text-text xl:inline">
+                gistroom
+              </span>
+            </Link>
+            <Link
+              href="/app/friends?tab=find"
+              className="flex h-10 min-w-0 max-w-64 flex-1 items-center gap-2 rounded-full bg-surface-2 px-4 text-sm text-text-muted hover:bg-green-100"
+            >
+              <Search aria-hidden className="size-4 shrink-0" />
+              <span className="truncate">{appNav.searchPeople}</span>
+            </Link>
+          </div>
+          <nav aria-label={appNav.label} className="flex items-stretch gap-1 self-stretch">
+            {mainItems.map((item) => {
               const Icon = icons[item.id] ?? Settings;
               const active = isActive(pathname, item.href);
               const count = badge(item.id);
@@ -87,20 +97,18 @@ export function AppShell({ user, children }: { user: MeUser; children: ReactNode
                   key={item.id}
                   href={item.href}
                   aria-current={active ? "page" : undefined}
-                  aria-label={
-                    item.id === "notifications" ? appNav.notificationsAria(count) : undefined
-                  }
+                  aria-label={item.label}
+                  title={item.label}
                   className={cn(
-                    "relative flex min-h-11 items-center justify-center gap-3 rounded-full px-3 text-[0.9375rem] font-medium transition-colors lg:justify-start",
+                    "group relative flex w-16 items-center justify-center border-b-[3px] transition-colors lg:w-24",
                     active
-                      ? "bg-green-100 text-green-700"
-                      : "text-text-muted hover:bg-surface-2 hover:text-text",
+                      ? "border-green-600 text-green-700"
+                      : "border-transparent text-text-muted hover:bg-surface-2 hover:text-text",
                   )}
                 >
-                  <Icon aria-hidden className="size-5 shrink-0" />
-                  <span className="hidden lg:inline">{item.label}</span>
+                  <Icon aria-hidden className="size-6" />
                   {count > 0 ? (
-                    <span className="tabular absolute right-1.5 top-1 flex min-w-5 items-center justify-center rounded-full bg-yellow-400 px-1 text-xs font-bold text-ink-950 lg:static lg:ml-auto">
+                    <span className="tabular absolute right-2 top-2 flex min-w-5 items-center justify-center rounded-full bg-yellow-400 px-1 text-xs font-bold text-ink-950 lg:right-5">
                       {count > 99 ? "99+" : count}
                     </span>
                   ) : null}
@@ -108,17 +116,48 @@ export function AppShell({ user, children }: { user: MeUser; children: ReactNode
               );
             })}
           </nav>
-          <Link
-            href="/app/settings/profile"
-            className="mt-2 flex items-center justify-center gap-3 rounded-full p-2 hover:bg-surface-2 lg:justify-start"
-          >
-            <Avatar name={user.name} src={user.avatarUrl} size={36} />
-            <span className="hidden min-w-0 flex-col text-left lg:flex">
-              <span className="truncate text-sm font-semibold text-text">{user.name}</span>
-              <span className="truncate text-xs text-text-muted">@{user.username}</span>
-            </span>
-          </Link>
-        </aside>
+          <div className="flex items-center justify-end gap-1">
+            {user.role === "ADMIN" ? (
+              <Link
+                href={appNav.admin.href}
+                aria-label={appNav.admin.label}
+                title={appNav.admin.label}
+                className="flex size-10 items-center justify-center rounded-full bg-surface-2 text-text hover:bg-green-100"
+              >
+                <ShieldCheck aria-hidden className="size-5" />
+              </Link>
+            ) : null}
+            <Link
+              href="/app/notifications"
+              aria-label={appNav.notificationsAria(unread.notifications)}
+              title={appNav.alertsLabel}
+              className="relative flex size-10 items-center justify-center rounded-full bg-surface-2 text-text hover:bg-green-100"
+            >
+              <Bell aria-hidden className="size-5" />
+              {unread.notifications > 0 ? (
+                <span className="tabular absolute -right-1 -top-1 flex min-w-5 items-center justify-center rounded-full bg-yellow-400 px-1 text-xs font-bold text-ink-950">
+                  {unread.notifications > 99 ? "99+" : unread.notifications}
+                </span>
+              ) : null}
+            </Link>
+            <Link
+              href="/app/settings"
+              aria-label={appNav.settingsLabel}
+              title={appNav.settingsLabel}
+              className="flex size-10 items-center justify-center rounded-full bg-surface-2 text-text hover:bg-green-100"
+            >
+              <Settings aria-hidden className="size-5" />
+            </Link>
+            <Link
+              href="/app/settings/profile"
+              aria-label={user.name}
+              title={user.name}
+              className="ml-1 flex size-10 items-center justify-center rounded-full ring-2 ring-transparent hover:ring-green-600"
+            >
+              <Avatar name={user.name} src={user.avatarUrl} size={40} />
+            </Link>
+          </div>
+        </header>
 
         <div className="flex min-w-0 flex-1 flex-col pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0">
           <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-surface/95 px-4 py-2 backdrop-blur md:hidden">
@@ -176,6 +215,7 @@ export function AppShell({ user, children }: { user: MeUser; children: ReactNode
           </ul>
         </nav>
 
+        <TourHost autoStart={false} />
         <Suspense fallback={null}>
           <WelcomeGate />
         </Suspense>

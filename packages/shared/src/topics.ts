@@ -108,3 +108,6 @@ export const LANGUAGE_LABELS: Record<Language, string> = {
   HAUSA: "Hausa",
   OTHER: "Other",
 };
+
+/** The most topics one person can pick as interests. */
+export const MAX_INTERESTS = 8;

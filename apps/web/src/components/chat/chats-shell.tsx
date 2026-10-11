@@ -10,7 +10,7 @@ export function ChatsShell({ viewerId, children }: { viewerId: string; children:
   const pathname = usePathname();
   const open = pathname !== "/app/chats";
   return (
-    <div className="flex h-[calc(100dvh-3.25rem-4.5rem)] min-h-0 md:h-dvh">
+    <div className="flex h-[calc(100dvh-3.25rem-4.5rem)] min-h-0 md:h-[calc(100dvh-3.5rem)]">
       <section
         aria-label="Chats"
         className={cn(

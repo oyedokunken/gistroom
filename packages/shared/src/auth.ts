@@ -3,6 +3,7 @@ import { LIMITS } from "./limits";
 import { validation } from "./content/validation";
 import { RESERVED_USERNAMES } from "./reserved-usernames";
 import { loginPasswordSchema, newPasswordSchema } from "./password";
+import { MAX_INTERESTS, TOPICS } from "./topics";
 
 export const emailSchema = z
   .string({ required_error: validation.emailRequired })
@@ -11,6 +12,14 @@ export const emailSchema = z
   .min(1, validation.emailRequired)
   .max(254, validation.emailTooLong)
   .email(validation.emailInvalid);
+
+/** Sign in takes an email or a username. Both are lowercase, so the check is case blind. */
+export const identifierSchema = z
+  .string({ required_error: validation.identifierRequired })
+  .trim()
+  .toLowerCase()
+  .min(1, validation.identifierRequired)
+  .max(254, validation.emailTooLong);
 
 export const otpCodeSchema = z
   .string({ required_error: validation.codeInvalid })
@@ -36,10 +45,11 @@ export type RequestOtpInput = z.infer<typeof requestOtpSchema>;
 export const verifyOtpSchema = z.object({ email: emailSchema, code: otpCodeSchema });
 export type VerifyOtpInput = z.infer<typeof verifyOtpSchema>;
 
-export const loginSchema = z.object({ email: emailSchema, password: loginPasswordSchema });
+/** The `email` field carries an email or a username. */
+export const loginSchema = z.object({ email: identifierSchema, password: loginPasswordSchema });
 export type LoginInput = z.infer<typeof loginSchema>;
 
-export const identifySchema = z.object({ email: emailSchema });
+export const identifySchema = z.object({ email: identifierSchema });
 export const setPasswordSchema = z.object({ password: newPasswordSchema });
 
 export const resetStartSchema = z.object({ email: emailSchema });
@@ -85,3 +95,13 @@ export const peopleSearchSchema = z.object({
     .default(LIMITS.PAGE_SIZE_DEFAULT),
 });
 export type PeopleSearchInput = z.infer<typeof peopleSearchSchema>;
+
+/** Interests are topic slugs from the shared list. An empty list clears them. */
+export const interestsSchema = z.object({
+  topics: z
+    .array(
+      z.string().refine((slug) => TOPICS.some((t) => t.slug === slug), validation.topicUnknown),
+    )
+    .max(MAX_INTERESTS, validation.interestsTooMany(MAX_INTERESTS)),
+});
+export type InterestsInput = z.infer<typeof interestsSchema>;

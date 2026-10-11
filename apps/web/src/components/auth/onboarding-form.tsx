@@ -61,7 +61,8 @@ export function OnboardingForm({ defaultName, next }: { defaultName: string; nex
       await apiFetch("/api/onboarding", {
         body: values,
       });
-      router.replace(`${next}${next.includes("?") ? "&" : "?"}welcome=1`);
+      const target = next === "/app/chats" ? "/app/discover" : next;
+      router.replace(`/interests?first=1&next=${encodeURIComponent(target)}`);
       router.refresh();
     } catch (e) {
       if (e instanceof ApiClientError && e.fields.username) {

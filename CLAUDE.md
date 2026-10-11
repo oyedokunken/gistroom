@@ -221,10 +221,10 @@ LiveKit API secrets live on web only. Realtime never talks to LiveKit.
 
 ### 6.4 Sign up, sign in and codes
 
-- **Sign up:** email, then one 6 digit code, then onboarding where the person sets a password. **Sign in:** email, then password, in two steps. No code on any sign in. **Forgot password:** a code plus a new password, which signs every other device out. Google people can add a password later in Settings.
+- **Sign up:** email, one 6 digit code, a password step, then onboarding (name and username), then the app. A half finished sign up continues from the sign in form with a fresh code. **Sign in:** email, then password, in two steps. No code on any sign in. **Forgot password:** a code plus a new password, which signs every other device out. Google people can add a password later in Settings.
 - Wrong email and wrong password give the same answer in about the same time. Login attempts are rate limited per email and per address.
 - Codes: 6 digits, HMAC-hashed with a pepper, expires in 10 minutes, 60 second resend cooldown, 5 sends per hour per email, 5 verify attempts then a 15 minute lock.
-- Responses never reveal whether an email already has an account. Signing up with the email of a finished account sends an "you already have an account" email instead of a code.
+- Owner decision D38 (2026-10-11): the forms say plainly whether an email has an account. Sign up with a finished email says "already has an account, sign in", forgot password and sign in with an unknown email say there is no account. Rate limits still apply to every one of these checks.
 - Confirming the code creates an unfinished account and a session. Onboarding collects: name, password (not for Google sign ups), unique username (`^[a-z0-9_]{3,20}$`, reserved words blocked, live availability check with its own rate limit), optional avatar, confirmation that the person is 18 or older, consent to Terms and Privacy (validated by Zod, not HTML).
 
 ### 6.5 Google OAuth (from day one)
@@ -496,7 +496,7 @@ Users land on a public page before they ever see the authed app, so the public s
 ### 12.2 Per page requirements
 
 - `generateMetadata`: unique `title` (under 60 chars, pattern `Page name | Gistroom`, home is the brand line), unique `description` (under 160), canonical URL on `https://gistroom.ng`, Open Graph and Twitter tags, `metadataBase` set, `lang="en-NG"` on `<html>`.
-- Exactly one `h1`, logical heading order (no jumping from h1 to h3), descriptive link text, `alt` on every image from `content/alt.ts` (decorative art gets `alt=""`).
+- Exactly one `h1`, logical heading order (no jumping from h1 to h3), descriptive link text, `alt` on every image, written next to the image in the page or in the manifest (decorative art gets `alt=""`).
 - Dynamic OG image per page via `opengraph-image.tsx` using `next/og` with Graphik. Satori does not read woff2, so load the Graphik `.ttf` or `.woff` for OG images. 1200 by 630, brand art plus the page title in Graphik Bold.
 - JSON-LD: `Organization` and `WebSite` on home, `FAQPage` on `/support`, `BreadcrumbList` on inner pages, `Event` on scheduled public Rooms, `SoftwareApplication` on `/features` or `/install`. Validate in a test that every block parses.
 - `sitemap.ts` (static pages, topics, scheduled public Rooms), `robots.ts` (allow public, disallow `/app`, `/api`, `/onboarding`, `/verify`), `noindex, nofollow` meta on every authed page, private Room pages and ended Room pages.
@@ -668,7 +668,7 @@ Pattern vocabulary (inspired, never copied wholesale): adire resist-dye repeats 
 1. Read `design/PROMPTS.md` (create it in Phase 0 with the style lock above as a reusable preamble plus one prompt per asset ID).
 2. Generate each asset with the available image generation tool using the style lock, saving the master PNG in `design/masters/`. Review at 100 percent zoom. Reject images with garbled pseudo-text, broken hands, uncanny faces, off-palette color or inconsistent style, and regenerate.
 3. Optimize with `scripts/graphics/optimize.mjs` (`sharp`): resize variants, compress, produce blur placeholders, write dimensions to the manifest.
-4. Add alt text to `content/alt.ts` and the manifest.
+4. Add alt text to the manifest and to the page that uses the image.
 5. If no image generation tool is available in this environment, do not substitute stock photos or emoji. Produce a clean placeholder at the final dimensions (flat brand color with a pattern tile), mark the asset PLACEHOLDER in the manifest, finish the rest of the work, and give the owner a list of assets still to generate with their ready prompts.
 6. Layered hero: generate the three layers on the same canvas so they align, with transparent backgrounds for mid and front.
 

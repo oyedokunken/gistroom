@@ -135,20 +135,19 @@ Every key is listed and commented in [.env.example](.env.example). Both apps val
 
 ## Commands
 
-| Command                                    | What it does                                         |
-| ------------------------------------------ | ---------------------------------------------------- |
-| `npm run dev`                              | web and realtime together                            |
-| `npm run build`                            | Prisma client, shared, web, realtime                 |
-| `npm run verify`                           | the full pipeline, must be green before a commit     |
-| `npm run verify:quick`                     | copy, ui, lint, typecheck, unit tests                |
-| `npm run lint:copy`                        | no emojis, no long dashes, no banned phrases         |
-| `npm run lint:ui`                          | UI rules (no toasts, no native select, tokens only)  |
-| `npm run lint:font`                        | Graphik glyph coverage with the Noto Sans fallback   |
-| `npm run lint:graphics`                    | illustration manifest, budgets, brand exports        |
-| `npm run brand`                            | rebuild logo, icons and the default share image      |
-| `npm run graphics:placeholders`            | rebuild the asset manifest, prompts and placeholders |
-| `npm run db:migrate`                       | migrations against the dev schema only               |
-| `npm run db:seed`, `db:reset`, `db:studio` | dev schema only, through `assert-safe-db`            |
+| Command                                    | What it does                                        |
+| ------------------------------------------ | --------------------------------------------------- |
+| `npm run dev`                              | web and realtime together                           |
+| `npm run build`                            | Prisma client, shared, web, realtime                |
+| `npm run verify`                           | the full pipeline, must be green before a commit    |
+| `npm run verify:quick`                     | copy, ui, lint, typecheck, unit tests               |
+| `npm run lint:copy`                        | no emojis, no long dashes, no banned phrases        |
+| `npm run lint:ui`                          | UI rules (no toasts, no native select, tokens only) |
+| `npm run lint:font`                        | Graphik glyph coverage with the Noto Sans fallback  |
+| `npm run lint:graphics`                    | illustration manifest, budgets, brand exports       |
+| `npm run brand`                            | rebuild logo, icons and the default share image     |
+| `npm run db:migrate`                       | migrations against the dev schema only              |
+| `npm run db:seed`, `db:reset`, `db:studio` | dev schema only, through `assert-safe-db`           |
 
 ## Deployment
 

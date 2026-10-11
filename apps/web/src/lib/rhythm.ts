@@ -20,7 +20,7 @@ export const rhythm = {
     "plain",
     "green",
   ],
-  features: ["green", "plain", "soft", "ink", "green"],
+  features: ["green", "plain", "soft", "plain", "soft", "plain", "soft", "ink", "green"],
   about: ["green", "plain", "soft", "yellow", "plain", "green"],
   security: ["green", "plain", "soft", "green"],
   safety: ["green", "plain", "soft", "green", "plain", "ink", "green"],

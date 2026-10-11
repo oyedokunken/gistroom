@@ -204,13 +204,13 @@ export function ConversationList({ viewerId }: { viewerId: string }) {
             <p className="p-8 text-center text-text-muted">{chat.noSearchResults}</p>
           ) : showArchived ? (
             <EmptyState
-              artId="empty-archived"
+              icon="privacy"
               title={chat.archivedEmptyTitle}
               body={chat.archivedEmptyBody}
             />
           ) : (
             <EmptyState
-              artId="empty-chat"
+              icon="mascot-gist"
               title={chat.emptyListTitle}
               body={chat.emptyListBody}
               action={

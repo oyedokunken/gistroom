@@ -58,7 +58,7 @@ export default async function PublicRoomPage({ params }: { params: Promise<{ slu
     return (
       <PublicPage>
         <div className="mx-auto flex min-h-[70dvh] max-w-md flex-col items-center justify-center px-6 pt-24 text-center">
-          <EmptyState artId="not-invited" title={microcopy.notInvited} />
+          <EmptyState icon="private-room" title={microcopy.notInvited} />
           <Link href="/rooms" className={buttonStyles("secondary", "mt-2")}>
             {roomsPage.title}
           </Link>

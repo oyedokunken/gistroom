@@ -16,7 +16,9 @@ import {
   verifyPassword,
 } from "../../apps/web/src/server/auth/password";
 import {
+  accountState,
   isCompleteAccount,
+  nextAuthStep,
   isNewDevice,
   passwordRequiredAtOnboarding,
 } from "../../apps/web/src/server/auth/rules";
@@ -131,5 +133,21 @@ describe("account rules", () => {
     expect(passwordRequiredAtOnboarding({ googleLinked: false, hasPassword: false })).toBe(true);
     expect(passwordRequiredAtOnboarding({ googleLinked: true, hasPassword: false })).toBe(false);
     expect(passwordRequiredAtOnboarding({ googleLinked: false, hasPassword: true })).toBe(false);
+  });
+});
+
+describe("account state and the next sign up step", () => {
+  const base = { passwordHash: null, onboardedAt: null, googleLinked: false };
+  it("names what sign in should do with an email", () => {
+    expect(accountState(null)).toBe("NONE");
+    expect(accountState(base)).toBe("UNFINISHED");
+    expect(accountState({ ...base, passwordHash: "x" })).toBe("PASSWORD");
+    expect(accountState({ ...base, googleLinked: true })).toBe("GOOGLE_ONLY");
+  });
+  it("goes email, password, profile, then done", () => {
+    expect(nextAuthStep(base)).toBe("password");
+    expect(nextAuthStep({ ...base, passwordHash: "x" })).toBe("onboarding");
+    expect(nextAuthStep({ ...base, googleLinked: true })).toBe("onboarding");
+    expect(nextAuthStep({ ...base, passwordHash: "x", onboardedAt: new Date() })).toBe("done");
   });
 });

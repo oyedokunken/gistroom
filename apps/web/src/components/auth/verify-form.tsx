@@ -31,10 +31,13 @@ export function VerifyForm({ email, next }: { email: string; next: string }) {
     setBusy(true);
     setError(null);
     try {
-      const res = await apiFetch<{ needsOnboarding: boolean }>("/api/auth/signup/verify", {
-        body: { email, code: value },
-      });
-      const target = res.needsOnboarding ? `/onboarding?next=${encodeURIComponent(next)}` : next;
+      const res = await apiFetch<{ step: "password" | "onboarding" | "done" }>(
+        "/api/auth/signup/verify",
+        {
+          body: { email, code: value },
+        },
+      );
+      const target = res.step === "done" ? next : `/${res.step}?next=${encodeURIComponent(next)}`;
       router.replace(target);
       router.refresh();
     } catch (e) {

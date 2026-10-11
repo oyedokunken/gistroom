@@ -189,7 +189,7 @@ export function NotificationsList() {
         </div>
       ) : items.length === 0 ? (
         <EmptyState
-          artId="empty-notifications"
+          icon="alerts"
           title={filter === "unread" ? notices.emptyUnread : notices.emptyAll}
         />
       ) : (

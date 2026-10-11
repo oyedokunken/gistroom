@@ -14,10 +14,6 @@ The mark is a speech bubble that forms a lowercase g, with three sound bars in t
 
 ## Illustrations
 
-- `scripts/graphics/assets.mjs` is the single list of illustrations, with prompts and alt text.
-- `npm run graphics:placeholders` writes `design/assets.manifest.json`, `design/PROMPTS.md` and `apps/web/src/content/alt.ts`, and renders a pattern placeholder PNG at the final ratio for every asset still marked PLACEHOLDER. It never overwrites an asset marked DRAFT or APPROVED.
-- `npm run lint:graphics` fails on a missing file, missing alt text, a file over budget (180 KB, 250 KB for hero layers) or a missing brand export. With `RELEASE_BUILD=true` it also fails on any PLACEHOLDER.
-
-## Still to generate
-
-All 33 illustrations are placeholders. Generate them from `design/PROMPTS.md` with the image tool of your choice, save the master PNGs in `design/masters/`, then I run the optimizer (not written yet) and flip the status. Placeholders ship only the 640 pixel variant.
+- Every shipped image is real code drawn art: avatars, icons, scenes and the maker portraits, built by the scripts in `scripts/graphics/` and listed in `design/assets.manifest.json`.
+- The pattern tile placeholders and their generator were deleted on 2026-10-11. Empty states use the custom icon set instead of a placeholder picture.
+- `npm run lint:graphics` fails on a missing file, missing alt text, a file over budget (180 KB, 250 KB for hero layers, 400 KB animated) or a missing brand export. With `RELEASE_BUILD=true` it also fails on any PLACEHOLDER.

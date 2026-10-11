@@ -110,6 +110,35 @@ export function LoginForm({ next, error }: AuthFormProps) {
     defaultValues: { password: "" },
   });
 
+  /** Ask what this email is before asking for a password, so nobody types a password into the wrong place. */
+  async function submitEmail(values: { email: string }) {
+    const address = emailSchema.parse(values.email);
+    try {
+      const res = await apiFetch<{ state: "NONE" | "UNFINISHED" | "PASSWORD" | "GOOGLE_ONLY" }>(
+        "/api/auth/identify",
+        { body: { email: address } },
+      );
+      if (res.state === "PASSWORD") {
+        setEmail(address);
+      } else if (res.state === "UNFINISHED") {
+        await apiFetch("/api/auth/signup/start", { body: { email: address } });
+        router.push(`/verify?${new URLSearchParams({ email: address, next }).toString()}`);
+      } else if (res.state === "GOOGLE_ONLY") {
+        emailForm.setError("email", { message: auth.identify.googleOnly });
+      } else {
+        emailForm.setError("email", { message: auth.identify.none });
+      }
+    } catch (e) {
+      if (e instanceof ApiClientError && (e.status === 429 || e.status === 400 || e.fields.email)) {
+        emailForm.setError("email", { message: e.fields.email ?? e.message });
+      } else if (e instanceof ApiClientError) {
+        showError(e.message);
+      } else {
+        throw e;
+      }
+    }
+  }
+
   async function submitPassword(values: Pick<LoginInput, "password">) {
     if (!email) return;
     try {
@@ -141,7 +170,7 @@ export function LoginForm({ next, error }: AuthFormProps) {
         <Heading title={auth.login.heading} subhead={auth.login.subhead} />
         <form
           noValidate
-          onSubmit={emailForm.handleSubmit((v) => setEmail(emailSchema.parse(v.email)))}
+          onSubmit={emailForm.handleSubmit(submitEmail)}
           className="flex flex-col gap-4"
         >
           <Field label={auth.emailLabel} error={emailForm.formState.errors.email?.message}>
@@ -158,7 +187,7 @@ export function LoginForm({ next, error }: AuthFormProps) {
               />
             )}
           </Field>
-          <Button type="submit" className="min-h-12">
+          <Button type="submit" loading={emailForm.formState.isSubmitting} className="min-h-12">
             {auth.continue}
           </Button>
         </form>

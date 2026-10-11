@@ -72,8 +72,8 @@ export default function Page() {
         }
       />
 
-      <Band tone={tones[1]}>
-        {p.rows.map((row, i) => (
+      {p.rows.map((row, i) => (
+        <Band key={row.id} tone={tones[i + 1]} labelledBy={`${row.id}-h`}>
           <FeatureRow
             key={row.id}
             id={row.id}
@@ -85,15 +85,15 @@ export default function Page() {
             visual={visuals[row.visual]}
             reverse={i % 2 === 1}
           />
-        ))}
-      </Band>
+        </Band>
+      ))}
 
-      <Band tone={tones[2]} labelledBy="more-h">
+      <Band tone={tones[p.rows.length + 1]} labelledBy="more-h">
         <SectionHead id="more-h" title={p.more.title} icon="idea" />
         <Bento items={p.more.items} />
       </Band>
 
-      <Band tone={tones[3]} labelledBy="facts-h">
+      <Band tone={tones[p.rows.length + 2]} labelledBy="facts-h">
         <SectionHead id="facts-h" title={p.facts.title} lead={p.facts.lead} icon="tools" />
         <Facts items={facts} />
       </Band>

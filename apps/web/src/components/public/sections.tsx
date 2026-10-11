@@ -175,10 +175,7 @@ export function FeatureRow({
   reverse?: boolean;
 }) {
   return (
-    <div
-      id={id}
-      className="grid scroll-mt-28 items-center gap-10 py-10 lg:grid-cols-2 lg:gap-20 lg:py-14"
-    >
+    <div id={id} className="grid scroll-mt-28 items-center gap-10 lg:grid-cols-2 lg:gap-20">
       <div className={cn(reverse && "lg:order-2")}>
         {icon ? <CardIcon name={icon} className="mb-5 hidden md:inline-flex" /> : null}
         <h2
@@ -209,7 +206,10 @@ export function FeatureRow({
           </Link>
         ) : null}
       </div>
-      <div className={cn("flex justify-center", reverse && "lg:order-1")}>{visual}</div>
+      {/* On phones the picture comes first, so it sits above the words. */}
+      <div className={cn("order-first flex justify-center lg:order-none", reverse && "lg:order-1")}>
+        {visual}
+      </div>
     </div>
   );
 }

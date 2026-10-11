@@ -11,7 +11,7 @@ export const auth = {
     title: "Create your account",
     heading: "Join the gist",
     subhead:
-      "Use your email or Google. We send one code to confirm your email, then you choose a password.",
+      "Enter your email and confirm it with a code. Then choose a password and set up your profile.",
     metaTitle: "Sign up",
     metaDescription: "Create your Gistroom account with your email or Google and start talking.",
   },
@@ -81,6 +81,23 @@ export const auth = {
     wrongEmail: "Use a different email",
     missingEmail: "Start again with your email address.",
     metaTitle: "Enter your code",
+  },
+  password: {
+    metaTitle: "Choose a password",
+    heading: "Choose your password",
+    subhead: "Your email is confirmed. Pick the password you will sign in with.",
+    confirmLabel: "Type it again",
+    mismatch: "The two passwords do not match.",
+    submit: "Save password",
+    submitting: "Saving",
+  },
+  identify: {
+    none: "There is no Gistroom account with that email. Sign up to get started.",
+    googleOnly:
+      "That email signs in with Google. Use the Google button, or reset your password to add one.",
+  },
+  steps: {
+    continueSignup: "You started signing up with this email. We sent a new code to finish.",
   },
   onboarding: {
     title: "Set up your profile",

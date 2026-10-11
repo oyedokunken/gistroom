@@ -19,7 +19,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
     return (
       <div className="mx-auto max-w-md p-6">
         <EmptyState
-          artId="not-found"
+          icon="open-gist"
           title={friends.profilePage.notFoundTitle}
           body={friends.profilePage.notFoundBody}
         />

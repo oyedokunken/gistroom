@@ -151,7 +151,7 @@ export function RoomsExplorer({
 
       {rooms.length === 0 && !loading ? (
         <EmptyState
-          artId="empty-rooms"
+          icon="open-gist"
           title={term ? copy.noResultsTitle(term) : roomsPage.emptyTitle}
           body={term ? copy.noResultsBody : roomsPage.emptyBody}
           action={

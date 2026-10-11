@@ -27,9 +27,10 @@ export default async function OnboardingPage({
     googleLinked,
     hasPassword: ctx.user.passwordHash !== null,
   });
+  if (needsPassword) redirect(`/password?next=${encodeURIComponent(next)}`);
   return (
     <AuthShell artId={authArt.onboarding}>
-      <OnboardingForm defaultName={ctx.user.name} next={next} needsPassword={needsPassword} />
+      <OnboardingForm defaultName={ctx.user.name} next={next} />
     </AuthShell>
   );
 }

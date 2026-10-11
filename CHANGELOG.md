@@ -4,7 +4,14 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ## [Unreleased]
 
+### Removed
+
+- The pattern tile placeholder images, their generator and the two unused auth scenes.
+
 ### Added
+
+- A set password step between the email code and the profile, a sign in check that sends unknown emails to sign up and half finished sign ups back to their code, and plain messages for emails with or without an account.
+- A keepalive workflow that pings the realtime and web health checks every 14 minutes, and a web health check that reads the database.
 
 - Animated flat scenes for every auth page, one per flow: a Lagos street with danfo, keke, okada, playing children and a police officer for login, a stadium crowd for sign up, a code phone for verify, a flying letter for forgot and a profile card for onboarding. All loop forever with a static PNG fallback for reduced motion.
 - A live room phone mock on the /rooms hero with working audio and video tabs, a notes side panel and a raise hand demo, shared with the process accordion on the landing.

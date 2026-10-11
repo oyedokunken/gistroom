@@ -47,8 +47,8 @@ export function ForgotForm({ initialEmail }: { initialEmail: string }) {
       setSentTo(email);
       setWait(60);
     } catch (e) {
-      if (e instanceof ApiClientError && e.status === 429)
-        emailForm.setError("email", { message: e.message });
+      if (e instanceof ApiClientError && (e.status === 429 || e.fields.email))
+        emailForm.setError("email", { message: e.fields.email ?? e.message });
       else if (e instanceof ApiClientError) showError(e.message);
       else throw e;
     }

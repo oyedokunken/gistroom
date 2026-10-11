@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: offline.title, robots: { index: false
 export default function OfflinePage() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-4 px-6 text-center">
-      <EmptyState artId="offline" title={offline.heading} body={offline.body} />
+      <EmptyState icon="offline" title={offline.heading} body={offline.body} />
       <Link href="/app/chats" className={buttonStyles("primary")}>
         {offline.retry}
       </Link>

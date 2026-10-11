@@ -1,0 +1,25 @@
+# Keeps the free tiers awake: Render sleeps after 15 minutes without traffic, and the web health check
+# reads the database so Supabase never pauses for inactivity. Each run is a few seconds of curl.
+name: keepalive
+
+on:
+  schedule:
+    - cron: "*/14 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Ping realtime and web
+        env:
+          REALTIME_URL: ${{ vars.REALTIME_URL || 'https://gistroom-realtime.onrender.com' }}
+          WEB_URL: ${{ vars.WEB_URL || 'https://gistroom.vercel.app' }}
+        run: |
+          curl --fail --silent --show-error --retry 3 --retry-delay 10 --max-time 90 "$REALTIME_URL/health"
+          echo
+          curl --fail --silent --show-error --retry 3 --retry-delay 10 --max-time 60 "$WEB_URL/api/health"
+          echo

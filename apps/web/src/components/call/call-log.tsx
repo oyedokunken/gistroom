@@ -237,11 +237,7 @@ export function CallLog() {
             </Button>
           </div>
         ) : (
-          <EmptyState
-            artId="empty-calls"
-            title={pages.calls.emptyTitle}
-            body={pages.calls.emptyBody}
-          />
+          <EmptyState icon="voice" title={pages.calls.emptyTitle} body={pages.calls.emptyBody} />
         )
       ) : data ? (
         <>

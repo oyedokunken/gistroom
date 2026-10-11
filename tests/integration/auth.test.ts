@@ -129,9 +129,17 @@ describe.skipIf(!testDbEnabled)("sign up and password sign in", () => {
     });
   });
 
-  it("answers a reset for an unknown email without sending anything", async () => {
-    await m.startReset(testEmail("ghost"), "10.0.0.8");
+  it("tells a reset for an unknown email that there is no account, and sends nothing", async () => {
+    await expect(m.startReset(testEmail("ghost"), "10.0.0.8")).rejects.toMatchObject({
+      status: 404,
+    });
     expect(m.captured).toHaveLength(0);
+  });
+
+  it("tells a sign up with a finished email to sign in instead", async () => {
+    const email = testEmail("h");
+    await signUpAndSetPassword(email, "10.0.0.10");
+    await expect(m.startSignup(email, "10.0.0.10")).rejects.toMatchObject({ status: 409 });
   });
 
   it("refuses suspended accounts at sign in", async () => {

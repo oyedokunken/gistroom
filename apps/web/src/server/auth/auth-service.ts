@@ -1,17 +1,17 @@
 import { getDb, type User } from "@gistroom/db";
 import { errors, passwordIssue, passwordMessages } from "@gistroom/shared";
 import { AppError } from "../http";
-import { enforce, hit, policies } from "../rate-limit";
+import { enforce, policies } from "../rate-limit";
 import { sendTemplate } from "../mail/send";
 import { notify } from "../notifications/service";
 import { checkCode, findOrCreateUser, sendCode, type RequestOtpResult } from "./otp-service";
 import { dummyHash, hashPassword, needsRehash, verifyPassword } from "./password";
-import { isCompleteAccount } from "./rules";
+import { accountState, isCompleteAccount, type AccountState } from "./rules";
 import { revokeOtherSessions } from "./session";
 
 const FIELD = "password";
 
-/** Start sign up. A finished account gets a heads up email instead of a code, and the answer looks the same. */
+/** Start sign up. An email that already has a finished account is told so plainly. A half finished sign up gets a fresh code. */
 export async function startSignup(email: string, ip: string): Promise<RequestOtpResult> {
   const db = getDb();
   const user = await db.user.findUnique({
@@ -34,9 +34,9 @@ export async function startSignup(email: string, ip: string): Promise<RequestOtp
 
   if (finished) {
     await enforce(policies.otpSendIp, ip);
-    const decision = await hit(policies.accountExists, email);
-    if (decision.allowed) await sendTemplate("account-exists", email, {}).catch(() => undefined);
-    return { resendAfterSec: 60 };
+    throw new AppError(409, "CONFLICT", errors.emailTaken, {
+      fields: { email: errors.emailTaken },
+    });
   }
   return sendCode({ email, ip, purpose: "SIGN_UP", template: "verify-otp" });
 }
@@ -76,14 +76,36 @@ export async function login(email: string, password: string, ip: string): Promis
   return user;
 }
 
-/** Start a password reset. Always answers the same, whether or not the email has an account. */
+/** Start a password reset. An email with no account is told so, an email with one gets a code. */
 export async function startReset(email: string, ip: string): Promise<RequestOtpResult> {
+  await enforce(policies.otpSendIp, ip);
   const user = await getDb().user.findUnique({ where: { email }, select: { status: true } });
   if (!user || user.status !== "ACTIVE") {
-    await enforce(policies.otpSendIp, ip);
-    return { resendAfterSec: 60 };
+    throw new AppError(404, "NOT_FOUND", errors.noAccount, { fields: { email: errors.noAccount } });
   }
   return sendCode({ email, ip, purpose: "RESET_PASSWORD", template: "reset-otp" });
+}
+
+/** What sign in should do next for this email. Rate limited like a sign in attempt. */
+export async function identifyAccount(email: string, ip: string): Promise<AccountState> {
+  await enforce(policies.loginIp, ip);
+  await enforce(policies.loginEmail, email);
+  const user = await getDb().user.findUnique({
+    where: { email },
+    select: {
+      status: true,
+      passwordHash: true,
+      onboardedAt: true,
+      _count: { select: { authAccounts: true } },
+    },
+  });
+  if (user?.status === "SUSPENDED") throw new AppError(403, "FORBIDDEN", errors.accountSuspended);
+  if (!user || user.status === "DELETED") return "NONE";
+  return accountState({
+    passwordHash: user.passwordHash,
+    onboardedAt: user.onboardedAt,
+    googleLinked: user._count.authAccounts > 0,
+  });
 }
 
 export async function completeReset(

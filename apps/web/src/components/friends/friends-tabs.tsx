@@ -142,7 +142,7 @@ function FriendsList() {
       empty={
         items.length === 0 ? (
           <EmptyState
-            artId="empty-friends"
+            icon="friends"
             title={copy.emptyFriendsTitle}
             body={copy.emptyFriendsBody}
             action={
@@ -224,16 +224,12 @@ function RequestList({ direction }: { direction: "incoming" | "outgoing" }) {
         items.length === 0 ? (
           direction === "incoming" ? (
             <EmptyState
-              artId="empty-requests"
+              icon="invites"
               title={copy.emptyRequestsTitle}
               body={copy.emptyRequestsBody}
             />
           ) : (
-            <EmptyState
-              artId="empty-requests"
-              title={copy.emptySentTitle}
-              body={copy.emptySentBody}
-            />
+            <EmptyState icon="invites" title={copy.emptySentTitle} body={copy.emptySentBody} />
           )
         ) : (
           <ul className="divide-y divide-border">
@@ -318,11 +314,7 @@ function FindPeople() {
       ) : search.isError ? (
         <ListState query={search} empty={null} />
       ) : people.length === 0 ? (
-        <EmptyState
-          artId="empty-search"
-          title={copy.searchEmptyTitle}
-          body={copy.searchEmptyBody}
-        />
+        <EmptyState icon="open-gist" title={copy.searchEmptyTitle} body={copy.searchEmptyBody} />
       ) : (
         <>
           <ul className="divide-y divide-border">

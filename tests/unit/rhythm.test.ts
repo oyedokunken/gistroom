@@ -13,6 +13,12 @@ describe("section background rhythm", () => {
     expect(clashes(["plain", "plain"])).toEqual([]);
   });
   it("puts the features numbers on black, away from the green neighbours", () => {
-    expect(rhythm.features[3]).toBe("ink");
+    expect(rhythm.features[7]).toBe("ink");
+  });
+  it("alternates the main features sections between white and grey", () => {
+    const main = rhythm.features.slice(1, -2);
+    main.forEach((tone, i) => {
+      if (i > 0) expect(tone).not.toBe(main[i - 1]);
+    });
   });
 });

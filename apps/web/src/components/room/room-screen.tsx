@@ -1,5 +1,6 @@
 "use client";
 
+import { type CardIconName } from "@/components/public/card-icon";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -49,10 +50,10 @@ function blockFor(e: unknown): Block {
   return null;
 }
 
-function Wall({ art, title, body }: { art: string; title: string; body?: string }) {
+function Wall({ icon, title, body }: { icon: CardIconName; title: string; body?: string }) {
   return (
     <div className="mx-auto flex min-h-[70dvh] max-w-md flex-col items-center justify-center px-6 text-center">
-      <EmptyState artId={art} title={title} body={body} />
+      <EmptyState icon={icon} title={title} body={body} />
       <Link href="/app/rooms" className={buttonStyles("secondary")}>
         {copy.stage.backToRooms}
       </Link>
@@ -207,7 +208,11 @@ export function RoomScreen({
   }
   if (view.data?.state === "NOT_INVITED" || block === "NOT_INVITED") {
     return (
-      <Wall art="not-invited" title={copy.stage.notInvitedTitle} body={copy.stage.notInvitedBody} />
+      <Wall
+        icon="private-room"
+        title={copy.stage.notInvitedTitle}
+        body={copy.stage.notInvitedBody}
+      />
     );
   }
   if (
@@ -216,11 +221,15 @@ export function RoomScreen({
     block === "ENDED" ||
     ended
   ) {
-    return <Wall art="room-ended" title={copy.stage.endedTitle} body={copy.stage.endedBody} />;
+    return <Wall icon="voice" title={copy.stage.endedTitle} body={copy.stage.endedBody} />;
   }
   if (kicked) {
     return (
-      <Wall art="not-invited" title={copy.stage.notInvitedTitle} body={copy.stage.notInvitedBody} />
+      <Wall
+        icon="private-room"
+        title={copy.stage.notInvitedTitle}
+        body={copy.stage.notInvitedBody}
+      />
     );
   }
   if (view.isError || !room) {
@@ -234,9 +243,9 @@ export function RoomScreen({
     );
   }
   if (block === "FULL")
-    return <Wall art="room-full" title={copy.stage.fullTitle} body={copy.stage.fullBody} />;
+    return <Wall icon="friends" title={copy.stage.fullTitle} body={copy.stage.fullBody} />;
   if (block === "LOCKED")
-    return <Wall art="not-invited" title={copy.stage.lockedTitle} body={copy.stage.lockedBody} />;
+    return <Wall icon="private-room" title={copy.stage.lockedTitle} body={copy.stage.lockedBody} />;
 
   if (!inRoom) {
     const scheduled = room.status === "SCHEDULED";

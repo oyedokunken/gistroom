@@ -20,6 +20,11 @@ export const errors = {
   otpExpired: "That code has expired. Ask for a new one.",
   otpUsed: "That code was already used. Ask for a new one.",
   loginFailed: "That email and password do not match. Check them and try again.",
+  noAccount: "There is no Gistroom account with that email. Sign up to get started.",
+  emailTaken: "That email already has an account. Sign in instead.",
+  googleOnly:
+    "That email signs in with Google. Use the Google button, or reset your password to add one.",
+  passwordAlreadySet: "You already have a password. Change it in Settings.",
   passwordRequired: "Choose a password to finish setting up.",
   currentPasswordWrong: "That is not your current password.",
   currentPasswordNeeded: "Enter your current password.",

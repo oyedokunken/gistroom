@@ -5,43 +5,12 @@ const manifest = JSON.parse(readFileSync("design/assets.manifest.json", "utf8"))
   assets: { id: string; alt: string; decorative?: boolean; status: string }[];
 };
 
-const required = [
-  "hero-back",
-  "hero-mid",
-  "hero-front",
-  "auth-login",
-  "auth-signup",
-  "auth-verify",
-  "auth-onboarding",
-  "how-1",
-  "how-2",
-  "how-3",
-  "how-4",
-  "safety",
-  "nigeria-data",
-  "final-cta",
-  "discover-backdrop",
-  "empty-chat",
-  "empty-friends",
-  "empty-requests",
-  "empty-calls",
-  "empty-rooms",
-  "empty-notifications",
-  "empty-search",
-  "empty-archived",
-  "empty-starred",
-  "empty-media",
-  "offline",
-  "error-500",
-  "not-found",
-  "room-ended",
-  "room-full",
-  "not-invited",
-  "install-ios",
-  "install-android",
-];
+const required = ["hero-back", "hero-mid", "hero-front", "scene-final-cta", "scene-moderators"];
 
 describe("graphics manifest", () => {
+  it("ships no pattern placeholders", () => {
+    expect(manifest.assets.filter((a) => a.status === "PLACEHOLDER")).toEqual([]);
+  });
   it("lists every required asset exactly once", () => {
     const ids = manifest.assets.map((a) => a.id);
     expect(new Set(ids).size).toBe(ids.length);

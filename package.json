@@ -38,7 +38,7 @@
     "db:seed": "node scripts/assert-safe-db.mjs prisma db seed",
     "db:reset": "node scripts/assert-safe-db.mjs prisma migrate reset --force",
     "db:studio": "npm run studio -w packages/db",
-    "prepare": "husky",
+    "prepare": "husky || exit 0",
     "storage:setup": "node scripts/setup-storage.mjs",
     "e2e:build": "npm run build:e2e -w apps/web"
   },

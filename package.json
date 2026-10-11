@@ -33,14 +33,15 @@
     "brand": "node scripts/brand.mjs",
     "mail:preview": "tsx --tsconfig apps/web/tsconfig.json scripts/mail-preview.ts",
     "db:diff": "node scripts/db-diff.mjs",
-    "db:migrate": "node scripts/assert-safe-db.mjs prisma migrate dev",
+    "db:migrate": "node scripts/migrate-schema.mjs",
     "db:seed": "node scripts/assert-safe-db.mjs tsx ../../scripts/seed.ts",
     "db:reset": "node scripts/assert-safe-db.mjs prisma migrate reset --force",
     "db:studio": "npm run studio -w packages/db",
     "prepare": "husky || exit 0",
     "storage:setup": "node scripts/setup-storage.mjs",
     "e2e:build": "npm run build:e2e -w apps/web",
-    "db:seed:reference": "tsx scripts/seed.ts --reference"
+    "db:seed:reference": "tsx scripts/seed.ts --reference",
+    "db:migrate:deploy": "npm run migrate:deploy -w @gistroom/db"
   },
   "lint-staged": {
     "*.{ts,tsx,mjs,js,json,md,css}": [

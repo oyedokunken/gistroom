@@ -103,9 +103,8 @@ describe.skipIf(!testDbEnabled)("sign up and password sign in", () => {
     const email = testEmail("e");
     await signUpAndSetPassword(email, "10.0.0.5");
     m.captured.length = 0;
-    await m.startSignup(email, "10.0.0.5");
+    await expect(m.startSignup(email, "10.0.0.5")).rejects.toMatchObject({ status: 409 });
     expect(m.captured.some((x) => /Your code:/.test(x.text))).toBe(false);
-    expect(m.captured.some((x) => x.subject.includes("already have"))).toBe(true);
   });
 
   it("resets a password with a code and signs every other device out", async () => {

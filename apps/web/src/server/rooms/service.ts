@@ -50,6 +50,7 @@ import { publish } from "../realtime";
 import { accessFor, assertCanInteract, sendMessage } from "../chat/service";
 import { ensureConversation } from "../friends/service";
 import { recordActivity } from "../notifications/activity";
+import { emailRoomEnded, emailRoomInvite } from "../mail/notify-email";
 import { isUniqueViolation } from "../db-errors";
 
 type RoomRow = Room & { host: User; topic: { slug: string; name: string } | null };
@@ -435,6 +436,17 @@ async function finishRoom(room: Room, actorId: string | null): Promise<void> {
   // The chat goes with the room. Reports already hold their own evidence snapshot, and the totals stay on the room.
   await db.roomMessage.deleteMany({ where: { roomId: room.id } });
   if (actorId) await log(room.id, actorId, "END");
+  void emailRoomEnded(room.hostId, {
+    slug: room.slug,
+    title: room.title,
+    durationSec: Math.max(
+      0,
+      Math.round((now.getTime() - (room.startedAt ?? now).getTime()) / 1000),
+    ),
+    peak: room.peakParticipants,
+    attendees: attended.length,
+    messages: room.messageCount,
+  });
   for (const m of attended) {
     void notify({
       userId: m.userId,
@@ -785,6 +797,7 @@ export async function inviteFriend(me: User, slug: string, userId: string): Prom
     },
     dedupeKey: `room-invite:${room.id}`,
   }).catch(() => null);
+  void emailRoomInvite(me, await factsOf(room), userId);
   void publish({ type: "room", roomId: room.id, change: "invite", userId });
 }
 
@@ -858,6 +871,22 @@ export async function listInviteLinks(me: User, slug: string): Promise<RoomLinkD
     .filter((l) => l.state === "OK" && l.url);
 }
 
+async function factsOf(room: Room) {
+  const full = await getDb().room.findUniqueOrThrow({
+    where: { id: room.id },
+    include: { host: true, topic: { select: { name: true } } },
+  });
+  return {
+    id: full.id,
+    slug: full.slug,
+    title: full.title,
+    topicName: full.topic?.name ?? null,
+    hostName: full.host.name,
+    scheduledFor: full.scheduledFor,
+    status: full.status,
+  };
+}
+
 const appBase = () => (process.env.APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
 /** The plain room link, for public rooms. Members can share it unless the host turned that off. */
@@ -894,6 +923,14 @@ export async function inviteFriends(
       }
       const conversationId = await ensureConversation(me.id, userId);
       await forwardRoom(me, slug, [conversationId]);
+      await notify({
+        userId,
+        type: "ROOM_INVITE",
+        payload: { roomId: room.id, roomSlug: room.slug, roomTitle: room.title, fromName: me.name },
+        dedupeKey: `room-invite:${room.id}`,
+      }).catch(() => null);
+      void emailRoomInvite(me, await factsOf(room), userId);
+      void publish({ type: "room", roomId: room.id, change: "invite", userId });
       results.push({ userId, ok: true });
     } catch (e) {
       results.push({

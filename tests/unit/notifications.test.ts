@@ -133,10 +133,12 @@ describe("quiet hours", () => {
 });
 
 describe("preferences", () => {
-  it("enables email only for missed calls and security", () => {
+  it("enables email only where a missed message costs something", () => {
+    const on = ["CALL_MISSED", "SECURITY_NEW_DEVICE", "ROOM_INVITE", "ROOM_STARTING"];
     for (const t of NOTIFICATION_TYPES) {
-      expect(defaultSwitches(t).email).toBe(t === "CALL_MISSED" || t === "SECURITY_NEW_DEVICE");
+      expect(defaultSwitches(t).email).toBe(on.includes(t));
     }
+    expect(defaultSwitches("ROOM_ENDED").push).toBe(false);
   });
   it("respects per type switches", () => {
     const prefs = {

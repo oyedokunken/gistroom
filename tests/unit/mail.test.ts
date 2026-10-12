@@ -132,3 +132,32 @@ describe("deliver", () => {
     ).rejects.toThrow();
   });
 });
+
+describe("personalised room mail", () => {
+  it("formats a start time in 12 hour clock in the person's own zone", async () => {
+    const { whenText } = await import("../../apps/web/src/server/mail/notify-email");
+    const when = new Date("2026-10-13T18:30:00Z");
+    const now = new Date("2026-10-13T08:00:00Z");
+    expect(whenText(when, "Africa/Lagos", now)).toBe("Today, 7:30 PM");
+    expect(whenText(when, "Africa/Lagos", new Date("2026-10-11T08:00:00Z"))).toMatch(/7:30 PM$/);
+    expect(whenText(when, "Not/AZone", now)).toBe("Today, 7:30 PM");
+  });
+
+  it("greets by first name, names the room in the subject and carries a preferences link", () => {
+    const t = templates["room-invite"];
+    const out = t.render(t.sample, ctx);
+    expect(out.subject).toBe("Ada invited you to Football talk on Gistroom");
+    expect(out.text).toContain("Hi Tunde");
+    expect(out.text).toContain("/app/settings/notifications");
+    expect(out.html).toContain("Join room");
+    const sec = templates["new-device-sign-in"].render(templates["new-device-sign-in"].sample, ctx);
+    expect(sec.text).not.toContain("/app/settings/notifications");
+  });
+
+  it("suggests only the rooms it was given in the welcome", () => {
+    const t = templates.welcome;
+    const out = t.render({ name: "Tunde Bello", rooms: [] }, ctx);
+    expect(out.subject).toBe("Welcome to Gistroom, Tunde");
+    expect(out.text).not.toContain("Rooms that match");
+  });
+});

@@ -28,7 +28,11 @@ export function defaultSwitches(type: NotificationType): ChannelSwitches {
     inApp: true,
     // A finished room is only worth a line in the list.
     push: type !== "ROOM_ENDED",
-    email: type === "CALL_MISSED" || type === "SECURITY_NEW_DEVICE",
+    email:
+      type === "CALL_MISSED" ||
+      type === "SECURITY_NEW_DEVICE" ||
+      type === "ROOM_INVITE" ||
+      type === "ROOM_STARTING",
   };
 }
 

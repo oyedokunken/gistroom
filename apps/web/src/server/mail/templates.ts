@@ -35,7 +35,14 @@ interface NoticeConfig<S extends z.ZodTypeAny> {
   check: (p: z.infer<S>) => string;
   /** Closing paragraphs that come after the code and the button. */
   after?: (p: z.infer<S>) => string[];
+  /** Adds the one click link to email preferences. Every email that is not a security notice has it. */
+  manage?: boolean;
+  /** Extra HTML and text lines for lists, for example suggested rooms. Values are escaped by the template. */
+  list?: (p: z.infer<S>) => { label: string; path: string; note?: string }[];
 }
+
+export const MANAGE_PATH = "/app/settings/notifications";
+export const MANAGE_LABEL = "Manage your email preferences";
 
 /**
  * One shape for every email: heading, short paragraphs, an optional big code, an optional button, and a plain
@@ -55,8 +62,16 @@ function notice<S extends z.ZodTypeAny>(c: NoticeConfig<S>): Template<S> {
         heading(c.heading(p)),
         ...c.paragraphs(p).map((t) => paragraph(escapeHtml(t))),
         code ? codeBlock(code) : "",
+        ...(c.list?.(p) ?? []).map((i) =>
+          paragraph(
+            `<a href="${escapeHtml(appUrl + i.path)}">${escapeHtml(i.label)}</a>${i.note ? escapeHtml(" " + i.note) : ""}`,
+          ),
+        ),
         action ? button(`${appUrl}${action.path}`, action.label) : "",
         ...(c.after?.(p) ?? []).map((t) => paragraph(escapeHtml(t))),
+        c.manage
+          ? paragraph(`<a href="${escapeHtml(appUrl + MANAGE_PATH)}">${MANAGE_LABEL}</a>`)
+          : "",
       ]
         .filter(Boolean)
         .join("\n");
@@ -65,8 +80,13 @@ function notice<S extends z.ZodTypeAny>(c: NoticeConfig<S>): Template<S> {
         "",
         ...c.paragraphs(p).flatMap((t) => [t, ""]),
         ...(code ? [`Your code: ${code}`, ""] : []),
+        ...(c.list?.(p) ?? []).flatMap((i) => [
+          `${i.label}${i.note ? " " + i.note : ""}: ${appUrl}${i.path}`,
+        ]),
+        ...(c.list ? [""] : []),
         ...(action ? [`${action.label}: ${appUrl}${action.path}`, ""] : []),
         ...(c.after?.(p) ?? []).flatMap((t) => [t, ""]),
+        ...(c.manage ? [`${MANAGE_LABEL}: ${appUrl}${MANAGE_PATH}`, ""] : []),
       ]
         .join("\n")
         .trim();
@@ -87,6 +107,7 @@ const otpAfter = () => [
 ];
 
 const nameProps = z.object({ name: z.string().min(1).max(60) });
+const firstName = (name: string) => name.trim().split(/\s+/)[0] ?? name;
 
 export const templates = {
   "verify-otp": notice({
@@ -186,17 +207,30 @@ export const templates = {
   }),
   welcome: notice({
     id: "welcome",
-    schema: nameProps,
-    sample: { name: "Tunde" },
-    subject: () => "Welcome to Gistroom",
+    schema: z.object({
+      name: z.string().min(1).max(60),
+      /** Rooms that match the topics the person picked. Left out when there are none. */
+      rooms: z
+        .array(z.object({ title: z.string().min(1).max(80), path: z.string().startsWith("/app/") }))
+        .max(3)
+        .default([]),
+    }),
+    sample: {
+      name: "Tunde Bello",
+      rooms: [{ title: "Match day gist", path: "/app/rooms/abc123" }],
+    },
+    subject: (p) => `Welcome to Gistroom, ${firstName(p.name)}`,
     preheader: () => "You are in. Find your people.",
-    heading: (p) => `You are in, ${p.name}`,
-    paragraphs: () => [
+    heading: (p) => `You are in, ${firstName(p.name)}`,
+    paragraphs: (p) => [
       "Your account is ready. Find your friends, start a room or drop into one already going.",
-      "Turn on alerts so calls and messages reach you even when the app is closed.",
+      ...(p.rooms.length > 0 ? ["Rooms that match what you picked:"] : []),
     ],
-    action: () => ({ label: "Open Gistroom", path: "/app/chats" }),
-    check: (p) => p.name,
+    list: (p) => p.rooms.map((r) => ({ label: r.title, path: r.path })),
+    action: () => ({ label: "Open Gistroom", path: "/app/discover" }),
+    after: () => ["Turn on alerts so calls and messages reach you even when the app is closed."],
+    manage: true,
+    check: (p) => firstName(p.name),
   }),
   "new-device-sign-in": notice({
     id: "new-device-sign-in",
@@ -221,6 +255,7 @@ export const templates = {
     heading: (p) => `Missed call from ${p.name}`,
     paragraphs: (p) => [`${p.name} tried to reach you with a ${p.media} call.`],
     action: () => ({ label: "Call back", path: "/app/calls" }),
+    manage: true,
     check: (p) => p.name,
   }),
   "friend-request": notice({
@@ -232,33 +267,123 @@ export const templates = {
     heading: () => "New friend request",
     paragraphs: (p) => [`${p.name} (@${p.username}) sent you a friend request.`],
     action: () => ({ label: "See the request", path: "/app/friends?tab=requests" }),
+    manage: true,
     check: (p) => p.username,
   }),
   "room-invite": notice({
     id: "room-invite",
     schema: z.object({
+      /** First name of the person who invited. */
       name: z.string().min(1).max(60),
+      to: z.string().min(1).max(60),
       title: z.string().min(1).max(80),
+      topic: z.string().max(60).nullable().default(null),
+      host: z.string().max(60).nullable().default(null),
+      /** The start time in the recipient's own zone, 12 hour. Left out for a room that is live now. */
+      when: z.string().max(80).nullable().default(null),
       path: z.string().startsWith("/app/"),
     }),
-    sample: { name: "Ada", title: "Match day gist", path: "/app/rooms/abc123" },
-    subject: (p) => `${p.name} invited you to a room`,
-    preheader: (p) => `${p.title}`,
-    heading: (p) => p.title,
-    paragraphs: (p) => [`${p.name} invited you to join this room.`],
-    action: (p) => ({ label: "Join the room", path: p.path }),
+    sample: {
+      name: "Ada",
+      to: "Tunde Bello",
+      title: "Football talk",
+      topic: "Football",
+      host: "Ada Okafor",
+      when: "Today, 7:30 PM",
+      path: "/app/rooms/abc123",
+    },
+    subject: (p) => `${firstName(p.name)} invited you to ${p.title} on Gistroom`,
+    preheader: (p) => (p.when ? `${p.title} starts ${p.when}.` : `${p.title} is live now.`),
+    heading: (p) => `Hi ${firstName(p.to)}, you are invited`,
+    paragraphs: (p) => [
+      `${p.name} invited you to join ${p.title}.`,
+      ...(p.topic ? [`Topic: ${p.topic}`] : []),
+      ...(p.host ? [`Hosted by ${p.host}`] : []),
+      p.when ? `Starts: ${p.when}` : "It is live right now.",
+    ],
+    action: (p) => ({ label: "Join room", path: p.path }),
+    manage: true,
     check: (p) => p.title,
   }),
   "room-starting-soon": notice({
     id: "room-starting-soon",
-    schema: z.object({ title: z.string().min(1).max(80), path: z.string().startsWith("/app/") }),
-    sample: { title: "Match day gist", path: "/app/rooms/abc123" },
-    subject: (p) => `${p.title} starts soon`,
-    preheader: () => "Your room starts in a few minutes.",
-    heading: (p) => `${p.title} starts soon`,
-    paragraphs: () => ["The room you are going to starts in a few minutes."],
+    schema: z.object({
+      to: z.string().min(1).max(60),
+      title: z.string().min(1).max(80),
+      when: z.string().max(80),
+      path: z.string().startsWith("/app/"),
+    }),
+    sample: {
+      to: "Tunde Bello",
+      title: "Match day gist",
+      when: "7:30 PM",
+      path: "/app/rooms/abc123",
+    },
+    subject: (p) => `${p.title} starts at ${p.when}`,
+    preheader: () => "Your room starts in 15 minutes.",
+    heading: (p) => `${firstName(p.to)}, ${p.title} starts soon`,
+    paragraphs: (p) => [`The room starts at ${p.when}, in about 15 minutes.`],
     action: (p) => ({ label: "Open the room", path: p.path }),
+    manage: true,
     check: (p) => p.title,
+  }),
+  "room-ended-summary": notice({
+    id: "room-ended-summary",
+    schema: z.object({
+      to: z.string().min(1).max(60),
+      title: z.string().min(1).max(80),
+      duration: z.string().max(40),
+      peak: z.number().int().min(0),
+      attendees: z.number().int().min(0),
+      messages: z.number().int().min(0),
+      path: z.string().startsWith("/app/"),
+    }),
+    sample: {
+      to: "Ada Okafor",
+      title: "Football talk",
+      duration: "1 h 12 min",
+      peak: 14,
+      attendees: 21,
+      messages: 86,
+      path: "/app/rooms/abc123",
+    },
+    subject: (p) => `Your room ${p.title} has ended`,
+    preheader: (p) => `${p.attendees} people came.`,
+    heading: (p) => `${firstName(p.to)}, your room has ended`,
+    paragraphs: (p) => [
+      `${p.title} ran for ${p.duration}.`,
+      `${p.attendees} people came and ${p.peak} were there at the busiest moment. There were ${p.messages} chat messages.`,
+    ],
+    action: (p) => ({ label: "See the summary", path: p.path }),
+    manage: true,
+    check: (p) => p.title,
+  }),
+  "activity-digest": notice({
+    id: "activity-digest",
+    schema: z.object({
+      to: z.string().min(1).max(60),
+      requests: z
+        .array(z.object({ name: z.string().min(1).max(60), username: z.string().min(1).max(20) }))
+        .min(1)
+        .max(20),
+    }),
+    sample: {
+      to: "Tunde Bello",
+      requests: [
+        { name: "Ada Bello", username: "ada" },
+        { name: "Chidi Eze", username: "chidi" },
+      ],
+    },
+    subject: (p) =>
+      p.requests.length === 1
+        ? "1 friend request is waiting on Gistroom"
+        : `${p.requests.length} friend requests are waiting on Gistroom`,
+    preheader: () => "People want to be your friends.",
+    heading: (p) => `${firstName(p.to)}, you have friend requests`,
+    paragraphs: (p) => p.requests.map((r) => `${r.name} (@${r.username})`),
+    action: () => ({ label: "See the requests", path: "/app/friends?tab=requests" }),
+    manage: true,
+    check: (p) => p.requests[0]?.username ?? "",
   }),
   "data-export-ready": notice({
     id: "data-export-ready",

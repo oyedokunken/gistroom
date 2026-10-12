@@ -344,6 +344,7 @@ export const notifySettings = {
     ROOM_INVITE: "Room invites",
     ROOM_STARTING: "Rooms starting soon",
     ROOM_ROLE_CHANGED: "Room role changes",
+    ROOM_ENDED: "A room you were in ended",
     SECURITY_NEW_DEVICE: "New sign in on your account",
     REPORT_UPDATE: "Report updates",
     SYSTEM: "Gistroom notices",

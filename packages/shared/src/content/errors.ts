@@ -70,6 +70,8 @@ export const errors = {
   roomScheduleBad: "Pick a time in the future, within 30 days.",
   callsOff: "Calls are not switched on yet. Try again later.",
   callBusy: "On another call.",
+  callInRoom: "This person is in a room right now. They will see a missed call. Try again later.",
+  roomAlreadyIn: "Already in the room.",
   callAlready: "You are already in a call.",
   callOver: "That call is over.",
   uploadsOff: "File uploads are not switched on yet. Try again later.",

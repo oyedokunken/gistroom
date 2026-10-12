@@ -22,7 +22,7 @@ export function ChatsShell({ viewerId, children }: { viewerId: string; children:
       >
         <ConversationList viewerId={viewerId} />
       </section>
-      <section className={cn("min-h-0 min-w-0 flex-1", !open && "hidden md:block")}>
+      <section className={cn("min-h-0 min-w-0 flex-1 overflow-hidden", !open && "hidden md:block")}>
         {children}
       </section>
     </div>

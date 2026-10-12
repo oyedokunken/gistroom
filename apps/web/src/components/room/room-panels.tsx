@@ -59,7 +59,7 @@ import { Switch } from "@/components/ui/switch";
 import { roomCopy as copy } from "@/content/rooms";
 import { ApiClientError, apiFetch } from "@/lib/api";
 import { cn } from "@/lib/cn";
-import { roomApi } from "@/lib/rooms/api";
+import { roomApi, type RoomView } from "@/lib/rooms/api";
 import { formatClock, formatExpiry, formatFull, formatUntil } from "@/lib/time";
 
 const fail = (e: unknown) => (e instanceof ApiClientError ? e.message : copy.invite.loadError);
@@ -505,6 +505,18 @@ function InviteFriends({ room }: { room: RoomDto }) {
     queryKey: ["friends"],
     queryFn: () => apiFetch<{ friends: FriendDto[] }>("/api/friends"),
   });
+  const people = useQuery({
+    queryKey: ["room-members", room.slug],
+    queryFn: () => roomApi.members(room.slug),
+  });
+  // Friends who are in the room right now cannot be invited again.
+  const inside = useMemo(
+    () =>
+      new Set(
+        (people.data?.members ?? []).filter((m) => m.state === "JOINED").map((m) => m.user.id),
+      ),
+    [people.data],
+  );
   const list = useMemo(() => {
     const q = query.trim().toLowerCase();
     const all = friends.data?.friends ?? [];
@@ -577,12 +589,19 @@ function InviteFriends({ room }: { room: RoomDto }) {
         ) : (
           list.map((f) => {
             const on = picked.has(f.user.id);
+            const here = inside.has(f.user.id);
             return (
               <li key={f.user.id}>
-                <label className="flex min-h-12 cursor-pointer items-center gap-3 py-1">
+                <label
+                  className={cn(
+                    "flex min-h-12 items-center gap-3 py-1",
+                    here ? "cursor-not-allowed opacity-70" : "cursor-pointer",
+                  )}
+                >
                   <input
                     type="checkbox"
-                    checked={on}
+                    disabled={here}
+                    checked={on && !here}
                     onChange={() =>
                       setPicked((s) => {
                         const next = new Set(s);
@@ -597,6 +616,11 @@ function InviteFriends({ room }: { room: RoomDto }) {
                   <span className="min-w-0 flex-1 truncate font-semibold text-text">
                     {f.user.name}
                   </span>
+                  {here ? (
+                    <span className="shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
+                      {copy.invite.alreadyIn}
+                    </span>
+                  ) : null}
                 </label>
               </li>
             );
@@ -814,12 +838,31 @@ export function SettingsPanel({ room }: { room: RoomDto }) {
 
   const save = useMutation({
     mutationFn: (input: RoomSettingsInput) => roomApi.settings(room.slug, input),
+    // The switch moves the moment it is pressed. The server answer then confirms it, or puts it back.
+    onMutate: async (input) => {
+      const key = ["room", room.slug];
+      await queryClient.cancelQueries({ queryKey: key });
+      const before = queryClient.getQueryData<RoomView>(key);
+      if (before?.state === "OK") {
+        const next = { ...before.room.settings };
+        for (const k of Object.keys(next) as (keyof typeof next)[]) {
+          const v = (input as Record<string, unknown>)[k];
+          if (v !== undefined) (next as Record<string, unknown>)[k] = v;
+        }
+        const updated: RoomView = { state: "OK", room: { ...before.room, settings: next } };
+        queryClient.setQueryData<RoomView>(key, updated);
+      }
+      return { before };
+    },
     onSuccess: () => {
       setSaved(true);
       void queryClient.invalidateQueries({ queryKey: ["room", room.slug] });
       void queryClient.invalidateQueries({ queryKey: ["room-log", room.slug] });
     },
-    onError: (e) => showError(fail(e)),
+    onError: (e, _input, ctx) => {
+      if (ctx?.before) queryClient.setQueryData(["room", room.slug], ctx.before);
+      showError(fail(e));
+    },
   });
   const s = room.settings;
   const change = (input: RoomSettingsInput) => {

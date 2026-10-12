@@ -220,7 +220,7 @@ export function AppShell({ user, children }: { user: MeUser; children: ReactNode
 
         <FabHost />
         <SearchDialog />
-        <TourHost autoStart={false} />
+        <TourHost autoStart={false} username={user.username} />
         <Suspense fallback={null}>
           <WelcomeGate name={user.name} />
         </Suspense>

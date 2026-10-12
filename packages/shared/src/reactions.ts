@@ -27,4 +27,4 @@ export const REACTION_EMOJIS: readonly string[] = REACTIONS.map((r) => r.emoji);
 export const isReactionEmoji = (emoji: string): boolean => REACTION_EMOJIS.includes(emoji);
 
 /** Room reactions float for everyone, so only these ten are accepted there. A chat message takes any emoji. */
-export const ROOM_REACTION_RATE = { burst: 5, perSeconds: 10 } as const;
+export const ROOM_REACTION_RATE = { burst: 60, perSeconds: 10 } as const;

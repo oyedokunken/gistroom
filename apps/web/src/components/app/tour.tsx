@@ -17,7 +17,6 @@ import { tour } from "@/content/tour";
 import { cn } from "@/lib/cn";
 
 const icons: Record<(typeof tour.steps)[number]["icon"], LucideIcon> = {
-  sparkles: Sparkles,
   message: MessageCircle,
   mic: Mic,
   phone: Phone,
@@ -42,12 +41,13 @@ function markSeen() {
 }
 
 /** One walkthrough for the whole app. It opens on the first visit after sign up, and any "Take the tour" button reopens it. */
-export function TourHost({ autoStart }: { autoStart: boolean }) {
+export function TourHost({ autoStart, username }: { autoStart: boolean; username: string }) {
   const [open, setOpen] = useState(false);
-  const [step, setStep] = useState(0);
+  // -1 is the personal welcome. It always comes first, before any other prompt.
+  const [step, setStep] = useState(-1);
 
   const begin = useCallback(() => {
-    setStep(0);
+    setStep(-1);
     setOpen(true);
   }, []);
 
@@ -68,12 +68,32 @@ export function TourHost({ autoStart }: { autoStart: boolean }) {
   }, [autoStart, begin]);
 
   const total = tour.steps.length;
-  const current = tour.steps[step] ?? tour.steps[0]!;
+  const current = tour.steps[Math.max(0, step)] ?? tour.steps[0]!;
   const last = step === total - 1;
   const close = (value: boolean) => {
     setOpen(value);
     if (!value) markSeen();
   };
+
+  if (step === -1) {
+    return (
+      <Modal
+        open={open}
+        onOpenChange={close}
+        icon={Sparkles}
+        title={tour.intro.title(username)}
+        description={tour.intro.body}
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => close(false)}>
+              {tour.skip}
+            </Button>
+            <Button onClick={() => setStep(0)}>{tour.intro.explore}</Button>
+          </>
+        }
+      />
+    );
+  }
 
   return (
     <Modal

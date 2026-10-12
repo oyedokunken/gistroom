@@ -30,7 +30,7 @@ export const policies = {
   roomInvite: { name: "room-invite", limit: 40, windowSec: 3600 },
   roomGoing: { name: "room-going", limit: 30, windowSec: 3600 },
   roomMod: { name: "room-mod", limit: 120, windowSec: 60 },
-  roomReaction: { name: "room-reaction", limit: 5, windowSec: 10 },
+  roomReaction: { name: "room-reaction", limit: 60, windowSec: 10 },
   emailChange: { name: "email-change", limit: 5, windowSec: 3600 },
   usernameChange: { name: "username-change", limit: 5, windowSec: 86_400 },
   dataExport: { name: "data-export", limit: 3, windowSec: 3600 },

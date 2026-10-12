@@ -969,6 +969,11 @@ export async function inviteFriends(
         results.push({ userId, ok: false, reason: errors.notFriends });
         continue;
       }
+      const already = await memberOf(room.id, userId);
+      if (already?.state === "JOINED" || room.hostId === userId) {
+        results.push({ userId, ok: false, reason: errors.roomAlreadyIn });
+        continue;
+      }
       const conversationId = await ensureConversation(me.id, userId);
       await forwardRoom(me, slug, [conversationId]);
       await notify({

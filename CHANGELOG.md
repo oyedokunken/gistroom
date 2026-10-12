@@ -21,6 +21,9 @@ These are applied to the dev and test schemas already. Run them on production wi
 
 ### Test data and polish
 
+- Room reactions allow bursts (60 in 10 seconds). Room settings switches move the moment they are pressed. Friends already in the room show as Already in the room and cannot be invited again. Calling someone who is in a live room tells the caller, and leaves them a missed call.
+- The chats right pane no longer scrolls. The welcome tour opens with a personal Welcome, @username slide with Explore or Skip. The Rooms header buttons shrink to icons on small screens.
+
 - Rooms get a topic picture as their avatar in call logs, Past rooms and the room header. Stage tiles size themselves from the screen and the number of people. Chat call cards fill the width they have, and call logs use two columns on desktop. Times everywhere use 12 hours.
 - A scheduled room now has a lobby for people who are not the host: Remind me puts you on the list, and you get a notice (in the app and as a push) the moment the host starts it. The seed adds rooms hosted by the two test accounts that start soon.
 - Username and email can no longer be changed. Profile pages show Friends since. The emoji picker stays open for several picks. Voice notes in the upload tray read Voice note. The chats empty pane uses a picture, and Discover ends with the topic cards.

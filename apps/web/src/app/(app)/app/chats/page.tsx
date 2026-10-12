@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: chat.title };
 /** Desktop only: the right pane when no chat is open. On phones the list fills the screen. */
 export default function ChatsIndexPage() {
   return (
-    <div className="flex h-full items-center justify-center overflow-y-auto bg-surface-2 p-8">
+    <div className="flex h-full items-center justify-center overflow-hidden bg-surface-2 p-8">
       <div className="flex w-full max-w-md flex-col items-center gap-4 text-center">
         <Image
           src="/images/fab/chat.png"

@@ -8,14 +8,13 @@ export const tour = {
   back: "Back",
   skip: "Skip",
   done: "Start gisting",
+  intro: {
+    title: (username: string) => `Welcome, @${username}`,
+    body: "Your people, your rooms and your gist are all in one place now. Take a minute to see how it works, or jump straight in.",
+    explore: "Explore",
+  },
   stepOf: (n: number, total: number) => `Step ${n} of ${total}`,
   steps: [
-    {
-      id: "welcome",
-      icon: "sparkles",
-      title: "Welcome to Gistroom",
-      body: "Here is a quick look at what you can do. It takes a minute.",
-    },
     {
       id: "chats",
       icon: "message",

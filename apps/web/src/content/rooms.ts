@@ -211,6 +211,7 @@ export const roomCopy = {
   invite: {
     title: "Invite people",
     friends: "Invite friends",
+    alreadyIn: "Already in the room",
     friendsHelp:
       "Each friend you pick gets the room as a card in your chat. For a private room they are added to the invite list too.",
     friendsSearch: "Search your friends",

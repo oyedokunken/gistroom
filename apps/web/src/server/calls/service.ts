@@ -274,12 +274,20 @@ export async function startCall(
   if (mine) throw conflict(errors.callAlready);
 
   const now = new Date();
-  const busy = await db.call.findFirst({
+  const onCall = await db.call.findFirst({
     where: {
       status: "ACTIVE",
       OR: [{ callerId: callee.id }, { calleeId: callee.id }],
     },
   });
+  // Someone sitting in a live room cannot answer either. The caller is told, and the person sees a missed call.
+  const inRoom = onCall
+    ? null
+    : await db.roomMember.findFirst({
+        where: { userId: callee.id, state: "JOINED", room: { status: "LIVE" } },
+        select: { id: true },
+      });
+  const busy = onCall ?? inRoom;
   const created = await db.call.create({
     data: {
       callerId: me.id,
@@ -301,7 +309,7 @@ export async function startCall(
     const missed = logRow(created, "callee", "BUSY");
     if (missed) entries.push({ ...missed, outcome: "MISSED" });
     await db.callLogEntry.createMany({ data: entries });
-    throw conflict(errors.callBusy);
+    throw conflict(inRoom ? errors.callInRoom : errors.callBusy);
   }
 
   await db.scheduledJob.create({

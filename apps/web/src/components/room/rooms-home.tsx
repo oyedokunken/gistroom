@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Lock, Mic, Plus } from "lucide-react";
+import { History, Lock, Mic, Plus } from "lucide-react";
 import { LANGUAGE_LABELS, type PublicRoomCard, type RoomDto } from "@gistroom/shared";
 import { PageShell } from "@/components/app/page-shell";
 import { FabRegister } from "@/components/fab/fab-register";
@@ -72,12 +72,22 @@ export function RoomsHome({
       variant="full"
       title={pages.rooms.title}
       action={
-        <span className="flex flex-wrap items-center gap-2">
-          <Link href="/app/rooms/past" className={buttonStyles("secondary")}>
-            {copy.past.open}
+        <span className="flex shrink-0 items-center gap-2">
+          <Link
+            href="/app/rooms/past"
+            aria-label={copy.past.open}
+            className={buttonStyles("secondary", "min-w-11 px-3 sm:px-5")}
+          >
+            <History aria-hidden className="size-4" />
+            <span className="hidden sm:inline">{copy.past.open}</span>
           </Link>
-          <Button icon={<Plus aria-hidden className="size-4" />} onClick={() => setCreating(true)}>
-            {copy.start}
+          <Button
+            aria-label={copy.start}
+            className="min-w-11 px-3 sm:px-5"
+            icon={<Plus aria-hidden className="size-4" />}
+            onClick={() => setCreating(true)}
+          >
+            <span className="hidden min-[400px]:inline">{copy.start}</span>
           </Button>
         </span>
       }

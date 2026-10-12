@@ -51,11 +51,11 @@ export function Modal({
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-ink-950/55 data-[state=closed]:opacity-0 data-[state=open]:opacity-100 transition-opacity" />
+        <Dialog.Overlay className="fixed inset-0 z-[70] bg-ink-950/55 data-[state=closed]:opacity-0 data-[state=open]:opacity-100 transition-opacity" />
         <Dialog.Content
           data-modal
           className={cn(
-            "fixed left-1/2 top-1/2 z-50 flex max-h-[90dvh] w-[min(92vw,28rem)] -translate-x-1/2 -translate-y-1/2 flex-col items-center overflow-y-auto rounded-card bg-surface p-6 text-center shadow-lift",
+            "fixed left-1/2 top-1/2 z-[70] flex max-h-[90dvh] w-[min(92vw,28rem)] -translate-x-1/2 -translate-y-1/2 flex-col items-center overflow-y-auto rounded-card bg-surface p-6 text-center shadow-lift",
             "transition-[opacity,transform] data-[state=closed]:opacity-0 data-[state=open]:opacity-100",
             className,
           )}

@@ -9,7 +9,12 @@ import {
   toPublicUser,
   unreadChatCount,
 } from "@gistroom/db";
-import { defaultPrefs, notificationPrefsSchema, type MessageDto } from "@gistroom/shared";
+import {
+  defaultPrefs,
+  notificationPrefsSchema,
+  type MessageDto,
+  type RoomRole,
+} from "@gistroom/shared";
 import type { Store } from "./store";
 
 const dmKey = (a: string, b: string) => (a < b ? `${a}:${b}` : `${b}:${a}`);
@@ -181,8 +186,12 @@ export function createPrismaStore(): Store {
             id: row.id,
             clientId: row.clientId,
             sender: toPublicUser(sender),
+            senderRole: (room.hostId === sender.id
+              ? "HOST"
+              : (room.members.find((m) => m.userId === sender.id)?.role ?? "MEMBER")) as RoomRole,
             body: row.body,
             createdAt: row.createdAt.toISOString(),
+            reactions: [],
           };
         }
       }

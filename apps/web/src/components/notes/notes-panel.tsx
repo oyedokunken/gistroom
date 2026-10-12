@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Lock, Pencil, Trash2 } from "lucide-react";
+import { Lock, NotebookPen, Pencil, Plus, Trash2 } from "lucide-react";
 import { z } from "zod";
 import { noteBodySchema, type NoteDto } from "@gistroom/shared";
 import { useFeedback } from "@/components/feedback/feedback-provider";
@@ -31,12 +31,14 @@ const scopeQuery = (s: NotesScope) =>
 
 function NoteForm({
   initial,
+  focusOnMount,
   submitLabel,
   busyLabel,
   onSubmit,
   onCancel,
 }: {
   initial: string;
+  focusOnMount?: boolean;
   submitLabel: string;
   busyLabel: string;
   onSubmit: (body: string) => Promise<void>;
@@ -47,6 +49,11 @@ function NoteForm({
     defaultValues: { body: initial },
   });
   const body = form.watch("body");
+  const field = form.register("body");
+  const box = useRef<HTMLTextAreaElement | null>(null);
+  useEffect(() => {
+    if (focusOnMount) box.current?.focus();
+  }, [focusOnMount]);
   return (
     <form
       noValidate
@@ -58,7 +65,16 @@ function NoteForm({
     >
       <Field label={copy.label} error={form.formState.errors.body?.message}>
         {(props) => (
-          <Textarea {...props} rows={3} placeholder={copy.placeholder} {...form.register("body")} />
+          <Textarea
+            {...props}
+            rows={3}
+            placeholder={copy.placeholder}
+            {...field}
+            ref={(el) => {
+              field.ref(el);
+              box.current = el;
+            }}
+          />
         )}
       </Field>
       <div className="flex items-center justify-between gap-2">
@@ -83,6 +99,7 @@ export function NotesPanel({ scope }: { scope: NotesScope }) {
   const queryClient = useQueryClient();
   const { confirm, showError } = useFeedback();
   const [editing, setEditing] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
   const key = ["notes", scopeKey(scope)];
 
   const list = useQuery({
@@ -95,7 +112,10 @@ export function NotesPanel({ scope }: { scope: NotesScope }) {
 
   const add = useMutation({
     mutationFn: (body: string) => apiFetch("/api/notes", { body: { ...scope, body } }),
-    onSuccess: refresh,
+    onSuccess: () => {
+      setAdding(false);
+      void refresh();
+    },
     onError: fail,
   });
   const update = useMutation({
@@ -129,14 +149,27 @@ export function NotesPanel({ scope }: { scope: NotesScope }) {
         <Lock aria-hidden className="size-4 shrink-0 text-green-600" />
         {copy.privacy}
       </p>
-      <NoteForm
-        initial=""
-        submitLabel={copy.add}
-        busyLabel={copy.adding}
-        onSubmit={async (body) => {
-          await add.mutateAsync(body).catch(() => undefined);
-        }}
-      />
+      {adding ? (
+        <NoteForm
+          initial=""
+          focusOnMount
+          submitLabel={copy.add}
+          busyLabel={copy.adding}
+          onCancel={() => setAdding(false)}
+          onSubmit={async (body) => {
+            await add.mutateAsync(body).catch(() => undefined);
+          }}
+        />
+      ) : list.data && list.data.notes.length > 0 ? (
+        <Button
+          variant="secondary"
+          className="self-start"
+          icon={<Plus aria-hidden className="size-4" />}
+          onClick={() => setAdding(true)}
+        >
+          {copy.addButton}
+        </Button>
+      ) : null}
       {list.isPending ? (
         <div className="flex flex-col gap-2">
           <Skeleton className="h-16" />
@@ -150,7 +183,21 @@ export function NotesPanel({ scope }: { scope: NotesScope }) {
           </Button>
         </div>
       ) : list.data.notes.length === 0 ? (
-        <EmptyState icon="notes" title={copy.emptyTitle} body={copy.emptyBody} />
+        adding ? null : (
+          <EmptyState
+            icon="notes"
+            title={copy.emptyTitle}
+            body={copy.emptyBody}
+            action={
+              <Button
+                icon={<NotebookPen aria-hidden className="size-4" />}
+                onClick={() => setAdding(true)}
+              >
+                {copy.addButton}
+              </Button>
+            }
+          />
+        )
       ) : (
         <ul className="flex flex-col gap-2">
           {list.data.notes.map((n) => (

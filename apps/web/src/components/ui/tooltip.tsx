@@ -12,7 +12,7 @@ export function Tooltip({ content, children }: { content: string; children: Reac
       <RadixTooltip.Portal>
         <RadixTooltip.Content
           sideOffset={6}
-          className="z-50 rounded-lg bg-ink-950 px-3 py-1.5 text-sm text-white"
+          className="z-[70] rounded-lg bg-ink-950 px-3 py-1.5 text-sm text-white"
         >
           {content}
         </RadixTooltip.Content>

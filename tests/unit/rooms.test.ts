@@ -9,6 +9,7 @@ import {
   linkExpiry,
   linkState,
   nextHost,
+  roomSettingsSchema,
   slugFromBytes,
   type JoinInput,
 } from "../../packages/shared/src";
@@ -220,5 +221,36 @@ describe("creating a room", () => {
 describe("room limits", () => {
   it("keeps video publishers within the room cap", () => {
     expect(LIMITS.ROOM_MAX_VIDEO_PUBLISHERS).toBeLessThanOrEqual(LIMITS.ROOM_MAX_PARTICIPANTS);
+  });
+});
+
+describe("room settings and moderation additions", () => {
+  it("lets moderators change settings and turn off video, but not members", () => {
+    expect(canDo("MODERATOR", "SETTINGS")).toBe(true);
+    expect(canDo("MODERATOR", "MUTE_VIDEO")).toBe(true);
+    expect(canDo("MEMBER", "SETTINGS")).toBe(false);
+    expect(canDo("MEMBER", "MUTE_VIDEO")).toBe(false);
+    expect(canDo(null, "SETTINGS")).toBe(false);
+  });
+
+  it("accepts one setting at a time and refuses an empty or bad change", () => {
+    expect(roomSettingsSchema.safeParse({ chatMode: "OFF" }).success).toBe(true);
+    expect(roomSettingsSchema.safeParse({ slowModeSec: 15 }).success).toBe(true);
+    expect(roomSettingsSchema.safeParse({}).success).toBe(false);
+    expect(roomSettingsSchema.safeParse({ slowModeSec: 7 }).success).toBe(false);
+    expect(roomSettingsSchema.safeParse({ chatMode: "SOME" }).success).toBe(false);
+    expect(roomSettingsSchema.safeParse({ title: "   " }).success).toBe(false);
+  });
+
+  it("offers the four link lifetimes and defaults a new room to audio", () => {
+    expect(LIMITS.INVITE_LINK_TTL_OPTIONS_HOURS).toEqual([1, 12, 24, 168]);
+    expect(inviteLinkSchema.safeParse({ hours: 12 }).success).toBe(true);
+    expect(inviteLinkSchema.safeParse({ hours: 5 }).success).toBe(false);
+    expect(createRoomSchema.parse({ title: "Gist" }).media).toBe("AUDIO");
+    expect(createRoomSchema.parse({ title: "Gist", media: "VIDEO" }).media).toBe("VIDEO");
+  });
+
+  it("keeps no chat retention constant any more", () => {
+    expect("ROOM_CHAT_RETENTION_HOURS" in LIMITS).toBe(false);
   });
 });

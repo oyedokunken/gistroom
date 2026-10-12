@@ -16,8 +16,8 @@ export function Sheet({ open, onOpenChange, title, description, children }: Shee
   return (
     <Drawer.Root open={open} onOpenChange={onOpenChange}>
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 z-50 bg-ink-950/55" />
-        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 flex max-h-[85dvh] flex-col rounded-t-hero bg-surface p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-lift">
+        <Drawer.Overlay className="fixed inset-0 z-[70] bg-ink-950/55" />
+        <Drawer.Content className="fixed inset-x-0 bottom-0 z-[70] flex max-h-[85dvh] flex-col rounded-t-hero bg-surface p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-lift">
           <div aria-hidden className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-border" />
           <Drawer.Title className="text-xl font-bold text-text">{title}</Drawer.Title>
           <Drawer.Description className={description ? "mt-1 text-text-muted" : "sr-only"}>

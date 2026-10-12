@@ -51,7 +51,7 @@ export function Select({
         <RadixSelect.Content
           position="popper"
           sideOffset={6}
-          className="z-50 min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-input border border-border bg-surface shadow-soft"
+          className="z-[70] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-input border border-border bg-surface shadow-soft"
         >
           <RadixSelect.Viewport className="p-1">
             {options.map((o) => (

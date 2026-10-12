@@ -28,8 +28,10 @@ export function useRoomLiveKit(args: {
   url: string | null;
   token: string | null;
   lowData: boolean;
+  /** The room asked everyone to arrive muted. */
+  startMuted?: boolean;
 }): RoomLiveKit {
-  const { url, token, lowData } = args;
+  const { url, token, lowData, startMuted } = args;
   const roomRef = useRef<Room | null>(null);
   const audioHost = useRef<HTMLDivElement | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -112,7 +114,7 @@ export function useRoomLiveKit(args: {
         if (cancelled) return;
         setFlags((f) => ({ ...f, connected: true, failed: false }));
         try {
-          await room.localParticipant.setMicrophoneEnabled(true);
+          if (!startMuted) await room.localParticipant.setMicrophoneEnabled(true);
         } catch {
           setFlags((f) => ({ ...f, micBlocked: true }));
         }

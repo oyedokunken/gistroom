@@ -223,6 +223,16 @@ export function RealtimeProvider({ userId, children }: { userId: string; childre
     on("room:locked", ({ roomSlug }) => {
       void queryClient.invalidateQueries({ queryKey: ["room", roomSlug] });
     });
+    on("room:settings", ({ roomSlug }) => {
+      void queryClient.invalidateQueries({ queryKey: ["room", roomSlug] });
+      void queryClient.invalidateQueries({ queryKey: ["room-log", roomSlug] });
+    });
+    on("room:reaction", ({ roomSlug, userId: who, emoji }) => {
+      useRoomStore.getState().addReaction(roomSlug, who, emoji);
+    });
+    on("room:muted", ({ roomSlug, userId: who, kind }) => {
+      if (kind === "all" || who === userId) useRoomStore.getState().setNotice(roomSlug, kind);
+    });
     on("session:revoked", () => {
       socket.disconnect();
       router.replace("/login?error=session_expired");

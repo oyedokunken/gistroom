@@ -651,6 +651,8 @@ model RoomInviteLink {
   id          String    @id @default(cuid(2))
   roomId      String
   tokenHash   String    @unique
+  /// The link token, kept so active links can be shown in full to people who may share them. Never sent to anyone else.
+  token       String?
   createdById String
   expiresAt   DateTime
   maxUses     Int?

@@ -58,6 +58,12 @@ export interface ServerEvents {
   "room:chat:new": { roomSlug: string; message: RoomChatDto };
   "room:chat:deleted": { roomSlug: string; messageId: string };
   "room:locked": { roomSlug: string; locked: boolean };
+  /** A setting changed. Everyone in the room refetches it. */
+  "room:settings": { roomSlug: string };
+  /** A reaction floats up for everyone. Throttled per person on the server. */
+  "room:reaction": { roomSlug: string; userId: string; emoji: string };
+  /** A moderator muted your microphone or turned off your camera. */
+  "room:muted": { roomSlug: string; userId: string; kind: "audio" | "video" | "all" };
   "session:revoked": { sessionId: string };
   "auth:expired": Record<string, never>;
 }
@@ -87,9 +93,23 @@ export const internalEventSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("room"),
     roomId: id,
-    change: z.enum(["started", "ended", "member", "chat", "chat-deleted", "locked", "invite"]),
+    change: z.enum([
+      "started",
+      "ended",
+      "member",
+      "chat",
+      "chat-deleted",
+      "chat-updated",
+      "locked",
+      "invite",
+      "settings",
+      "reaction",
+      "muted",
+    ]),
     userId: id.optional(),
     messageId: id.optional(),
+    emoji: z.string().max(16).optional(),
+    kind: z.enum(["audio", "video", "all"]).optional(),
   }),
   z.object({
     type: z.literal("call"),

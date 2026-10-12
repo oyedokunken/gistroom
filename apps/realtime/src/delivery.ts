@@ -271,6 +271,32 @@ export function createDelivery(deps: DeliveryDeps) {
         for (const id of room.joinedIds)
           emitTo(io, id, "room:locked", { roomSlug: room.slug, locked: room.locked });
         return;
+      case "chat-updated":
+        // Reaction counts differ per person, so clients refetch the chat instead of being sent a copy.
+        for (const id of room.joinedIds)
+          emitTo(io, id, "room:chat:deleted", { roomSlug: room.slug, messageId: "" });
+        return;
+      case "settings":
+        for (const id of room.joinedIds) emitTo(io, id, "room:settings", { roomSlug: room.slug });
+        return;
+      case "reaction":
+        if (!event.userId || !event.emoji) return;
+        for (const id of room.joinedIds)
+          emitTo(io, id, "room:reaction", {
+            roomSlug: room.slug,
+            userId: event.userId,
+            emoji: event.emoji,
+          });
+        return;
+      case "muted":
+        if (!event.userId || !event.kind) return;
+        for (const id of room.joinedIds)
+          emitTo(io, id, "room:muted", {
+            roomSlug: room.slug,
+            userId: event.userId,
+            kind: event.kind,
+          });
+        return;
     }
   }
 

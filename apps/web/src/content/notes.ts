@@ -2,7 +2,9 @@ import { LIMITS } from "@gistroom/shared";
 
 export const notes = {
   title: "My notes",
-  privacy: "Only you can see these notes. The other people never do.",
+  heading: "Notes",
+  privacy: "Notes are private to you",
+  addButton: "Add note",
   label: "Write a note",
   placeholder: "Jot something down",
   add: "Save note",

@@ -11,7 +11,7 @@ import { FabRegister } from "@/components/fab/fab-register";
 import { CreateRoomModal } from "@/components/room/create-room-modal";
 import { RoomsExplorer } from "@/components/public/rooms-explorer";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonStyles } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { pages } from "@/content/app";
 import { roomCopy as copy } from "@/content/rooms";
@@ -72,9 +72,14 @@ export function RoomsHome({
       variant="full"
       title={pages.rooms.title}
       action={
-        <Button icon={<Plus aria-hidden className="size-4" />} onClick={() => setCreating(true)}>
-          {copy.start}
-        </Button>
+        <span className="flex flex-wrap items-center gap-2">
+          <Link href="/app/rooms/past" className={buttonStyles("secondary")}>
+            {copy.past.open}
+          </Link>
+          <Button icon={<Plus aria-hidden className="size-4" />} onClick={() => setCreating(true)}>
+            {copy.start}
+          </Button>
+        </span>
       }
     >
       {mine.isPending ? (

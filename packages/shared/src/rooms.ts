@@ -17,11 +17,45 @@ export const createRoomSchema = z.object({
   topicSlug: z.string().trim().max(60).nullish(),
   language: z.enum(LANGUAGES as unknown as [Language, ...Language[]]).default("ENGLISH"),
   visibility: z.enum(["PUBLIC", "PRIVATE"]).default("PUBLIC"),
+  /** Only a label on cards. Anyone can turn their camera on or off inside the room. */
+  media: z.enum(["AUDIO", "VIDEO"]).default("AUDIO"),
   description: z.string().trim().max(500).nullish(),
   /** ISO time. Leave out to start the room now. */
   scheduledFor: z.string().datetime().nullish(),
 });
 export type CreateRoomInput = z.infer<typeof createRoomSchema>;
+
+export const CHAT_MODES = ["EVERYONE", "MODERATORS", "OFF"] as const;
+export type RoomChatMode = (typeof CHAT_MODES)[number];
+export const SLOW_MODE_OPTIONS = [0, 5, 15, 30] as const;
+
+/** Everything the host and moderators can change while the room is live. Each field is optional so one switch is one call. */
+export const roomSettingsSchema = z
+  .object({
+    title: z.string().trim().min(1).max(LIMITS.ROOM_TITLE_MAX),
+    description: z.string().trim().max(500).nullable(),
+    topicSlug: z.string().trim().max(60).nullable(),
+    language: z.enum(LANGUAGES as unknown as [Language, ...Language[]]),
+    visibility: z.enum(["PUBLIC", "PRIVATE"]),
+    cameraAllowed: z.boolean(),
+    joinMuted: z.boolean(),
+    chatMode: z.enum(CHAT_MODES),
+    reactionsOn: z.boolean(),
+    slowModeSec: z
+      .number()
+      .int()
+      .refine((n) => (SLOW_MODE_OPTIONS as readonly number[]).includes(n)),
+    membersCanShare: z.boolean(),
+    unmuteLocked: z.boolean(),
+  })
+  .partial()
+  .refine((v) => Object.keys(v).length > 0);
+export type RoomSettingsInput = z.infer<typeof roomSettingsSchema>;
+
+export const roomReactionSchema = z.object({ emoji: z.string().min(1).max(16) });
+export const roomMessageReactionSchema = z.object({ emoji: z.string().min(1).max(16) });
+
+export const muteAllSchema = z.object({ lockUnmute: z.boolean().default(false) });
 
 export const roomChatSchema = z.object({
   clientId: z.string().trim().min(8).max(64),
@@ -38,7 +72,7 @@ export const inviteLinkSchema = z.object({
 });
 
 export const modActionSchema = z.object({
-  action: z.enum(["MUTE", "REMOVE", "BAN", "PROMOTE", "DEMOTE", "TRANSFER"]),
+  action: z.enum(["MUTE", "MUTE_VIDEO", "REMOVE", "BAN", "PROMOTE", "DEMOTE", "TRANSFER"]),
   userId: z.string().trim().min(1).max(64),
 });
 export type ModActionInput = z.infer<typeof modActionSchema>;
@@ -46,6 +80,11 @@ export type ModActionInput = z.infer<typeof modActionSchema>;
 export const roomForwardSchema = z.object({
   /** Conversation ids to send the room link to. */
   conversationIds: z.array(z.string().trim().min(1).max(64)).min(1).max(10),
+});
+
+/** Invite friends by person. The server finds or opens the chat and sends the invite card. */
+export const roomInviteFriendsSchema = z.object({
+  userIds: z.array(z.string().trim().min(1).max(64)).min(1).max(20),
 });
 
 // ---------- Slugs ----------
@@ -116,6 +155,8 @@ export function joinVerdict(i: JoinInput): JoinVerdict {
 
 export type RoomAbility =
   | "MUTE"
+  | "MUTE_VIDEO"
+  | "SETTINGS"
   | "MUTE_ALL"
   | "REMOVE"
   | "BAN"
@@ -131,6 +172,8 @@ export type RoomAbility =
 
 const MODERATOR_ABILITIES: ReadonlySet<RoomAbility> = new Set([
   "MUTE",
+  "MUTE_VIDEO",
+  "SETTINGS",
   "MUTE_ALL",
   "REMOVE",
   "BAN",
@@ -212,8 +255,20 @@ export interface RoomDto {
   host: PublicUser;
   joined: number;
   max: number;
+  media: "AUDIO" | "VIDEO";
+  settings: RoomSettingsDto;
   /** The viewer's role, or null when they are not in the room list. */
   myRole: RoomRole | null;
+}
+
+export interface RoomSettingsDto {
+  cameraAllowed: boolean;
+  joinMuted: boolean;
+  chatMode: RoomChatMode;
+  reactionsOn: boolean;
+  slowModeSec: number;
+  membersCanShare: boolean;
+  unmuteLocked: boolean;
 }
 
 export interface RoomJoin {
@@ -223,12 +278,52 @@ export interface RoomJoin {
   role: RoomRole;
 }
 
+export interface RoomChatReactionDto {
+  emoji: string;
+  count: number;
+  mine: boolean;
+}
+
 export interface RoomChatDto {
   id: string;
   clientId: string;
   sender: PublicUser;
+  /** The sender's role in this room, for the Host and Moderator badges. */
+  senderRole: RoomRole;
   body: string;
   createdAt: string;
+  reactions: RoomChatReactionDto[];
+}
+
+export interface RoomLinkDto {
+  id: string;
+  url: string;
+  expiresAt: string;
+  maxUses: number | null;
+  usedCount: number;
+  state: LinkState;
+}
+
+export interface RoomSummaryDto {
+  slug: string;
+  title: string;
+  topicName: string | null;
+  media: "AUDIO" | "VIDEO";
+  host: PublicUser;
+  startedAt: string | null;
+  endedAt: string | null;
+  durationSec: number;
+  peakParticipants: number;
+  attendeeCount: number;
+  messageCount: number;
+  reactionCount: number;
+  /** Only people who attended see who was there. */
+  attendees: PublicUser[] | null;
+  /** Only the host sees these. */
+  modActionCount: number | null;
+  /** The viewer's private notes for this room. */
+  notes: { id: string; body: string; createdAt: string }[];
+  attended: boolean;
 }
 
 export interface RoomModLogDto {

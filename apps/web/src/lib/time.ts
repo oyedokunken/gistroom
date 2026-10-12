@@ -45,3 +45,28 @@ export function formatDuration(totalSeconds: number): string {
   }
   return `${m}:${String(rest).padStart(2, "0")}`;
 }
+
+/** A clock time with AM or PM in the viewer's own zone, plus the day when it is not today. For link expiry. */
+export function formatExpiry(date: Date, now: Date = new Date()): string {
+  const clock = new Intl.DateTimeFormat("en-NG", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  })
+    .format(date)
+    .replace(/\s?([ap])\.?m\.?/i, (_m, x: string) => ` ${x.toUpperCase()}M`);
+  const sameDay = date.toDateString() === now.toDateString();
+  if (sameDay) return clock;
+  const day = new Intl.DateTimeFormat("en-NG", { day: "numeric", month: "short" }).format(date);
+  return `${day}, ${clock}`;
+}
+
+/** "5 hours" or "12 minutes" until a time. Never negative. */
+export function formatUntil(date: Date, now: Date = new Date()): string {
+  const min = Math.max(1, Math.round((date.getTime() - now.getTime()) / 60_000));
+  if (min < 60) return `${min} ${min === 1 ? "minute" : "minutes"}`;
+  const hr = Math.round(min / 60);
+  if (hr < 48) return `${hr} ${hr === 1 ? "hour" : "hours"}`;
+  const day = Math.round(hr / 24);
+  return `${day} days`;
+}

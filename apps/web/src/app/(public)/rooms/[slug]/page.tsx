@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getDb, toPublicUser } from "@gistroom/db";
 import { LANGUAGE_LABELS } from "@gistroom/shared";
 import { PublicPage } from "@/components/public/public-page";
@@ -45,8 +45,20 @@ export async function generateMetadata({
   });
 }
 
-export default async function PublicRoomPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+export default async function PublicRoomPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ invite?: string }>;
+}) {
+  const [{ slug }, query] = await Promise.all([params, searchParams]);
+  // An invite link goes to the app, where the link is checked. Signed out people sign in first and come back to it.
+  if (query.invite) {
+    const target = `/app/rooms/${encodeURIComponent(slug)}?invite=${encodeURIComponent(query.invite)}`;
+    const who = await getSessionContext().catch(() => null);
+    redirect(who ? target : `/login?next=${encodeURIComponent(target)}`);
+  }
   const room = await loadRoom(slug);
   if (!room || room.status === "ENDED") notFound();
 

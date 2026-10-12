@@ -25,7 +25,7 @@ export function PopoverContent({
         side={side}
         sideOffset={8}
         collisionPadding={12}
-        className={cn("z-50 rounded-card border border-border bg-surface shadow-lift", className)}
+        className={cn("z-[70] rounded-card border border-border bg-surface shadow-lift", className)}
       >
         {children}
       </RadixPopover.Content>

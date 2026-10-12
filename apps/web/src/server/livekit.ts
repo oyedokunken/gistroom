@@ -20,6 +20,8 @@ export interface TokenInput {
   ttlSec: number;
   now?: Date;
   canPublish?: boolean;
+  /** Limit what the person may publish, for example camera only after "mute everyone". */
+  canPublishSources?: readonly ("microphone" | "camera" | "screen_share")[];
   /** Server to server grant for moderation calls. Never given to a browser. */
   admin?: boolean;
 }
@@ -38,9 +40,10 @@ export function signLiveKitToken(input: TokenInput): string {
       : {
           room: input.room,
           roomJoin: true,
-          canPublish: input.canPublish ?? true,
+          canPublish: input.canPublish ?? input.canPublishSources?.length !== 0,
           canSubscribe: true,
           canPublishData: true,
+          ...(input.canPublishSources ? { canPublishSources: [...input.canPublishSources] } : {}),
         },
   };
   const body = `${b64(header)}.${b64(payload)}`;
@@ -59,6 +62,7 @@ export function mintJoin(input: {
   name: string;
   room: string;
   ttlSec?: number;
+  canPublishSources?: readonly ("microphone" | "camera" | "screen_share")[];
 }): { token: string; url: string } {
   const env = getEnv();
   if (!env.LIVEKIT_URL || !env.LIVEKIT_API_KEY || !env.LIVEKIT_API_SECRET) {
@@ -73,6 +77,7 @@ export function mintJoin(input: {
       name: input.name,
       room: input.room,
       ttlSec: input.ttlSec ?? 2 * 3600,
+      canPublishSources: input.canPublishSources,
     }),
   };
 }
@@ -119,11 +124,41 @@ interface Participant {
   tracks?: { sid: string; type?: string | number; muted?: boolean }[];
 }
 
-/** Mute one person's microphone, or everyone's except the people listed. */
+export type PublishSource = "microphone" | "camera" | "screen_share";
+
+/** What people already inside may publish. Used for "only moderators can unmute" and "cameras off". */
+export async function setPublishSources(
+  room: string,
+  identities: readonly string[],
+  sources: readonly PublishSource[],
+): Promise<void> {
+  for (const identity of identities) {
+    await roomService(room, "UpdateParticipant", {
+      room,
+      identity,
+      permission: {
+        can_subscribe: true,
+        can_publish: sources.length > 0,
+        can_publish_data: true,
+        can_publish_sources: sources.map((s) => s.toUpperCase()),
+      },
+    });
+  }
+}
+
+export async function listIdentities(room: string): Promise<string[]> {
+  const list = await roomService<{ participants?: Participant[] }>(room, "ListParticipants", {
+    room,
+  });
+  return (list?.participants ?? []).map((p) => p.identity);
+}
+
+/** Mute one person's microphone or camera, or everyone's microphone except the people listed. */
 export async function muteInLiveKit(
   room: string,
   only: string | null,
   except: readonly string[] = [],
+  kind: "audio" | "video" = "audio",
 ): Promise<void> {
   const list = await roomService<{ participants?: Participant[] }>(room, "ListParticipants", {
     room,
@@ -131,8 +166,9 @@ export async function muteInLiveKit(
   for (const p of list?.participants ?? []) {
     if (only ? p.identity !== only : except.includes(p.identity)) continue;
     for (const t of p.tracks ?? []) {
-      const audio = t.type === "AUDIO" || t.type === 0;
-      if (audio && !t.muted) {
+      const wanted =
+        kind === "audio" ? t.type === "AUDIO" || t.type === 0 : t.type === "VIDEO" || t.type === 1;
+      if (wanted && !t.muted) {
         await roomService(room, "MutePublishedTrack", {
           room,
           identity: p.identity,

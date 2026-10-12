@@ -22,6 +22,7 @@ import {
   DropdownTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AttachmentView } from "./attachment-views";
+import { RoomInviteCard } from "./room-invite-card";
 import { MoreReactions } from "./more-reactions";
 import { ReactionChips } from "./reaction-chips";
 import { ReceiptTicks } from "./receipt-ticks";
@@ -97,8 +98,13 @@ export function ChatBubble({
           </span>
         </span>
       ) : null}
+      {message.type === "ROOM_INVITE" && !message.deletedForEveryone ? (
+        <RoomInviteCard message={message} mine={mine} />
+      ) : null}
       {hasMedia ? <AttachmentView message={message} mine={mine} /> : null}
-      {!hasMedia || body ? <span className={cn(hasMedia && "mt-1.5 block")}>{body}</span> : null}
+      {message.type === "ROOM_INVITE" && !message.deletedForEveryone ? null : !hasMedia || body ? (
+        <span className={cn(hasMedia && "mt-1.5 block")}>{body}</span>
+      ) : null}
       <span className="mt-1 flex items-center justify-end gap-1.5 text-[0.6875rem] leading-none opacity-80">
         {message.editedAt ? (
           <span title={chat.edit.labelTitle(formatFull(new Date(message.editedAt)))}>

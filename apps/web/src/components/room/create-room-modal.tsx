@@ -5,12 +5,20 @@ import { Mic } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { LANGUAGES, LANGUAGE_LABELS, LIMITS, TOPICS, type Language } from "@gistroom/shared";
+import {
+  LANGUAGES,
+  LANGUAGE_LABELS,
+  LIMITS,
+  TOPIC_GROUPS,
+  TOPICS,
+  type Language,
+} from "@gistroom/shared";
 import { useFeedback } from "@/components/feedback/feedback-provider";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/field";
 import { Modal } from "@/components/ui/modal";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
+import { Combobox } from "@/components/ui/combobox";
 import { Select } from "@/components/ui/select";
 import { roomCopy } from "@/content/rooms";
 import { ApiClientError } from "@/lib/api";
@@ -25,6 +33,7 @@ const schema = z.object({
   topicSlug: z.string().optional(),
   language: z.string(),
   visibility: z.enum(["PUBLIC", "PRIVATE"]),
+  media: z.enum(["AUDIO", "VIDEO"]),
   description: z.string().trim().max(500, "Use 500 characters or fewer."),
   scheduledFor: z.string(),
 });
@@ -50,12 +59,14 @@ export function CreateRoomModal({
       topicSlug: initialTopic ?? "",
       language: "ENGLISH",
       visibility: "PUBLIC",
+      media: "AUDIO",
       description: "",
       scheduledFor: "",
     },
   });
   const errors = form.formState.errors;
   const visibility = form.watch("visibility");
+  const media = form.watch("media");
   const scheduled = form.watch("scheduledFor") !== "";
 
   async function submit(v: Values) {
@@ -65,6 +76,7 @@ export function CreateRoomModal({
         topicSlug: v.topicSlug || null,
         language: v.language as Language,
         visibility: v.visibility,
+        media: v.media,
         description: v.description || null,
         scheduledFor: v.scheduledFor ? new Date(v.scheduledFor).toISOString() : null,
       });
@@ -100,12 +112,18 @@ export function CreateRoomModal({
                 control={form.control}
                 name="topicSlug"
                 render={({ field }) => (
-                  <Select
+                  <Combobox
                     id={props.id}
                     value={field.value || undefined}
                     onValueChange={field.onChange}
                     placeholder={copy.topicPlaceholder}
-                    options={TOPICS.map((t) => ({ value: t.slug, label: t.name }))}
+                    searchLabel={copy.topicPlaceholder}
+                    emptyText={copy.topicEmpty}
+                    options={TOPICS.map((t) => ({
+                      value: t.slug,
+                      label: t.name,
+                      hint: TOPIC_GROUPS.find((g) => g.id === t.group)?.label,
+                    }))}
                   />
                 )}
               />
@@ -127,6 +145,27 @@ export function CreateRoomModal({
               />
             )}
           </Field>
+        </div>
+        <div className="flex flex-col gap-2">
+          <span className="text-sm font-semibold text-text">{copy.mediaLabel}</span>
+          <Controller
+            control={form.control}
+            name="media"
+            render={({ field }) => (
+              <SegmentedTabs
+                label={copy.mediaLabel}
+                value={field.value}
+                onChange={(v) => field.onChange(v)}
+                options={[
+                  { value: "AUDIO", label: copy.audio },
+                  { value: "VIDEO", label: copy.video },
+                ]}
+              />
+            )}
+          />
+          <p className="text-sm text-text-muted">
+            {media === "AUDIO" ? copy.audioHelp : copy.videoHelp}
+          </p>
         </div>
         <div className="flex flex-col gap-2">
           <span className="text-sm font-semibold text-text">{copy.visibilityLabel}</span>

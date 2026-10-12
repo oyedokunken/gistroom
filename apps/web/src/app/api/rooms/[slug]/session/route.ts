@@ -5,12 +5,14 @@ import { endRoom, leaveRoom, muteAll, setLocked, startRoom } from "@/server/room
 
 const schema = z.object({
   action: z.enum(["leave", "start", "end", "mute-all", "lock", "unlock"]),
+  /** With mute-all: only moderators can unmute people afterwards. */
+  lockUnmute: z.boolean().optional(),
 });
 
 /** Things you do to the room as a whole: leave, start a scheduled one, end it, mute everyone, lock or unlock. */
 export const POST = api(async (request, ctx: { params: Promise<{ slug: string }> }) => {
   const { user } = await requireOnboarded();
-  const { action } = await parseJson(request, schema);
+  const { action, lockUnmute } = await parseJson(request, schema);
   const { slug } = await ctx.params;
   switch (action) {
     case "leave":
@@ -22,7 +24,7 @@ export const POST = api(async (request, ctx: { params: Promise<{ slug: string }>
       await endRoom(user, slug);
       return json({ ok: true });
     case "mute-all":
-      await muteAll(user, slug);
+      await muteAll(user, slug, { lockUnmute });
       return json({ ok: true });
     case "lock":
     case "unlock":

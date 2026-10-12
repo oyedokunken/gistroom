@@ -294,7 +294,7 @@ Safety and ops
 - `RateLimit`: key, window start, count (database-backed limiter for the Vercel side).
 - `EmailOutbox`: failed non-sensitive emails retried by the daily job.
 
-Account deletion (decision D5): confirm by email OTP, mark `DELETED`, delete avatar and media files, anonymize the person to "Deleted user" in other people's chats and call logs, keep reports. Offer a JSON data export before deletion.
+Account deletion (decision D5): confirm by email OTP, mark `DELETED`, delete avatar and media files, anonymize the person to "Deleted user" in other people's chats and call logs, keep reports. Offer a PDF data report before deletion.
 
 ---
 
@@ -421,7 +421,7 @@ In-app list with unread filter, read, unread, delete, clear all. Bell with count
 
 ### 9.9 Settings
 
-Profile, Privacy (discoverable, presence, read receipts, who can invite me to Rooms), Notifications (per type, previews, quiet hours, test notification button), Devices (sessions), Data saver, Install app, Export my data (JSON), Delete account.
+Profile, Privacy (discoverable, presence, read receipts, who can invite me to Rooms), Notifications (per type, previews, quiet hours, test notification button), Devices (sessions), Data saver, Install app, Export my data (a PDF report, with a notice in the list when it is downloaded), Delete account.
 
 ---
 

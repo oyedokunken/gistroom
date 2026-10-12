@@ -181,11 +181,12 @@ test.describe("settings, one by one", () => {
     const download = page.waitForEvent("download");
     await page.getByRole("button", { name: "Download my data" }).click();
     const file = await download;
-    expect(file.suggestedFilename()).toBe(`gistroom-${me.user.username}.json`);
+    expect(file.suggestedFilename()).toBe(`gistroom-${me.user.username}.pdf`);
     const path = await file.path();
     const { readFileSync } = await import("node:fs");
-    const exported = JSON.parse(readFileSync(path, "utf8")) as { profile: { email: string } };
-    expect(exported.profile.email).toBe(me.email);
+    const bytes = readFileSync(path);
+    expect(bytes.subarray(0, 5).toString("latin1")).toBe("%PDF-");
+    expect(bytes.toString("latin1")).toContain("Your Gistroom data report");
 
     await page.getByRole("button", { name: "Delete my account" }).click();
     const dialog = page.getByRole("dialog");

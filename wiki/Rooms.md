@@ -16,3 +16,7 @@ Group calls created on the fly or scheduled, public or private, 32 participants,
 - Invites: friends are invited by name, each gets a Room card in their chat. Links last 1 hour, 12 hours, 1 day or 7 days, can have a maximum number of uses, show in full and revoke at once. Public room members share the plain room link unless the host turns that off. Only the host and moderators make expiring links.
 - Ended rooms: a record stays. Everyone sees that it ended. People who were there see the summary, who came and their own notes. Only the host sees the moderator action count. Past rooms lists every room you hosted or attended.
 - Internal QA accounts (`User.isInternal`) and their rooms are invisible to everyone else.
+
+## Scheduled rooms and Remind me
+
+Only the host can start a scheduled room. Everyone else sees a lobby with the host, time and topic. Remind me adds them to the member list as invited (public rooms only, private rooms use their own list), and the lobby then says they are on the list. When the host starts the room, each person on the list gets one ROOM_STARTING notice with `live: true`, in the app and as a push, and their lobby turns into a Join button. The 15 minute reminder still goes to the same people. Take me off the list removes the row again.

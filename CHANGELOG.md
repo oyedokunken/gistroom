@@ -21,6 +21,11 @@ These are applied to the dev and test schemas already. Run them on production wi
 
 ### Test data and polish
 
+- Rooms get a topic picture as their avatar in call logs, Past rooms and the room header. Stage tiles size themselves from the screen and the number of people. Chat call cards fill the width they have, and call logs use two columns on desktop. Times everywhere use 12 hours.
+- A scheduled room now has a lobby for people who are not the host: Remind me puts you on the list, and you get a notice (in the app and as a push) the moment the host starts it. The seed adds rooms hosted by the two test accounts that start soon.
+- Username and email can no longer be changed. Profile pages show Friends since. The emoji picker stays open for several picks. Voice notes in the upload tray read Voice note. The chats empty pane uses a picture, and Discover ends with the topic cards.
+- Export my data is now a PDF report written by a small built in writer (no new dependency), and downloading it adds a notice to your list.
+
 - `npm run seed:friends` builds a test world of 30 Nigerian people around real accounts, with chats, calls and rooms, and `--remove` deletes all of it. `npm run seed:act` makes a seeded person message or friend request a real account. See `wiki/Test-Data.md`.
 - Chat heads show a green dot and Active now or Last seen for the other person, from the server as well as the socket. Calls appear in the middle of a chat with a voice or video icon, how long it lasted and when it started, and never count as unread.
 - Signing in with an email or username that has no account stops at step one. Auth fields have placeholders, the Terms and Privacy Policy are links, and confirm password sits under the password with the rules after it.

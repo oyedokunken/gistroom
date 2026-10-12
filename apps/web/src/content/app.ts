@@ -200,7 +200,7 @@ export const settings = {
     heading: "Data and account",
     exportHeading: "Export your data",
     exportBody:
-      "Download a copy of what you gave Gistroom: your profile, friends, the messages you sent, notes, calls and rooms. Other people's messages are not included.",
+      "Download a PDF copy of what you gave Gistroom: your profile, friends, the messages you sent, notes, calls and rooms. Other people's messages are not included.",
     exportAction: "Download my data",
     exportLimit: "You can export a few times an hour.",
     reauthTitle: "Confirm it is you",

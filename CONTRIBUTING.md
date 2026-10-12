@@ -28,6 +28,7 @@ These are rules R1 to R24 from Section 2 of CLAUDE.md. The checkers enforce most
 ## Checks
 
 ```bash
+npm run verify:changed # only what your changes touch, compared with origin/main
 npm run verify:quick   # copy, ui, lint, typecheck, unit tests
 npm run verify         # everything, must be green before you push
 ```

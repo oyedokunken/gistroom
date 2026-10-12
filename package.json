@@ -29,6 +29,7 @@
     "test:a11y": "npm run e2e:build && playwright test --grep @a11y",
     "test:responsive": "npm run e2e:build && playwright test --grep @responsive",
     "verify": "npm run lint:copy && npm run lint:ui && npm run lint:font && npm run lint && npm run typecheck && npm run lint:graphics && npm run test:unit && npm run test:integration && npm run test:socket && npm run build && npm run test:browser && npm run test:a11y && npm run test:responsive",
+    "verify:changed": "node scripts/verify-changed.mjs",
     "verify:quick": "npm run lint:copy && npm run lint:ui && npm run lint && npm run typecheck && npm run test:unit",
     "brand": "node scripts/brand.mjs",
     "mail:preview": "tsx --tsconfig apps/web/tsconfig.json scripts/mail-preview.ts",

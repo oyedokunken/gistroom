@@ -23,6 +23,8 @@ These are applied to the dev and test schemas already. Run them on production wi
 
 ### Test data and polish
 
+- `npm run verify:changed` runs only the checks that match the files you changed.
+
 - What you send in a chat (photo, video, voice note, file) now shows in the thread as a dulled bubble that says Sending until it is done, instead of a loading tray. A failed one offers Retry and Remove.
 - The data report PDF has the Gistroom logo on a green cover band, your picture or initials, a numbers strip, tidy lists, 12 hour times and a footer with the time and page numbers.
 - The call log filters People and Rooms, and search matches room titles. Settings, Devices says Active now for this device. Settings, Install shows Installed or Not installed. Past rooms use two columns on desktop. Global search has All, People, Chats, Rooms and Notes filters. FAQ items are white, yellow on hover and green when open. Voice notes no longer overflow their bubble.

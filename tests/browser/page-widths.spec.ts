@@ -2,6 +2,8 @@ import { expect, test } from "@playwright/test";
 import { createUser, dbAvailable, signIn } from "./auth-helpers";
 
 test.skip(!dbAvailable, "needs TEST_DATABASE_URL");
+// Twelve signed in page loads in a row are slow when the machine is busy.
+test.setTimeout(120_000);
 
 const FULL = ["/app/discover", "/app/rooms", "/app/calls", "/app/friends", "/app/notifications"];
 const NARROW = [

@@ -21,6 +21,7 @@ import { enforce, policies } from "../rate-limit";
 import { isUniqueViolation } from "../db-errors";
 import { celebrateIfDue } from "../friends/anniversary";
 import { areFriends, isBlockedEitherWay } from "../friends/relations";
+import { recordActivity } from "../notifications/activity";
 import { notify } from "../notifications/service";
 import { publish } from "../realtime";
 import {
@@ -499,16 +500,36 @@ export async function setArchived(
   conversationId: string,
   archived: boolean,
 ): Promise<void> {
-  await accessFor(me.id, conversationId);
+  const access = await accessFor(me.id, conversationId);
   await getDb().conversationMember.update({
     where: { conversationId_userId: { conversationId, userId: me.id } },
     data: { archivedAt: archived ? new Date() : null },
   });
+  if (archived) {
+    const peer = await peerName(me.id, conversationId);
+    void access;
+    await recordActivity({
+      userId: me.id,
+      kind: "archived",
+      text: `You archived your chat with ${peer}.`,
+      href: "/app/chats",
+      undo: { action: "unarchive", conversationId },
+    });
+  }
+}
+
+async function peerName(meId: string, conversationId: string): Promise<string> {
+  const other = await getDb().conversationMember.findFirst({
+    where: { conversationId, userId: { not: meId } },
+    select: { user: { select: { name: true } } },
+  });
+  return other?.user.name ?? "someone";
 }
 
 /** Delete chat means clear for me: history before now is hidden, the chat leaves my list (Section 9.3). */
 export async function clearChat(me: User, conversationId: string): Promise<void> {
   await accessFor(me.id, conversationId);
+  const peer = await peerName(me.id, conversationId);
   await getDb().conversationMember.update({
     where: { conversationId_userId: { conversationId, userId: me.id } },
     data: { clearedAt: new Date(), archivedAt: null },
@@ -516,6 +537,11 @@ export async function clearChat(me: User, conversationId: string): Promise<void>
   await getDb().notification.updateMany({
     where: { userId: me.id, dedupeKey: `dm:${conversationId}`, readAt: null },
     data: { readAt: new Date(), dedupeKey: null },
+  });
+  await recordActivity({
+    userId: me.id,
+    kind: "chat-deleted",
+    text: `You deleted your chat with ${peer}. New messages bring it back with only new history.`,
   });
 }
 

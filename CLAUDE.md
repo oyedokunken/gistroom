@@ -349,7 +349,7 @@ Rules:
 - Receipts with Lucide `Check` and `CheckCheck` (sent, delivered, read). Read receipts obey the privacy setting.
 - Composer: text, emoji picker (lazy loaded), attach, voice note. Draft is kept per conversation. Send is optimistic with a client-generated `clientId`; failed sends show a retry affordance.
 - Offline: the app shell opens offline with cached chats; outgoing messages queue in IndexedDB and flush in order on reconnect without duplicates (idempotent on `clientId`).
-- Delete for me hides a message for the caller only. Delete for everyone is allowed for the sender within 60 minutes (D4) and replaces the bubble with "This message was deleted". Delete chat means clear for me (`clearedAt`) and remove from my list; new messages bring it back with only new history.
+- Delete for me hides a message for the caller only. Delete for everyone is allowed for the sender within 15 minutes (D4), and editing a text message is allowed for the same 15 minutes (the bubble shows Edited) and replaces the bubble with "This message was deleted". Delete chat means clear for me (`clearedAt`) and remove from my list; new messages bring it back with only new history.
 - Archive: archived chats stay archived when new messages arrive (D3), but the Archived row shows a dot. Unarchive manually.
 - Starred messages: per user, a screen listing them with jump-to-message.
 - Media tab in chat details: Media (images and videos in a grid with a lightbox), Files, Voice notes, Starred. Cursor paginated.
@@ -919,7 +919,7 @@ export const LIMITS = {
   FRIEND_REQUESTS_PER_DAY: 30,
   // Chat
   MESSAGE_MAX_CHARS: 4000,
-  DELETE_FOR_EVERYONE_WINDOW_MIN: 60,
+  DELETE_FOR_EVERYONE_WINDOW_MIN: 15,
   VOICE_NOTE_MAX_SEC: 300,
   IMAGE_MAX_RAW_MB: 15,
   IMAGE_TARGET_KB: 1500,
@@ -950,7 +950,7 @@ Defaults are chosen so work never blocks. The owner can change any of them; upda
 | D1  | Email and password plus Google. A code only at sign up, password reset and account deletion. Changed by the owner on 2026-10-10 from the passwordless default.                                           | Default, owner may switch to password plus OTP like Job Central |
 | D2  | One Supabase project, schemas `gistroom_dev` and `gistroom_test`, production gets its own project later                                                                                                  | Default                                                         |
 | D3  | Archived chats stay archived when new messages arrive                                                                                                                                                    | Default                                                         |
-| D4  | Delete for everyone allowed for 60 minutes                                                                                                                                                               | Default                                                         |
+| D4  | Delete for everyone allowed for 15 minutes (changed from 60 by the owner on 2026-10-12)                                                                                                                  | Decided                                                         |
 | D5  | Account deletion anonymizes the person in others' chats and keeps reports                                                                                                                                | Default                                                         |
 | D6  | Private Room: only invited people enter. A valid expiring invite link adds the opener to the invite list.                                                                                                | Default                                                         |
 | D7  | Graphik web license held by the owner                                                                                                                                                                    | Owner to confirm                                                |

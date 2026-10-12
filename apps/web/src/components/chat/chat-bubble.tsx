@@ -2,7 +2,17 @@
 
 import * as Menu from "@radix-ui/react-dropdown-menu";
 import { motion } from "motion/react";
-import { ChevronDown, Copy, CornerUpLeft, Pencil, Star, Trash2, Trash } from "lucide-react";
+import {
+  ChevronDown,
+  Copy,
+  CornerUpLeft,
+  Pencil,
+  SmilePlus,
+  Star,
+  Trash2,
+  Trash,
+} from "lucide-react";
+import { useState } from "react";
 import type { ReceiptStatus } from "@gistroom/shared";
 import {
   DropdownContent,
@@ -12,6 +22,7 @@ import {
   DropdownTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AttachmentView } from "./attachment-views";
+import { MoreReactions } from "./more-reactions";
 import { ReactionChips } from "./reaction-chips";
 import { ReceiptTicks } from "./receipt-ticks";
 import { chat, QUICK_REACTIONS } from "@/content/chat";
@@ -51,6 +62,7 @@ export function ChatBubble({
   actions,
 }: ChatBubbleProps) {
   const { message, mine, groupStart, groupEnd, pending } = row;
+  const [moreOpen, setMoreOpen] = useState(false);
   const date = new Date(message.createdAt);
   const failed = pending?.status === "failed";
   const local = pending !== null;
@@ -88,7 +100,11 @@ export function ChatBubble({
       {hasMedia ? <AttachmentView message={message} mine={mine} /> : null}
       {!hasMedia || body ? <span className={cn(hasMedia && "mt-1.5 block")}>{body}</span> : null}
       <span className="mt-1 flex items-center justify-end gap-1.5 text-[0.6875rem] leading-none opacity-80">
-        {message.editedAt ? <span>{chat.edit.label}</span> : null}
+        {message.editedAt ? (
+          <span title={chat.edit.labelTitle(formatFull(new Date(message.editedAt)))}>
+            {chat.edit.labelAt(formatClock(new Date(message.editedAt)))}
+          </span>
+        ) : null}
         {message.starred ? (
           <Star aria-label={chat.starredBadge} className="size-3 fill-current" />
         ) : null}
@@ -169,7 +185,7 @@ export function ChatBubble({
               <div
                 role="group"
                 aria-label={chat.reactionQuick}
-                className="flex justify-between gap-1 px-1 py-1"
+                className="grid grid-cols-5 gap-1 px-1 py-1"
               >
                 {QUICK_REACTIONS.map((emoji) => (
                   <Menu.Item
@@ -181,6 +197,9 @@ export function ChatBubble({
                   </Menu.Item>
                 ))}
               </div>
+              <DropdownItem icon={SmilePlus} onSelect={() => setMoreOpen(true)}>
+                {chat.reactionMore}
+              </DropdownItem>
               <DropdownSeparator />
               <DropdownItem icon={CornerUpLeft} onSelect={actions.onReply}>
                 {chat.actions.reply}
@@ -215,6 +234,7 @@ export function ChatBubble({
             className={cn("-mt-1.5", mine ? "mr-2 justify-end" : "ml-2")}
           />
         ) : null}
+        <MoreReactions open={moreOpen} onOpenChange={setMoreOpen} onPick={actions.onReact} />
       </motion.div>
     </div>
   );

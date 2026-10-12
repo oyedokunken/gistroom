@@ -194,6 +194,19 @@ export function ThreadView({
     }
   }
 
+  async function toggleArchive() {
+    if (!conversation) return;
+    if (!conversation.archived) {
+      const ok = await confirm({
+        title: chat.archiveConfirmTitle,
+        message: chat.archiveConfirmBody,
+        confirmLabel: chat.archiveConfirmLabel,
+      });
+      if (!ok) return;
+    }
+    patch.mutate({ archived: !conversation.archived });
+  }
+
   async function deleteEveryone(m: MessageDto) {
     const ok = await confirm({
       title: chat.deleteEveryoneTitle,
@@ -532,7 +545,7 @@ export function ThreadView({
           onOpenChange={setSettingsOpen}
           conversation={conversation}
           onToggleMute={() => patch.mutate({ muteMinutes: conversation.muted ? 0 : 8 * 60 })}
-          onToggleArchive={() => patch.mutate({ archived: !conversation.archived })}
+          onToggleArchive={() => void toggleArchive()}
           onStarred={() => setStarredOpen(true)}
           onReport={() => setReportOpen(true)}
           onBlock={() => void blockPeer()}

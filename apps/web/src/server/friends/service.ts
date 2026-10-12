@@ -3,6 +3,7 @@ import { errors, type FriendDto, type FriendRequestDto } from "@gistroom/shared"
 import { dmKeyFor, orderedPair } from "../cursor";
 import { AppError, notFound } from "../http";
 import { enforce, policies } from "../rate-limit";
+import { recordActivity } from "../notifications/activity";
 import { notify } from "../notifications/service";
 import { publish } from "../realtime";
 import { isUniqueViolation } from "../db-errors";
@@ -218,7 +219,10 @@ export async function unfriend(me: User, otherId: string): Promise<void> {
 export async function blockUser(me: User, otherId: string): Promise<void> {
   if (otherId === me.id) throw unavailable();
   const db = getDb();
-  const other = await db.user.findUnique({ where: { id: otherId }, select: { id: true } });
+  const other = await db.user.findUnique({
+    where: { id: otherId },
+    select: { id: true, name: true },
+  });
   if (!other) throw notFound();
   const { low, high } = orderedPair(me.id, otherId);
   await db.$transaction([
@@ -239,6 +243,13 @@ export async function blockUser(me: User, otherId: string): Promise<void> {
       data: { status: "CANCELLED", respondedAt: new Date() },
     }),
   ]);
+  await recordActivity({
+    userId: me.id,
+    kind: "blocked",
+    text: `You blocked ${other.name}.`,
+    href: "/app/friends",
+    undo: { action: "unblock", userId: otherId },
+  });
 }
 
 export async function unblockUser(me: User, otherId: string): Promise<void> {

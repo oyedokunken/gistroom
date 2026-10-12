@@ -16,12 +16,12 @@ const ago = (min: number) => new Date(now.getTime() - min * 60_000);
 
 describe("delete for everyone", () => {
   const base = { senderId: "a", userId: "a", createdAt: ago(10), alreadyDeleted: false, now };
-  it("allows the sender inside 60 minutes", () => {
+  it("allows the sender inside 15 minutes", () => {
     expect(canDeleteForEveryone(base)).toEqual({ ok: true });
-    expect(canDeleteForEveryone({ ...base, createdAt: ago(60) })).toEqual({ ok: true });
+    expect(canDeleteForEveryone({ ...base, createdAt: ago(15) })).toEqual({ ok: true });
   });
   it("refuses after the window, for others and twice", () => {
-    expect(canDeleteForEveryone({ ...base, createdAt: ago(61) })).toEqual({
+    expect(canDeleteForEveryone({ ...base, createdAt: ago(16) })).toEqual({
       ok: false,
       reason: "WINDOW_CLOSED",
     });

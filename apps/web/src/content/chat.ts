@@ -1,9 +1,14 @@
+import { REACTION_EMOJIS } from "@gistroom/shared";
 export const chat = {
   title: "Chats",
   searchPlaceholder: "Search your chats",
   searchLabel: "Search your chats",
   newChat: "New chat",
   archivedRow: "Archived",
+  archiveConfirmTitle: "Archive this chat?",
+  archiveConfirmBody:
+    "It moves to Archived and stays there, even when new messages come in. You can bring it back any time.",
+  archiveConfirmLabel: "Archive",
   archivedBack: "Back to chats",
   archivedEmptyTitle: "Nothing archived",
   archivedEmptyBody: "Archived chats stay here, even when new messages come in.",
@@ -102,6 +107,8 @@ export const chat = {
     action: "Edit",
     title: "Edit message",
     label: "Edited",
+    labelAt: (time: string) => `Edited ${time}`,
+    labelTitle: (full: string) => `Edited on ${full}`,
     save: "Save",
     cancel: "Cancel",
     editing: "Editing message",
@@ -227,15 +234,10 @@ export const chat = {
   },
   back: "Back to chats",
   reactionQuick: "Quick reactions",
+  reactionMore: "More reactions",
+  reactionMoreTitle: "Pick a reaction",
   starredBadge: "Starred",
 } as const;
 
-/** Quick reactions as escapes so no emoji character sits in source (R1). Thumbs up, heart, joy, wow, sad, pray. */
-export const QUICK_REACTIONS = [
-  "\u{1F44D}",
-  "\u{2764}\u{FE0F}",
-  "\u{1F602}",
-  "\u{1F62E}",
-  "\u{1F622}",
-  "\u{1F64F}",
-] as const;
+/** The ten quick reactions, defined once as escapes in packages/shared/src/reactions.ts (R1). */
+export const QUICK_REACTIONS: readonly string[] = REACTION_EMOJIS;

@@ -1,24 +1,21 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { onboardingSchema, usernameSchema, type OnboardingInput } from "@gistroom/shared";
+import { onboardingSchema, type OnboardingInput } from "@gistroom/shared";
 import { useFeedback } from "@/components/feedback/feedback-provider";
 import { Button } from "@/components/ui/button";
+import { UsernameField } from "@/components/auth/username-field";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field, Input } from "@/components/ui/field";
 import { auth } from "@/content/auth";
 import { ApiClientError, apiFetch } from "@/lib/api";
 
-type Availability = "idle" | "checking" | "free" | "taken";
-
 export function OnboardingForm({ defaultName, next }: { defaultName: string; next: string }) {
   const router = useRouter();
   const { showError } = useFeedback();
   const copy = auth.onboarding;
-  const [availability, setAvailability] = useState<Availability>("idle");
   const form = useForm<OnboardingInput>({
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
@@ -31,30 +28,6 @@ export function OnboardingForm({ defaultName, next }: { defaultName: string; nex
   });
 
   const username = form.watch("username");
-  useEffect(() => {
-    // Only ask the server when the local rules already pass, which keeps the rate limit for real checks.
-    if (!usernameSchema.safeParse(username).success) {
-      setAvailability("idle");
-      return;
-    }
-    setAvailability("checking");
-    const controller = new AbortController();
-    const id = window.setTimeout(async () => {
-      try {
-        const res = await apiFetch<{ available: boolean }>(
-          `/api/username/check?username=${encodeURIComponent(username)}`,
-          { signal: controller.signal },
-        );
-        setAvailability(res.available ? "free" : "taken");
-      } catch (e) {
-        if (!(e instanceof DOMException)) setAvailability("idle");
-      }
-    }, 400);
-    return () => {
-      window.clearTimeout(id);
-      controller.abort();
-    };
-  }, [username]);
 
   async function onSubmit(values: OnboardingInput) {
     try {
@@ -67,7 +40,6 @@ export function OnboardingForm({ defaultName, next }: { defaultName: string; nex
     } catch (e) {
       if (e instanceof ApiClientError && e.fields.username) {
         form.setError("username", { message: e.fields.username });
-        setAvailability("taken");
       } else if (e instanceof ApiClientError) {
         showError(e.message);
       } else {
@@ -77,14 +49,6 @@ export function OnboardingForm({ defaultName, next }: { defaultName: string; nex
   }
 
   const errors = form.formState.errors;
-  const usernameError =
-    errors.username?.message ?? (availability === "taken" ? auth.errors.username_taken : undefined);
-  const usernameHelp =
-    availability === "checking"
-      ? copy.usernameChecking
-      : availability === "free"
-        ? copy.usernameFree
-        : copy.usernameHelp;
 
   return (
     <>
@@ -107,18 +71,12 @@ export function OnboardingForm({ defaultName, next }: { defaultName: string; nex
             />
           )}
         </Field>
-        <Field label={copy.usernameLabel} help={usernameHelp} error={usernameError}>
-          {(props) => (
-            <Input
-              {...props}
-              type="text"
-              autoComplete="username"
-              autoCapitalize="none"
-              spellCheck={false}
-              {...form.register("username", { setValueAs: (v: string) => v.toLowerCase() })}
-            />
-          )}
-        </Field>
+        <UsernameField
+          label={copy.usernameLabel}
+          value={username}
+          serverError={errors.username?.message}
+          {...form.register("username", { setValueAs: (v: string) => v.toLowerCase() })}
+        />
         <Checkbox
           label={copy.ageLabel}
           error={errors.ageConfirmed?.message}

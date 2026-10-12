@@ -125,6 +125,13 @@ export const auth = {
   steps: {
     continueSignup: "You started signing up with this email. We sent a new code to finish.",
   },
+  username: {
+    help: "Letters, numbers and underscores, 3 to 20. Friends find you with this.",
+    checking: "Checking...",
+    available: (name: string) => `@${name} is available`,
+    taken: "That username is taken",
+    error: "We could not check that right now. You can keep going, we check again when you save.",
+  },
   onboarding: {
     title: "Set up your profile",
     heading: "Tell us who you are",

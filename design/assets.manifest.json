@@ -1865,6 +1865,67 @@
       "prompt": "Drawn in code by scripts/graphics/scenes.mjs: flat vector scene, brand palette, no text.",
       "status": "DRAFT",
       "createdAt": "2026-10-11T15:13:56.773Z"
+    },
+    {
+      "id": "status-check",
+      "placement": "Form status icon: check",
+      "master": "design/masters/status/check.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "status/check.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/status-icons.mjs: flat brand palette status icon, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-12T08:46:26.856Z"
+    },
+    {
+      "id": "status-cross",
+      "placement": "Form status icon: cross",
+      "master": "design/masters/status/cross.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "status/cross.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/status-icons.mjs: flat brand palette status icon, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-12T08:46:26.856Z"
+    },
+    {
+      "id": "status-spinner",
+      "placement": "Form status icon: spinner",
+      "master": "design/masters/status/spinner.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "status/spinner.png"
+        },
+        {
+          "width": 96,
+          "height": 96,
+          "file": "status/spinner.webp",
+          "animated": true,
+          "bytes": 11774
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/status-icons.mjs: flat brand palette status icon, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-12T08:46:26.856Z",
+      "animated": true,
+      "static": "status/spinner.png",
+      "loopCount": 0
     }
   ]
 }

@@ -10,6 +10,13 @@ export const appNav = {
     { id: "notifications", label: "Alerts", href: "/app/notifications" },
     { id: "settings", label: "Settings", href: "/app/settings" },
   ],
+  menu: {
+    open: (name: string) => `Open the menu for ${name}`,
+    profile: "My profile",
+    settings: "Settings",
+    notifications: "Notifications",
+    logout: "Log out",
+  },
   searchPeople: "Search Gistroom",
   searchLabel: "Search",
   alertsLabel: "Alerts",

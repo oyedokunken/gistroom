@@ -18,11 +18,11 @@ import {
 import type { MeUser } from "@gistroom/shared";
 import { AppRuntime } from "@/components/app/app-runtime";
 import { LogoMark } from "@/components/brand/logo-mark";
+import { AvatarMenu } from "@/components/app/avatar-menu";
 import { TourHost, startTour } from "@/components/app/tour";
 import { WelcomeBack } from "@/components/app/welcome-back";
 import { ChatFab } from "@/components/chat/chat-fab";
 import { SearchDialog, openSearch } from "@/components/search/search-dialog";
-import { Avatar } from "@/components/ui/avatar";
 import { appNav } from "@/content/app";
 import { nav } from "@/content/landing";
 import { cn } from "@/lib/cn";
@@ -147,22 +147,7 @@ export function AppShell({ user, children }: { user: MeUser; children: ReactNode
                 </span>
               ) : null}
             </Link>
-            <Link
-              href="/app/settings"
-              aria-label={appNav.settingsLabel}
-              title={appNav.settingsLabel}
-              className="flex size-10 items-center justify-center rounded-full bg-surface-2 text-text hover:bg-green-100"
-            >
-              <Settings aria-hidden className="size-5" />
-            </Link>
-            <Link
-              href="/app/settings/profile"
-              aria-label={user.name}
-              title={user.name}
-              className="ml-1 flex size-10 items-center justify-center rounded-full ring-2 ring-transparent hover:ring-green-600"
-            >
-              <Avatar name={user.name} src={user.avatarUrl} size={40} />
-            </Link>
+            <AvatarMenu person={user} unread={unread.notifications} />
           </div>
         </header>
 
@@ -193,6 +178,7 @@ export function AppShell({ user, children }: { user: MeUser; children: ReactNode
                   </span>
                 ) : null}
               </Link>
+              <AvatarMenu person={user} unread={unread.notifications} size={32} />
             </div>
           </header>
           <AppRuntime />

@@ -179,8 +179,12 @@ export async function setInitialPassword(user: User, password: string): Promise<
 /** The email that says a password changed, with the time in the person's own time zone. Never blocks the change. */
 async function announcePasswordChanged(user: User): Promise<void> {
   const when = new Intl.DateTimeFormat("en-NG", {
-    dateStyle: "long",
-    timeStyle: "short",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
     timeZone: user.timezone,
   }).format(new Date());
   await sendTemplate("password-changed", user.email, { when }).catch(() => undefined);
@@ -233,8 +237,12 @@ export async function announceNewDevice(
     payload: { sessionId, device },
   });
   const when = new Intl.DateTimeFormat("en-NG", {
-    dateStyle: "long",
-    timeStyle: "short",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
     timeZone: user.timezone,
   }).format(new Date());
   await sendTemplate("new-device-sign-in", user.email, { device, when }).catch(() => undefined);

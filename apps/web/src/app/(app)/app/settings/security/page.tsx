@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { BackLink } from "@/components/app/back-link";
 import { PasswordForm } from "@/components/app/password-form";
-import { ChangeEmailForm, ResetByEmail } from "@/components/app/security-forms";
+import { ResetByEmail } from "@/components/app/security-forms";
 import { passwordSettings, settings } from "@/content/app";
 import { requireUserForPage } from "@/server/auth/page";
 
@@ -23,7 +23,6 @@ export default async function SecuritySettingsPage() {
         <PasswordForm hasPassword={hasPassword} email={user.email} />
       </section>
       {hasPassword ? <ResetByEmail email={user.email} /> : null}
-      <ChangeEmailForm email={user.email} hasPassword={hasPassword} />
     </div>
   );
 }

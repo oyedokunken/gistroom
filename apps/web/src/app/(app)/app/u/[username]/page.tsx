@@ -39,7 +39,20 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       </div>
       {profile.bio ? <p className="max-w-prose text-text">{profile.bio}</p> : null}
       {!isMe ? (
-        <p className="text-sm text-text-muted">{friends.mutual(profile.mutualFriends)}</p>
+        <div className="flex flex-col items-center gap-1">
+          <p className="text-sm text-text-muted">{friends.mutual(profile.mutualFriends)}</p>
+          {profile.friendsSince ? (
+            <p className="text-sm text-text-muted">
+              {friends.since(
+                new Intl.DateTimeFormat("en-NG", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                }).format(new Date(profile.friendsSince)),
+              )}
+            </p>
+          ) : null}
+        </div>
       ) : null}
       {isMe ? (
         <Link href="/app/settings/profile" className={buttonStyles("secondary", "gap-2")}>

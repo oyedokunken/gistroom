@@ -52,6 +52,17 @@ export async function getProfile(viewer: User, username: string): Promise<Profil
             ) !== null,
         });
 
+  const friendship = isFriend
+    ? await db.friendship.findUnique({
+        where: {
+          userLowId_userHighId:
+            viewer.id < target.id
+              ? { userLowId: viewer.id, userHighId: target.id }
+              : { userLowId: target.id, userHighId: viewer.id },
+        },
+        select: { createdAt: true },
+      })
+    : null;
   const conversation = isFriend
     ? await db.conversation.findUnique({
         where: { dmKey: dmKeyFor(viewer.id, target.id) },
@@ -65,5 +76,6 @@ export async function getProfile(viewer: User, username: string): Promise<Profil
     relationship,
     conversationId: conversation?.id ?? null,
     pendingRequestId: received?.id ?? null,
+    friendsSince: friendship?.createdAt.toISOString() ?? null,
   };
 }

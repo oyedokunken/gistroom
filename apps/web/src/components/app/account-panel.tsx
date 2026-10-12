@@ -146,6 +146,7 @@ export function AccountPanel({ hasPassword }: { hasPassword: boolean }) {
               <PasswordInput
                 {...props}
                 autoComplete="current-password"
+                placeholder={auth.currentPasswordPlaceholder}
                 value={reauthPassword}
                 onChange={(e) => setReauthPassword(e.target.value)}
               />
@@ -239,6 +240,7 @@ export function AccountPanel({ hasPassword }: { hasPassword: boolean }) {
                   <PasswordInput
                     {...props}
                     autoComplete="current-password"
+                    placeholder={auth.currentPasswordPlaceholder}
                     value={password}
                     onChange={(e) => {
                       setPassword(e.target.value);

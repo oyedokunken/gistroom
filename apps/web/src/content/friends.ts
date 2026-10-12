@@ -15,6 +15,7 @@ export const friends = {
   searchEmptyTitle: "Nobody found",
   searchEmptyBody: "Check the spelling, or try their username.",
   mutual: (n: number) => `${n} mutual ${n === 1 ? "friend" : "friends"}`,
+  since: (date: string) => `Friends since ${date}`,
   addFriend: "Add friend",
   requestSent: "Request sent",
   accept: "Accept",

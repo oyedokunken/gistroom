@@ -1,6 +1,6 @@
 import type { PublicRoomCard } from "./dto";
 import { z } from "zod";
-import { emailSchema, nameSchema, otpCodeSchema, usernameSchema } from "./auth";
+import { emailSchema, nameSchema, otpCodeSchema } from "./auth";
 import { validation } from "./content/validation";
 
 export const BIO_MAX = 160;
@@ -15,7 +15,6 @@ export const updateProfileSchema = z
     roomInvitesFrom: z.enum(["FRIENDS", "EVERYONE"]),
     dataSaver: z.boolean(),
     timezone: z.string().trim().min(1).max(64),
-    username: usernameSchema,
   })
   .partial();
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
@@ -46,6 +45,8 @@ export interface MeUser extends PublicUser {
 export type Relationship = "NONE" | "FRIENDS" | "REQUEST_SENT" | "REQUEST_RECEIVED" | "UNAVAILABLE";
 
 export interface PersonResult extends PublicUser {
+  /** When you became friends. Only on a profile of a friend. */
+  friendsSince?: string | null;
   mutualFriends: number;
   relationship: Relationship;
 }

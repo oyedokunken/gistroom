@@ -14,9 +14,11 @@ async function typeCode(page: Page, scope: ReturnType<Page["locator"]>, code: st
 }
 
 test.describe("settings, one by one", () => {
-  test("profile: name, bio and a username that is checked live", async ({ page, context }) => {
+  test("profile: name and bio save, username and email are permanent", async ({
+    page,
+    context,
+  }) => {
     const me = await createUser("set1", { name: "Profile Person" });
-    const other = await createUser("set2");
     await signIn(context, me);
     await page.goto("/app/settings/profile");
 
@@ -24,27 +26,18 @@ test.describe("settings, one by one", () => {
     await expect(page.getByLabel("Name", { exact: true })).toHaveValue("Profile Person");
     await page.getByLabel("Name", { exact: true }).fill("Profile Renamed");
     await page.getByLabel("Bio").fill("I talk about football.");
-
-    // Taken: the hint and the icon say so, and the save is refused by the server too.
-    const username = page.getByLabel("Username");
-    await username.fill(other.user.username);
-    await expect(page.getByText("That username is taken")).toBeVisible();
-    // Broken rule: said at once, nothing is sent.
-    await username.fill("no");
-    await expect(page.getByText(/letters, numbers or underscores/i).first()).toBeVisible();
-    // Free: confirmed live.
-    const fresh = `renamed_${Date.now().toString(36)}`.slice(0, 20);
-    await username.fill(fresh);
-    await expect(page.getByText(`@${fresh} is available`)).toBeVisible();
+    // The username and the email can be read but never changed.
+    await expect(page.getByLabel("Username")).toHaveValue(`@${me.user.username}`);
+    await expect(page.getByLabel("Username")).toHaveAttribute("readonly", "");
+    await expect(page.getByLabel("Email", { exact: true })).toHaveAttribute("readonly", "");
 
     await page.getByRole("button", { name: "Save changes" }).click();
     await expect(page.getByText("Your profile is updated.")).toBeVisible();
     await page.reload();
     await expect(page.getByLabel("Name", { exact: true })).toHaveValue("Profile Renamed");
     await expect(page.getByLabel("Bio")).toHaveValue("I talk about football.");
-    await expect(page.getByLabel("Username")).toHaveValue(fresh);
     const row = await getDb().user.findUnique({ where: { id: me.user.id } });
-    expect(row?.username).toBe(fresh);
+    expect(row?.username).toBe(me.user.username);
   });
 
   test("privacy: switches are saved", async ({ page, context }) => {
@@ -178,30 +171,6 @@ test.describe("settings, one by one", () => {
     await page.getByLabel("Password", { exact: true }).fill("Brand-new passphrase 2026!");
     await page.getByRole("button", { name: "Sign in", exact: true }).click();
     await expect(page).toHaveURL(/\/app\//);
-  });
-
-  test("security: change the email with a code sent to the new address", async ({
-    page,
-    context,
-  }) => {
-    const me = await createUser("set8");
-    await signIn(context, me);
-    await page.goto("/app/settings/security");
-    const fresh = `e2e_new_${Date.now().toString(36)}@example.com`;
-    await page.getByLabel("New email address").fill(fresh);
-    const emailSection = page.locator("section[aria-labelledby=email-h]");
-    await emailSection.getByLabel("Your password", { exact: true }).fill(me.password);
-    await page.getByRole("button", { name: "Send a code to the new address" }).click();
-    await expect(page.getByText(`We sent a 6 digit code to ${fresh}.`)).toBeVisible();
-    await typeCode(
-      page,
-      page.getByRole("group", { name: "6 digit code" }),
-      await capturedCode(fresh),
-    );
-    await page.getByRole("button", { name: "Confirm the new email" }).click();
-    await expect(page.getByText(/Your email address is updated/)).toBeVisible();
-    const row = await getDb().user.findUnique({ where: { id: me.user.id } });
-    expect(row?.email).toBe(fresh);
   });
 
   test("data and account: export, then delete with a code", async ({ page, context }) => {

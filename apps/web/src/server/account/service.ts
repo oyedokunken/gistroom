@@ -1,11 +1,9 @@
 import { avatarUrl, getDb, type User } from "@gistroom/db";
 import { errors } from "@gistroom/shared";
-import { AppError, conflict } from "../http";
+import { AppError } from "../http";
 import { enforce, policies } from "../rate-limit";
 import { checkCode, sendCode } from "../auth/otp-service";
 import { verifyPassword } from "../auth/password";
-import { revokeOtherSessions } from "../auth/session";
-import { isUniqueViolation } from "../db-errors";
 import { logger } from "../logger";
 import { sendTemplate } from "../mail/send";
 import { buckets, removeObjects } from "../storage";
@@ -19,78 +17,6 @@ async function requirePassword(user: User, password: string | undefined): Promis
       fields: { [FIELD]: errors.deleteWrongPassword },
     });
   }
-}
-
-// ---------- Username ----------
-
-/** A new username, if it is free. Changing it is limited to a few times a day. */
-export async function changeUsername(user: User, username: string): Promise<User> {
-  if (username === user.username) return user;
-  await enforce(policies.usernameChange, user.id);
-  try {
-    return await getDb().user.update({ where: { id: user.id }, data: { username } });
-  } catch (error) {
-    if (isUniqueViolation(error, "username")) {
-      throw conflict(errors.usernameTaken, { username: errors.usernameTaken });
-    }
-    throw error;
-  }
-}
-
-// ---------- Email ----------
-
-/** Step one: the person proves it is them, and a code goes to the new address. */
-export async function startEmailChange(
-  user: User,
-  input: { newEmail: string; password?: string },
-  ip: string,
-): Promise<{ resendAfterSec: number }> {
-  await enforce(policies.emailChange, user.id);
-  await requirePassword(user, input.password);
-  if (input.newEmail === user.email) {
-    throw new AppError(400, "INVALID", errors.emailSame, {
-      fields: { newEmail: errors.emailSame },
-    });
-  }
-  const taken = await getDb().user.findUnique({
-    where: { email: input.newEmail },
-    select: { id: true },
-  });
-  if (taken) throw conflict(errors.emailInUse, { newEmail: errors.emailInUse });
-  return sendCode({
-    email: input.newEmail,
-    ip,
-    purpose: "CHANGE_EMAIL",
-    template: "email-change-otp",
-  });
-}
-
-/** Step two: the code from the new address makes it the account's email. The old address is told, other devices sign out. */
-export async function confirmEmailChange(
-  user: User,
-  sessionId: string,
-  input: { newEmail: string; code: string },
-  ip: string,
-): Promise<User> {
-  await checkCode({ email: input.newEmail, code: input.code, ip, purpose: "CHANGE_EMAIL" });
-  const oldEmail = user.email;
-  let updated: User;
-  try {
-    updated = await getDb().user.update({
-      where: { id: user.id },
-      data: { email: input.newEmail, emailVerifiedAt: new Date() },
-    });
-  } catch (error) {
-    if (isUniqueViolation(error, "email")) {
-      throw conflict(errors.emailInUse, { newEmail: errors.emailInUse });
-    }
-    throw error;
-  }
-  await revokeOtherSessions(user.id, sessionId);
-  await sendTemplate("email-changed", oldEmail, { newEmail: input.newEmail }).catch(
-    () => undefined,
-  );
-  return updated;
 }
 
 // ---------- Export ----------

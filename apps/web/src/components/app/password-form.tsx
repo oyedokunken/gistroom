@@ -12,6 +12,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { PasswordStrength } from "@/components/ui/password-strength";
 import { isPasswordAcceptable, usePasswordStrength } from "@/lib/password-strength";
 import { passwordSettings as copy } from "@/content/app";
+import { auth } from "@/content/auth";
 import { ApiClientError, apiFetch } from "@/lib/api";
 
 function schemaFor(hasPassword: boolean) {
@@ -86,6 +87,7 @@ export function PasswordForm({ hasPassword, email }: { hasPassword: boolean; ema
             <PasswordInput
               {...props}
               autoComplete="current-password"
+              placeholder={auth.currentPasswordPlaceholder}
               {...form.register("currentPassword")}
             />
           )}
@@ -93,13 +95,23 @@ export function PasswordForm({ hasPassword, email }: { hasPassword: boolean; ema
       ) : null}
       <Field label={copy.next} help={copy.help} error={errors.newPassword?.message}>
         {(props) => (
-          <PasswordInput {...props} autoComplete="new-password" {...form.register("newPassword")} />
+          <PasswordInput
+            {...props}
+            autoComplete="new-password"
+            placeholder={auth.newPasswordPlaceholder}
+            {...form.register("newPassword")}
+          />
         )}
       </Field>
       <PasswordStrength strength={strength} />
       <Field label={copy.confirm} error={errors.confirm?.message}>
         {(props) => (
-          <PasswordInput {...props} autoComplete="new-password" {...form.register("confirm")} />
+          <PasswordInput
+            {...props}
+            autoComplete="new-password"
+            placeholder={auth.confirmPlaceholder}
+            {...form.register("confirm")}
+          />
         )}
       </Field>
       <div className="flex flex-wrap items-center gap-4">

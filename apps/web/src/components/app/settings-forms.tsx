@@ -5,14 +5,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import {
-  BIO_MAX,
-  nameSchema,
-  usernameSchema,
-  type MeUser,
-  type UpdateProfileInput,
-} from "@gistroom/shared";
-import { UsernameField } from "@/components/auth/username-field";
+import { BIO_MAX, nameSchema, type MeUser, type UpdateProfileInput } from "@gistroom/shared";
 import { useCalmSetting } from "@/lib/calm";
 import { useFeedback } from "@/components/feedback/feedback-provider";
 import { Button } from "@/components/ui/button";
@@ -52,7 +45,6 @@ function useSave() {
 const profileSchema = z.object({
   name: nameSchema,
   bio: z.string().trim().max(BIO_MAX, `Use ${BIO_MAX} characters or fewer.`),
-  username: usernameSchema,
 });
 type ProfileValues = z.infer<typeof profileSchema>;
 
@@ -61,7 +53,7 @@ export function ProfileForm({ user }: { user: MeUser }) {
   const { save, saved, clear } = useSave();
   const form = useForm<ProfileValues>({
     resolver: zodResolver(profileSchema),
-    defaultValues: { name: user.name, bio: user.bio ?? "", username: user.username },
+    defaultValues: { name: user.name, bio: user.bio ?? "" },
   });
   const errors = form.formState.errors;
   return (
@@ -72,9 +64,8 @@ export function ProfileForm({ user }: { user: MeUser }) {
         const result = await save({
           name: v.name,
           bio: v.bio === "" ? null : v.bio,
-          ...(v.username !== user.username ? { username: v.username } : {}),
         });
-        if (result.fields.username) form.setError("username", { message: result.fields.username });
+        void result;
       })}
       className="flex w-full flex-col gap-4"
     >
@@ -85,14 +76,10 @@ export function ProfileForm({ user }: { user: MeUser }) {
       <Field label={copy.bioLabel} help={copy.bioHelp} error={errors.bio?.message}>
         {(props) => <Textarea {...props} rows={3} {...form.register("bio")} />}
       </Field>
-      <UsernameField
-        label={copy.usernameLabel}
-        value={form.watch("username")}
-        own={user.username}
-        serverError={errors.username?.message}
-        {...form.register("username", { setValueAs: (v: string) => v.toLowerCase() })}
-      />
-      <Field label={copy.emailLabel} help={`${copy.emailHelp} ${copy.emailManage}`}>
+      <Field label={copy.usernameLabel} help={copy.usernameHelp}>
+        {(props) => <Input {...props} value={`@${user.username}`} readOnly />}
+      </Field>
+      <Field label={copy.emailLabel} help={copy.emailHelp}>
         {(props) => <Input {...props} value={user.email} readOnly />}
       </Field>
       <div className="flex items-center gap-4">

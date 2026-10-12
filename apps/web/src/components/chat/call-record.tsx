@@ -41,31 +41,30 @@ export function CallRecord({
           : chat.callRecord.missed;
 
   return (
-    <div className="my-3 flex justify-center">
+    <div className="my-3 flex justify-center px-2">
       <div
         role="note"
-        className="flex items-center gap-3 rounded-2xl bg-surface-2 px-4 py-2.5 text-center"
+        className="flex w-full max-w-sm items-center gap-3 rounded-2xl bg-surface-2 px-4 py-3 sm:max-w-md sm:gap-4 sm:px-5 sm:py-4 lg:max-w-lg"
       >
         <span
           className={cn(
-            "flex size-9 shrink-0 items-center justify-center rounded-full",
+            "flex size-10 shrink-0 items-center justify-center rounded-full sm:size-12",
             outcome === "ANSWERED"
               ? "bg-green-100 text-green-700"
               : "bg-danger-600/10 text-danger-600",
           )}
         >
-          <Icon aria-hidden className="size-5" />
+          <Icon aria-hidden className="size-5 sm:size-6" />
         </span>
-        <span className="flex flex-col items-start text-left">
-          <span className="text-sm font-semibold text-text">{label}</span>
-          <span className="tabular text-sm text-text">{detail}</span>
-          <time
-            dateTime={started.toISOString()}
-            title={formatFull(started)}
-            className="text-xs text-text-muted"
-          >
-            {chat.callRecord.at(formatDayLabel(started), formatClock(started))}
-          </time>
+        <span className="flex min-w-0 flex-1 flex-col items-start text-left">
+          <span className="text-sm font-semibold text-text sm:text-base">{label}</span>
+          <span className="flex flex-wrap items-baseline gap-x-2 text-sm text-text-muted">
+            <span className="tabular font-semibold text-text">{detail}</span>
+            <span aria-hidden>{"|"}</span>
+            <time dateTime={started.toISOString()} title={formatFull(started)} className="tabular">
+              {chat.callRecord.at(formatDayLabel(started), formatClock(started))}
+            </time>
+          </span>
         </span>
       </div>
     </div>

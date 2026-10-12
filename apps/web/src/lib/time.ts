@@ -13,12 +13,22 @@ export function formatRelative(date: Date, now: Date = new Date()): string {
 
 /** Clock time in the viewer's own zone, tabular friendly. Used on message bubbles. */
 export function formatClock(date: Date): string {
-  return new Intl.DateTimeFormat("en-NG", { hour: "numeric", minute: "2-digit" }).format(date);
+  return new Intl.DateTimeFormat("en-NG", { hour: "numeric", minute: "2-digit", hour12: true })
+    .format(date)
+    .replace(/s?([ap]).?m.?/i, (_m, x: string) => ` ${x.toUpperCase()}M`);
 }
 
 /** Full date and time for tooltips. */
 export function formatFull(date: Date): string {
-  return new Intl.DateTimeFormat("en-NG", { dateStyle: "full", timeStyle: "short" }).format(date);
+  return new Intl.DateTimeFormat("en-NG", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(date);
 }
 
 /** Label for a day separator: Today, Yesterday, or a short date. */

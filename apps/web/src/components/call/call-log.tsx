@@ -73,7 +73,7 @@ function Row({ entry }: { entry: CallLogDto }) {
   }
 
   return (
-    <li className="flex items-center gap-3 px-4 py-3 md:px-6">
+    <li className="flex items-center gap-3 rounded-card border border-border bg-surface px-4 py-3 md:px-5">
       <Avatar name={entry.title} src={entry.peer?.avatarUrl} size={48} />
       <div className="min-w-0 flex-1">
         <p className="truncate font-semibold text-text">{entry.title}</p>
@@ -243,7 +243,7 @@ export function CallLog() {
         <>
           <ul
             className={cn(
-              "divide-y divide-border rounded-card border border-border bg-surface",
+              "grid grid-cols-1 gap-3 lg:grid-cols-2",
               query.isFetching && "opacity-70",
             )}
           >

@@ -48,55 +48,6 @@ describe.skipIf(!testDbEnabled)("account settings", () => {
     });
   }
 
-  it("changes the username and refuses one that is taken", async () => {
-    const a = await person("a1");
-    await person("a2");
-    const updated = await m.changeUsername(a, "fresh_name");
-    expect(updated.username).toBe("fresh_name");
-    await expect(m.changeUsername(updated, "test_a2")).rejects.toMatchObject({ status: 409 });
-  });
-
-  it("changes the email with a code sent to the new address, and tells the old one", async () => {
-    const u = await person("e1");
-    const session = await m.db.session.create({
-      data: { userId: u.id, tokenHash: "keep", expiresAt: new Date(Date.now() + 1e6) },
-    });
-    await m.db.session.create({
-      data: { userId: u.id, tokenHash: "other", expiresAt: new Date(Date.now() + 1e6) },
-    });
-    await expect(
-      m.startEmailChange(
-        u,
-        { newEmail: "new_e1@example.com", password: "wrong wrong wrong" },
-        "10.1.0.1",
-      ),
-    ).rejects.toMatchObject({ status: 400 });
-    await m.startEmailChange(u, { newEmail: "new_e1@example.com", password: PASSWORD }, "10.1.0.1");
-    expect(m.captured.some((x) => x.to === "new_e1@example.com")).toBe(true);
-    const updated = await m.confirmEmailChange(
-      u,
-      session.id,
-      { newEmail: "new_e1@example.com", code: lastCode(m.captured, "new_e1@example.com") },
-      "10.1.0.1",
-    );
-    expect(updated.email).toBe("new_e1@example.com");
-    expect(
-      m.captured.some((x) => x.to === "test_e1@example.com" && /changed/i.test(x.subject)),
-    ).toBe(true);
-    expect(await m.db.session.count({ where: { userId: u.id, revokedAt: null } })).toBe(1);
-  });
-
-  it("will not move an email onto an address another account uses", async () => {
-    const a = await person("e2");
-    await person("e3");
-    await expect(
-      m.startEmailChange(a, { newEmail: "test_e3@example.com", password: PASSWORD }, "10.1.0.2"),
-    ).rejects.toMatchObject({ status: 409 });
-    await expect(
-      m.startEmailChange(a, { newEmail: "test_e2@example.com", password: PASSWORD }, "10.1.0.2"),
-    ).rejects.toMatchObject({ status: 400 });
-  });
-
   it("exports only the person's own data", async () => {
     const a = await person("x1");
     const b = await person("x2");

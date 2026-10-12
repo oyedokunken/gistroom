@@ -56,6 +56,7 @@ export const auth = {
   createAccount: "Create my account",
   emailPlaceholder: "Your email, like ada@gmail.com",
   passwordPlaceholder: "Your password",
+  currentPasswordPlaceholder: "Type your current password",
   usernamePlaceholder: "Pick a username, like ada_eze",
   sendingCode: "Sending code",
   or: "or",

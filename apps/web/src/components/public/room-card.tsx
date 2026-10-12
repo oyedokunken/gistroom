@@ -11,6 +11,7 @@ const when = new Intl.DateTimeFormat("en-NG", {
   month: "short",
   hour: "numeric",
   minute: "2-digit",
+  hour12: true,
 });
 
 export function RoomCard({

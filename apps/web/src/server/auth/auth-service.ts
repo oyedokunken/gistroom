@@ -152,7 +152,13 @@ export async function completeReset(
     },
   });
   // Everyone signed in with the old password is signed out. The device that is resetting keeps its alerts.
-  await revokeAllSessions(user.id, (await cookies()).get(DEVICE_COOKIE)?.value ?? null);
+  let deviceId: string | null = null;
+  try {
+    deviceId = (await cookies()).get(DEVICE_COOKIE)?.value ?? null;
+  } catch {
+    // Called outside a request (a script or a test): no device to keep.
+  }
+  await revokeAllSessions(user.id, deviceId);
   await announcePasswordChanged(updated);
   return updated;
 }

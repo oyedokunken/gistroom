@@ -208,6 +208,12 @@ export const offline = {
 } as const;
 
 export const pwa = {
+  updateBar: "A new version is ready. Refresh when you can.",
+  updateHeld: (blockers: readonly string[]) =>
+    `Finish ${blockers.includes("call") ? "your call" : blockers.includes("room") ? "your room" : "your message"} first, then refresh. We never reload in the middle of it.`,
+  updateDismiss: "Dismiss the update notice",
+  updateNotificationTitle: "A new version is ready",
+  updateNotificationBody: "Refresh when you can to get the latest Gistroom.",
   updateTitle: "New version ready",
   updateBody: "A new version of Gistroom is ready. Refresh to get it. It takes a second.",
   updateConfirm: "Refresh",

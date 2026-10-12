@@ -1,19 +1,33 @@
 "use client";
 
-import { useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useFeedback } from "@/components/feedback/feedback-provider";
-import { pwa } from "@/content/app";
+import { useCallStore } from "@/lib/calls/store";
+import { useDrafts } from "@/lib/chat/drafts";
+import { applyUpdate, isApplying, updateBlockers, useUpdate } from "@/lib/update-gate";
 import { registerServiceWorker } from "@/lib/push-client";
 import { usePwa, type BeforeInstallPromptEvent } from "@/lib/pwa";
 
 /**
- * Registers the service worker on the first signed in load, captures the install prompt and
- * asks before swapping in a new version. Never a toast: updates use a modal (R4, Section 11).
+ * Registers the service worker on the first signed in load, captures the install prompt and keeps track of a new
+ * version. A new version never interrupts anything: a small bar offers it, and it is applied by itself on the next
+ * page change when there is no call, no open room and no unsent text. See UpdateBar and lib/update-gate.
  */
 export function PwaRuntime() {
   const queryClient = useQueryClient();
-  const { confirm } = useFeedback();
+  const pathname = usePathname();
+  const waiting = useUpdate((s) => s.waiting);
+  const ringing = useCallStore((s) => s.incoming !== null);
+  const drafts = useDrafts((s) => s.drafts);
+  const lastPath = useRef(pathname);
+
+  // Apply a waiting version quietly when the person moves to another page and nothing is in progress.
+  useEffect(() => {
+    if (lastPath.current === pathname) return;
+    lastPath.current = pathname;
+    if (waiting && updateBlockers({ pathname, ringing, drafts }).length === 0) applyUpdate();
+  }, [pathname, waiting, ringing, drafts]);
 
   useEffect(() => {
     usePwa.getState().loadDismissed();
@@ -37,7 +51,8 @@ export function PwaRuntime() {
 
     let reloading = false;
     const onController = () => {
-      if (reloading) return;
+      // Only reload for a swap this app asked for. The first install also takes control, and that must not reload.
+      if (reloading || !isApplying()) return;
       reloading = true;
       window.location.reload();
     };
@@ -53,15 +68,7 @@ export function PwaRuntime() {
     navigator.serviceWorker?.addEventListener("message", onMessage);
 
     let cancelled = false;
-    async function offer(worker: ServiceWorker) {
-      const ok = await confirm({
-        title: pwa.updateTitle,
-        message: pwa.updateBody,
-        confirmLabel: pwa.updateConfirm,
-        cancelLabel: pwa.updateLater,
-      });
-      if (ok && !cancelled) worker.postMessage({ type: "SKIP_WAITING" });
-    }
+    const offer = (worker: ServiceWorker) => useUpdate.getState().setWaiting(worker);
 
     void registerServiceWorker().then((reg) => {
       if (!reg || cancelled) return;
@@ -82,7 +89,7 @@ export function PwaRuntime() {
       navigator.serviceWorker?.removeEventListener("controllerchange", onController);
       navigator.serviceWorker?.removeEventListener("message", onMessage);
     };
-  }, [confirm, queryClient]);
+  }, [queryClient]);
 
   return null;
 }

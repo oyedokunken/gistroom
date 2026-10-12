@@ -43,12 +43,11 @@ const spring = { type: "spring", stiffness: 380, damping: 32 } as const;
 
 function LivePill({ count }: { count: number }) {
   return (
-    <span className="tabular inline-flex min-h-8 items-center gap-2 rounded-full bg-yellow-400 px-3 text-sm font-semibold text-ink-950">
-      <span className="relative flex size-2">
-        <span className="absolute inline-flex size-full animate-ping rounded-full bg-text opacity-60" />
-        <span className="relative inline-flex size-2 rounded-full bg-text" />
+    <span className="relative inline-flex size-9 items-center justify-center text-text">
+      <Radio aria-hidden className="size-5" />
+      <span className="absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-yellow-400 px-1 text-[0.625rem] font-bold text-ink-950 tabular">
+        {count}
       </span>
-      {nav.liveNow(count)}
     </span>
   );
 }

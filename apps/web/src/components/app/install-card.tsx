@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Download, Share, X } from "lucide-react";
+import { CircleCheck, Download, Share, Smartphone, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { pwa } from "@/content/app";
@@ -21,10 +21,35 @@ export function InstallCard({ always = false }: { always?: boolean }) {
   }, []);
 
   if (installed) {
-    return always ? <p className="text-text-muted">{pwa.installedNote}</p> : null;
+    return always ? (
+      <section
+        aria-label={pwa.statusInstalled}
+        className="flex items-start gap-3 rounded-card border border-green-600 bg-green-100 p-4 text-ink-950"
+      >
+        <CircleCheck aria-hidden className="mt-0.5 size-6 shrink-0 text-green-700" />
+        <div>
+          <h2 className="text-lg font-bold">{pwa.statusInstalled}</h2>
+          <p className="mt-1 text-ink-700">{pwa.installedNote}</p>
+        </div>
+      </section>
+    ) : null;
   }
   if (!always && dismissed) return null;
-  if (!prompt && !ios) return always ? <p className="text-text-muted">{pwa.installBody}</p> : null;
+  if (!prompt && !ios) {
+    return always ? (
+      <section
+        aria-label={pwa.statusNotInstalled}
+        className="flex items-start gap-3 rounded-card border border-border bg-surface-2 p-4"
+      >
+        <Smartphone aria-hidden className="mt-0.5 size-6 shrink-0 text-text-muted" />
+        <div>
+          <h2 className="text-lg font-bold text-text">{pwa.statusNotInstalled}</h2>
+          <p className="mt-1 text-text-muted">{pwa.installBody}</p>
+          <p className="mt-2 text-sm text-text-muted">{pwa.installManual}</p>
+        </div>
+      </section>
+    ) : null;
+  }
 
   return (
     <section

@@ -145,6 +145,7 @@ export const settings = {
     intro: "These are the devices signed in to your account.",
     current: "This device",
     lastSeen: (when: string) => `Last active ${when}`,
+    activeNow: "Active now",
     signOut: "Sign out this device",
     signOutOthers: "Sign out everywhere else",
     confirmOne: "This device will be signed out right away.",
@@ -366,6 +367,10 @@ export const pwa = {
   installAction: "Install",
   installDismiss: "Not now",
   installedNote: "Gistroom is installed on this device.",
+  statusInstalled: "Installed",
+  statusNotInstalled: "Not installed yet",
+  installManual:
+    "Your browser has not offered an install button. Open the browser menu and choose Install app or Add to Home screen.",
   iosTitle: "Add Gistroom to your Home Screen",
   iosBody: "Add Gistroom to your Home Screen to get call and message alerts.",
   iosSteps: [

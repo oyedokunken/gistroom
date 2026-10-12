@@ -76,6 +76,8 @@ export function ChatBubble({
     !mine && groupEnd && "rounded-bl-[4px]",
     failed && "ring-2 ring-danger-600",
     message.deletedForEveryone && "italic opacity-80",
+    // The actions chevron sits in the top corner, so a voice note leaves room above it.
+    message.type === "VOICE" && !message.deletedForEveryone && "pt-8",
   );
 
   const body = message.deletedForEveryone
@@ -174,7 +176,10 @@ export function ChatBubble({
                   <button
                     type="button"
                     aria-label={chat.messageActions}
-                    className="absolute right-1 top-1 flex size-8 items-center justify-center rounded-full bg-ink-950/45 text-white"
+                    className={cn(
+                      "absolute right-1 top-1 flex size-8 items-center justify-center rounded-full bg-ink-950/45 text-white",
+                      message.type === "VOICE" && "size-6",
+                    )}
                   >
                     <ChevronDown aria-hidden className="size-4" />
                   </button>

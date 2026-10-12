@@ -209,7 +209,12 @@ export function FeatureRow({
         ) : null}
       </div>
       {/* On phones the picture comes first, so it sits above the words. */}
-      <div className={cn("order-first flex justify-center lg:order-none", reverse && "lg:order-1")}>
+      <div
+        className={cn(
+          "order-first flex justify-start lg:order-none lg:justify-center",
+          reverse && "lg:order-1",
+        )}
+      >
         {visual}
       </div>
     </div>

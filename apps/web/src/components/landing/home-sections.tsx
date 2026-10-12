@@ -742,7 +742,7 @@ export function CallsSwitch() {
       className="grid grid-cols-[minmax(0,1fr)] gap-12 md:grid-cols-2 md:items-stretch md:gap-20"
     >
       <div className="order-2 flex h-full flex-col justify-center md:order-1">
-        <CardIcon name="switch" className="mb-5" />
+        <CardIcon name="switch" className="mb-5 hidden md:inline-flex" />
         <h2
           id="calls-h"
           className="text-[clamp(1.75rem,4vw,2.75rem)] font-bold leading-[1.08] tracking-[-0.025em]"
@@ -775,7 +775,7 @@ export function CallsSwitch() {
           {video ? "Back to audio" : "Add video"}
         </button>
       </div>
-      <div className="order-1 flex h-full flex-col items-center justify-center md:order-2">
+      <div className="order-1 flex h-full flex-col items-start justify-center md:order-2 md:items-center">
         <PhoneFrame label={video ? L.video : L.audio}>
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
@@ -1276,7 +1276,7 @@ export function DataSlider() {
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-10 md:grid-cols-2 md:gap-16">
       <div className="flex flex-col justify-center md:order-1">
-        <CardIcon name="speed" className="mb-5" />
+        <CardIcon name="speed" className="mb-5 hidden md:inline-flex" />
         <h2
           id="data-h"
           className="text-[clamp(1.75rem,4vw,2.75rem)] font-bold leading-[1.08] tracking-[-0.025em]"
@@ -1305,7 +1305,7 @@ export function DataSlider() {
           )}
         />
       </div>
-      <div className="order-first flex justify-center md:order-2">
+      <div className="order-first flex justify-start md:order-2 md:justify-center">
         <PhoneFrame>
           <DataScreen level={n} />
         </PhoneFrame>

@@ -101,7 +101,7 @@ export function DevicesList() {
                 ) : null}
               </span>
               <span className="text-sm text-text-muted">
-                {copy.lastSeen(formatRelative(new Date(s.lastSeenAt)))}
+                {s.current ? copy.activeNow : copy.lastSeen(formatRelative(new Date(s.lastSeenAt)))}
               </span>
             </div>
             <Button

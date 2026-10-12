@@ -129,6 +129,7 @@ function Row({ entry }: { entry: CallLogDto }) {
 export function CallLog() {
   const [media, setMedia] = useState("all");
   const [outcome, setOutcome] = useState("all");
+  const [kind, setKind] = useState("all");
   const [q, setQ] = useState("");
   const [term, setTerm] = useState("");
   const [limit, setLimit] = useState(String(LIMITS.PAGE_SIZE_DEFAULT));
@@ -141,13 +142,14 @@ export function CallLog() {
     return () => window.clearTimeout(id);
   }, [q]);
   // Any filter change goes back to the first page.
-  useEffect(() => setTrail([null]), [media, outcome, term, limit]);
+  useEffect(() => setTrail([null]), [media, kind, outcome, term, limit]);
 
   const query = useQuery({
-    queryKey: ["calls", media, outcome, term, limit, cursor],
+    queryKey: ["calls", media, kind, outcome, term, limit, cursor],
     queryFn: () => {
       const p = new URLSearchParams({ limit });
       if (media !== "all") p.set("media", media);
+      if (kind !== "all") p.set("kind", kind);
       if (outcome !== "all") p.set("outcome", outcome);
       if (term) p.set("q", term);
       if (cursor) p.set("cursor", cursor);
@@ -156,7 +158,7 @@ export function CallLog() {
     placeholderData: (prev) => prev,
   });
 
-  const filtered = media !== "all" || outcome !== "all" || term !== "";
+  const filtered = media !== "all" || kind !== "all" || outcome !== "all" || term !== "";
   const data = query.data;
 
   return (
@@ -171,6 +173,16 @@ export function CallLog() {
               { value: "all", label: copy.logs.all },
               { value: "AUDIO", label: copy.logs.audio },
               { value: "VIDEO", label: copy.logs.video },
+            ]}
+          />
+          <SegmentedTabs
+            label={copy.logs.kindLabel}
+            value={kind}
+            onChange={setKind}
+            options={[
+              { value: "all", label: copy.logs.all },
+              { value: "DIRECT", label: copy.logs.people },
+              { value: "ROOM", label: copy.logs.rooms },
             ]}
           />
           <SegmentedTabs
@@ -229,6 +241,7 @@ export function CallLog() {
               variant="secondary"
               onClick={() => {
                 setMedia("all");
+                setKind("all");
                 setOutcome("all");
                 setQ("");
               }}

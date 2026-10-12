@@ -350,6 +350,7 @@ export async function listCallLogs(
   me: User,
   query: {
     media?: "AUDIO" | "VIDEO";
+    kind?: "DIRECT" | "ROOM";
     outcome?: "ANSWERED" | "MISSED" | "DECLINED";
     q?: string;
     limit: number;
@@ -360,6 +361,7 @@ export async function listCallLogs(
   const where: Prisma.CallLogEntryWhereInput = {
     userId: me.id,
     ...(query.media ? { mediaType: query.media } : {}),
+    ...(query.kind ? { kind: query.kind } : {}),
     ...(query.outcome ? { outcome: query.outcome } : {}),
     ...(query.q ? { searchText: { contains: query.q.toLowerCase(), mode: "insensitive" } } : {}),
   };

@@ -128,6 +128,7 @@ export function durationSec(answeredAt: Date | null, endedAt: Date | null): numb
 
 export const callLogQuerySchema = z.object({
   media: z.enum(["AUDIO", "VIDEO"]).optional(),
+  kind: z.enum(["DIRECT", "ROOM"]).optional(),
   outcome: z.enum(["ANSWERED", "MISSED", "DECLINED"]).optional(),
   q: z.string().trim().max(60).optional(),
   limit: z.coerce

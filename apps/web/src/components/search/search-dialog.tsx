@@ -9,9 +9,19 @@ import type { SearchResults } from "@gistroom/shared";
 import { Avatar } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/field";
 import { search as copy } from "@/content/search";
+import { cn } from "@/lib/cn";
 import { apiFetch } from "@/lib/api";
 
 export const SEARCH_EVENT = "gr:search";
+
+type Scope = "all" | "people" | "chats" | "rooms" | "notes";
+const SCOPES: readonly { id: Scope; label: string }[] = [
+  { id: "all", label: copy.scopeAll },
+  { id: "people", label: copy.people },
+  { id: "chats", label: copy.chatsShort },
+  { id: "rooms", label: copy.roomsShort },
+  { id: "notes", label: copy.notesShort },
+];
 
 export function openSearch() {
   window.dispatchEvent(new Event(SEARCH_EVENT));
@@ -37,6 +47,7 @@ export function SearchDialog() {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [q, setQ] = useState("");
+  const [scope, setScope] = useState<Scope>("all");
 
   useEffect(() => {
     const show = () => setOpen(true);
@@ -73,8 +84,13 @@ export function SearchDialog() {
   });
 
   const data = results.data;
+  const shows = (s: Exclude<Scope, "all">) => scope === "all" || scope === s;
   const empty =
-    data && !data.people.length && !data.chats.length && !data.rooms.length && !data.notes.length;
+    data &&
+    !(shows("people") && data.people.length) &&
+    !(shows("chats") && data.chats.length) &&
+    !(shows("rooms") && data.rooms.length) &&
+    !(shows("notes") && data.notes.length);
   const close = () => setOpen(false);
 
   return (
@@ -108,6 +124,29 @@ export function SearchDialog() {
           </div>
 
           <div
+            role="group"
+            aria-label={copy.scopeLabel}
+            className="flex gap-2 overflow-x-auto pb-1"
+          >
+            {SCOPES.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                aria-pressed={scope === s.id}
+                onClick={() => setScope(s.id)}
+                className={cn(
+                  "min-h-11 shrink-0 rounded-full border px-4 text-sm font-semibold transition-colors",
+                  scope === s.id
+                    ? "border-green-600 bg-green-600 text-white"
+                    : "border-border bg-surface text-text hover:bg-yellow-400 hover:text-ink-950",
+                )}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+
+          <div
             aria-live="polite"
             className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pb-2"
           >
@@ -130,7 +169,7 @@ export function SearchDialog() {
               <p className="px-2 text-text-muted">{copy.none(q)}</p>
             ) : data ? (
               <>
-                {data.people.length > 0 ? (
+                {shows("people") && data.people.length > 0 ? (
                   <Group title={copy.people} icon={<Users aria-hidden className="size-4" />}>
                     {data.people.map((p) => (
                       <li key={p.id}>
@@ -147,7 +186,7 @@ export function SearchDialog() {
                     ))}
                   </Group>
                 ) : null}
-                {data.chats.length > 0 ? (
+                {shows("chats") && data.chats.length > 0 ? (
                   <Group title={copy.chats} icon={<MessageCircle aria-hidden className="size-4" />}>
                     {data.chats.map((c) => (
                       <li key={c.conversationId}>
@@ -170,7 +209,7 @@ export function SearchDialog() {
                     ))}
                   </Group>
                 ) : null}
-                {data.rooms.length > 0 ? (
+                {shows("rooms") && data.rooms.length > 0 ? (
                   <Group title={copy.rooms} icon={<Radio aria-hidden className="size-4" />}>
                     {data.rooms.map((r) => (
                       <li key={r.slug}>
@@ -192,7 +231,7 @@ export function SearchDialog() {
                     ))}
                   </Group>
                 ) : null}
-                {data.notes.length > 0 ? (
+                {shows("notes") && data.notes.length > 0 ? (
                   <Group title={copy.notes} icon={<NotebookPen aria-hidden className="size-4" />}>
                     {data.notes.map((n) => (
                       <li key={n.id}>

@@ -12,6 +12,7 @@ export const GET = api(async (request) => {
   if (params.get("current") === "1") return json({ current: await currentCall(user) });
   const q = callLogQuerySchema.parse({
     media: params.get("media") || undefined,
+    kind: params.get("kind") || undefined,
     outcome: params.get("outcome") || undefined,
     q: params.get("q") || undefined,
     limit: params.get("limit") || undefined,
@@ -20,6 +21,7 @@ export const GET = api(async (request) => {
   return json(
     await listCallLogs(user, {
       media: q.media,
+      kind: q.kind,
       outcome: q.outcome,
       q: q.q,
       limit: q.limit ?? LIMITS.PAGE_SIZE_DEFAULT,

@@ -107,7 +107,7 @@ export function VoiceView({ a, mine }: { a: AttachmentDto; mine: boolean }) {
 
   const current = Math.min(bars.length - 1, Math.floor(progress * bars.length));
   return (
-    <div className="flex w-[min(17rem,66vw)] items-center gap-2">
+    <div className="flex w-[min(17rem,62vw)] items-center gap-2">
       {/* eslint-disable-next-line jsx-a11y/media-has-caption -- voice notes have no caption track */}
       <audio
         ref={audio}
@@ -141,12 +141,12 @@ export function VoiceView({ a, mine }: { a: AttachmentDto; mine: boolean }) {
         )}
       </button>
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <div aria-hidden className="flex h-8 items-center gap-[2px]">
+        <div aria-hidden className="flex h-8 items-center gap-px overflow-hidden">
           {bars.map((h, i) => (
             <span
               key={i}
               className={cn(
-                "w-[3px] shrink-0 rounded-full",
+                "min-w-px max-w-[3px] flex-1 rounded-full",
                 i <= current && progress > 0
                   ? mine
                     ? "bg-yellow-400"

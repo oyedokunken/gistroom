@@ -46,7 +46,7 @@ export function PastRooms() {
       ) : q.data.rooms.length === 0 ? (
         <EmptyState icon="voice" title={copy.past.emptyTitle} body={copy.past.empty} />
       ) : (
-        <ul className="flex flex-col gap-3">
+        <ul className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
           {q.data.rooms.map((s) => {
             const expanded = open === s.slug;
             return (

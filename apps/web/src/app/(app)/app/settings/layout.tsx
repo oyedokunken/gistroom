@@ -7,11 +7,13 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
   return (
     <>
       <PageHeader title={settings.title} />
-      <div className="mx-auto grid w-full max-w-5xl gap-6 p-4 md:grid-cols-[16rem_minmax(0,1fr)] md:p-6">
+      <div className="mx-auto grid w-full max-w-[1000px] gap-6 px-4 py-6 md:grid-cols-[16rem_minmax(0,1fr)] md:px-6">
         <div className="hidden md:block">
           <SettingsNav mode="sidebar" />
         </div>
-        <div className="min-w-0">{children}</div>
+        <div data-page-shell="narrow" className="w-full min-w-0 max-w-[720px]">
+          {children}
+        </div>
       </div>
     </>
   );

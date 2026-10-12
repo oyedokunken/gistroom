@@ -10,7 +10,7 @@ export default function AppearanceSettingsPage() {
     <div className="flex flex-col gap-4">
       <BackLink href="/app/settings" />
       <h2 className="text-xl font-bold text-text">{settings.appearance.heading}</h2>
-      <p className="max-w-lg text-text-muted">{settings.appearance.intro}</p>
+      <p className="text-text-muted">{settings.appearance.intro}</p>
       <ThemeToggle className="w-fit border border-border" />
     </div>
   );

@@ -41,7 +41,7 @@ function PersonLine({
   children?: React.ReactNode;
 }) {
   return (
-    <li className="flex items-center gap-3 px-4 py-3">
+    <li className="flex items-center gap-3 rounded-card border border-border bg-surface px-4 py-3">
       <Link href={`/app/u/${user.username}`} className="flex min-w-0 flex-1 items-center gap-3">
         <Avatar name={user.name} src={user.avatarUrl} size={48} online={online} />
         <span className="flex min-w-0 flex-col">
@@ -63,7 +63,7 @@ function ListState({
 }) {
   if (query.isPending) {
     return (
-      <div className="flex flex-col gap-3 p-4">
+      <div className="flex flex-col gap-3">
         {Array.from({ length: 4 }, (_, i) => (
           <div key={i} className="flex items-center gap-3">
             <Skeleton className="size-12 rounded-full" />
@@ -152,7 +152,7 @@ function FriendsList() {
             }
           />
         ) : (
-          <ul className="divide-y divide-border">
+          <ul className="grid gap-3 lg:grid-cols-2">
             {items.map((f) => (
               <PersonLine key={f.user.id} user={f.user} online={presence[f.user.id]?.online}>
                 <PersonActions
@@ -232,7 +232,7 @@ function RequestList({ direction }: { direction: "incoming" | "outgoing" }) {
             <EmptyState icon="invites" title={copy.emptySentTitle} body={copy.emptySentBody} />
           )
         ) : (
-          <ul className="divide-y divide-border">
+          <ul className="grid gap-3 lg:grid-cols-2">
             {items.map((r) => (
               <PersonLine key={r.id} user={r.user}>
                 {direction === "incoming" ? (
@@ -291,10 +291,10 @@ function FindPeople() {
 
   return (
     <div className="flex flex-col">
-      <div className="relative p-4">
+      <div className="relative mx-auto mb-4 w-full max-w-[720px]">
         <Search
           aria-hidden
-          className="pointer-events-none absolute left-7 top-1/2 size-4 -translate-y-1/2 text-text-muted"
+          className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-text-muted"
         />
         <Input
           type="search"
@@ -304,11 +304,13 @@ function FindPeople() {
           value={text}
           onChange={(e) => setText(e.target.value)}
           autoComplete="off"
-          className="rounded-full pl-10"
+          className="rounded-full pl-11"
         />
       </div>
       {!enabled ? (
-        <p className="px-4 pb-6 text-sm text-text-muted">{copy.searchHint}</p>
+        <p className="mx-auto w-full max-w-[720px] pb-6 text-sm text-text-muted">
+          {copy.searchHint}
+        </p>
       ) : search.isPending ? (
         <ListState query={search} empty={null} />
       ) : search.isError ? (
@@ -317,7 +319,7 @@ function FindPeople() {
         <EmptyState icon="open-gist" title={copy.searchEmptyTitle} body={copy.searchEmptyBody} />
       ) : (
         <>
-          <ul className="divide-y divide-border">
+          <ul className="grid gap-3 lg:grid-cols-2">
             {people.map((p) => (
               <PersonLine
                 key={p.id}
@@ -359,7 +361,7 @@ export function FriendsTabs() {
 
   return (
     <Tabs value={tab} onValueChange={(v) => router.replace(`/app/friends?tab=${v}`)}>
-      <div className="overflow-x-auto px-4 pt-3">
+      <div className="flex justify-center overflow-x-auto pb-4">
         <TabsList label={copy.tabsLabel}>
           <TabsTrigger value="friends">{copy.tabs.friends}</TabsTrigger>
           <TabsTrigger value="requests">

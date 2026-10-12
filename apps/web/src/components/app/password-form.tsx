@@ -60,7 +60,7 @@ export function PasswordForm({ hasPassword, email }: { hasPassword: boolean; ema
       noValidate
       onChange={() => setSaved(false)}
       onSubmit={form.handleSubmit(onSubmit)}
-      className="flex max-w-lg flex-col gap-4"
+      className="flex w-full flex-col gap-4"
     >
       <p className="text-text-muted">{hasPassword ? copy.introSet : copy.introNone}</p>
       {/* Lets password managers file the new password under the right account. */}

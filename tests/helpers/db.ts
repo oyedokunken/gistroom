@@ -26,12 +26,35 @@ export function prepareTestEnv(): void {
   for (const [k, v] of Object.entries(defaults)) process.env[k] ??= v;
 }
 
+/**
+ * Proves that what Prisma reads is the gistroom_test table and not another schema that has a table of the same name.
+ * A wrong connection setting once pointed these tests at the public schema, so this check stays.
+ */
+export async function assertQueriesHitTestSchema(db: ReturnType<typeof getDb>): Promise<void> {
+  const slug = `guard_${Date.now()}`;
+  const row = await db.topic.create({ data: { slug, name: slug, description: "schema guard" } });
+  try {
+    const [{ n }] = await db.$queryRawUnsafe<{ n: bigint }[]>(
+      `select count(*) as n from gistroom_test."Topic" where slug = $1`,
+      slug,
+    );
+    if (Number(n) !== 1) {
+      throw new Error(
+        "Prisma is not writing to the gistroom_test schema. Refusing to touch anything.",
+      );
+    }
+  } finally {
+    await db.topic.delete({ where: { id: row.id } });
+  }
+}
+
 /** Deletes everything in the test schema. Refuses to run anywhere else. */
 export async function resetTestDb(): Promise<void> {
   if (process.env.DATABASE_SCHEMA !== "gistroom_test") {
     throw new Error("resetTestDb only runs against gistroom_test");
   }
   const db = getDb();
+  await assertQueriesHitTestSchema(db);
   // Prisma deletes in dependency order (R7: no raw SQL outside migrations).
   await db.roomMessage.deleteMany();
   await db.roomModLog.deleteMany();

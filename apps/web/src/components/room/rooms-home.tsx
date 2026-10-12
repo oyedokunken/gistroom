@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Lock, Mic, Plus } from "lucide-react";
 import { LANGUAGE_LABELS, type PublicRoomCard, type RoomDto } from "@gistroom/shared";
-import { PageHeader } from "@/components/app/page-header";
+import { PageShell } from "@/components/app/page-shell";
 import { CreateRoomModal } from "@/components/room/create-room-modal";
 import { RoomsExplorer } from "@/components/public/rooms-explorer";
 import { Badge } from "@/components/ui/badge";
@@ -67,22 +67,22 @@ export function RoomsHome({
   }, [params]);
 
   return (
-    <>
-      <PageHeader
-        title={pages.rooms.title}
-        action={
-          <Button icon={<Plus aria-hidden className="size-4" />} onClick={() => setCreating(true)}>
-            {copy.start}
-          </Button>
-        }
-      />
+    <PageShell
+      variant="full"
+      title={pages.rooms.title}
+      action={
+        <Button icon={<Plus aria-hidden className="size-4" />} onClick={() => setCreating(true)}>
+          {copy.start}
+        </Button>
+      }
+    >
       {mine.isPending ? (
-        <div className="grid gap-3 p-4 sm:grid-cols-2 md:px-6 lg:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Skeleton className="h-28" />
           <Skeleton className="h-28" />
         </div>
       ) : (mine.data?.rooms.length ?? 0) > 0 ? (
-        <section aria-labelledby="mine-h" className="px-4 pt-6 md:px-6">
+        <section aria-labelledby="mine-h" className="pb-6">
           <h2 id="mine-h" className="text-xl font-bold text-text">
             {copy.yours}
           </h2>
@@ -101,6 +101,6 @@ export function RoomsHome({
         initialFailed={initialFailed}
       />
       <CreateRoomModal open={creating} onOpenChange={setCreating} />
-    </>
+    </PageShell>
   );
 }

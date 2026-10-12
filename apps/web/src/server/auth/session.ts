@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { getDb, type Session, type User } from "@gistroom/db";
 import { errors } from "@gistroom/shared";
 import { deviceLabel } from "@/lib/device-label";
@@ -54,9 +54,14 @@ export async function createSession(userId: string, userAgent: string): Promise<
 }
 
 export async function setSessionCookie(token: string): Promise<void> {
+  // Secure on https, which is every real visit. A plain http address such as localhost cannot keep a Secure cookie.
+  const proto = (await headers()).get("x-forwarded-proto");
+  const secure = proto
+    ? proto === "https"
+    : getEnv().NODE_ENV === "production" && getEnv().APP_URL.startsWith("https:");
   (await cookies()).set(SESSION_COOKIE, token, {
     httpOnly: true,
-    secure: getEnv().NODE_ENV === "production",
+    secure,
     sameSite: "lax",
     path: "/",
     maxAge: 30 * 86_400,

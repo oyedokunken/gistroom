@@ -35,7 +35,7 @@ export function NotificationPrefsForm() {
     if (q.data && !prefs) setPrefs(q.data.prefs);
   }, [q.data, prefs]);
 
-  if (q.isPending || !prefs) return <Skeleton className="h-64 max-w-lg" />;
+  if (q.isPending || !prefs) return <Skeleton className="h-64 w-full" />;
 
   const change = (next: NotificationPrefs) => {
     setSaved(false);
@@ -67,7 +67,7 @@ export function NotificationPrefsForm() {
   }
 
   return (
-    <div className="flex max-w-lg flex-col gap-6">
+    <div className="flex w-full flex-col gap-6">
       <p className="text-text-muted">{copy.intro}</p>
 
       <div className="overflow-x-auto">

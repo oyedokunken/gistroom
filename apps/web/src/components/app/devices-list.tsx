@@ -68,7 +68,7 @@ export function DevicesList() {
 
   if (isPending) {
     return (
-      <div className="flex max-w-lg flex-col gap-3">
+      <div className="flex w-full flex-col gap-3">
         <Skeleton className="h-16" />
         <Skeleton className="h-16" />
       </div>
@@ -76,7 +76,7 @@ export function DevicesList() {
   }
   if (isError) {
     return (
-      <div className="flex max-w-lg flex-col items-start gap-3">
+      <div className="flex w-full flex-col items-start gap-3">
         <p className="text-text-muted">{settings.devices.intro}</p>
         <Button variant="secondary" onClick={() => void refetch()}>
           {ui.retry}
@@ -87,7 +87,7 @@ export function DevicesList() {
 
   const sessions = data.sessions;
   return (
-    <div className="flex max-w-lg flex-col gap-4">
+    <div className="flex w-full flex-col gap-4">
       <p className="text-text-muted">{copy.intro}</p>
       <ul className="flex flex-col gap-3">
         {sessions.map((s) => (

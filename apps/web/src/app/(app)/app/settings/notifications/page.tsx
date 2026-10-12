@@ -11,7 +11,7 @@ export default function NotificationSettingsPage() {
     <div className="flex flex-col gap-4">
       <BackLink href="/app/settings" />
       <h2 className="text-xl font-bold text-text">{notifySettings.heading}</h2>
-      <div className="max-w-lg">
+      <div className="w-full">
         <PushCard />
       </div>
       <NotificationPrefsForm />

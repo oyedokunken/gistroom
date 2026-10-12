@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PageHeader } from "@/components/app/page-header";
+import { PageShell } from "@/components/app/page-shell";
 import { DiscoverView } from "@/components/interests/discover-view";
 import { interests as copy } from "@/content/interests";
 import { requireUserForPage } from "@/server/auth/page";
@@ -12,9 +12,8 @@ export default async function DiscoverPage() {
   const { user } = await requireUserForPage();
   const data = await discover(user.id);
   return (
-    <>
-      <PageHeader title={copy.discoverTitle} />
+    <PageShell variant="full" title={copy.discoverTitle}>
       <DiscoverView data={data} />
-    </>
+    </PageShell>
   );
 }

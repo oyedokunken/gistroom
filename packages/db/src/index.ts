@@ -10,14 +10,15 @@ const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 /**
  * The dev and test schemas live in the same Postgres as production, and the citext and pg_trgm extensions live in
- * public. So a non public schema gets a search_path of that schema first, then public, set as a connection option.
+ * public. Prisma qualifies every table with the schema it is told about, so the schema is always passed on. A non
+ * public schema also gets a search_path of that schema first, then public, so the extension types and functions are found.
  * Production uses the public schema as it is.
  */
 export function connectionFor(url: string | undefined, schema: string | undefined) {
   if (!url || !schema || schema === "public") return { url, schema };
   const parsed = new URL(url);
   parsed.searchParams.set("options", `-c search_path=${schema},public`);
-  return { url: parsed.toString(), schema: undefined };
+  return { url: parsed.toString(), schema };
 }
 
 /** One shared client per process. The schema comes from DATABASE_SCHEMA (Section 5.3). */

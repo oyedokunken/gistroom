@@ -28,7 +28,10 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
   }
   const isMe = profile.id === user.id;
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col items-center gap-5 px-6 py-10 text-center">
+    <div
+      data-page-shell="narrow"
+      className="mx-auto flex w-full max-w-[720px] flex-col items-center gap-5 px-6 py-10 text-center"
+    >
       <Avatar name={profile.name} src={profile.avatarUrl} size={112} />
       <div className="flex flex-col gap-1">
         <h1 className="text-3xl font-bold tracking-tight text-text">{profile.name}</h1>

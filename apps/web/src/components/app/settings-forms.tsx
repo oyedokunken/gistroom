@@ -57,7 +57,7 @@ export function ProfileForm({ user }: { user: MeUser }) {
       onSubmit={form.handleSubmit(async (v) => {
         await save({ name: v.name, bio: v.bio === "" ? null : v.bio });
       })}
-      className="flex max-w-lg flex-col gap-4"
+      className="flex w-full flex-col gap-4"
     >
       <AvatarUploader name={user.name} avatarUrl={user.avatarUrl} />
       <Field label={copy.nameLabel} error={errors.name?.message}>
@@ -101,7 +101,7 @@ export function PrivacyForm({ user }: { user: MeUser }) {
     setValues((v) => ({ ...v, [key]: value }));
   };
   return (
-    <div className="flex max-w-lg flex-col gap-2">
+    <div className="flex w-full flex-col gap-2">
       <div className="divide-y divide-border">
         <Switch
           label={copy.discoverable}
@@ -162,7 +162,7 @@ export function DataSaverForm({ user }: { user: MeUser }) {
   const [on, setOn] = useState(user.dataSaver);
   const [busy, setBusy] = useState(false);
   return (
-    <div className="flex max-w-lg flex-col gap-2">
+    <div className="flex w-full flex-col gap-2">
       <Switch
         label={copy.toggle}
         help={copy.help}

@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: notifySettings.installHeading };
 
 export default function InstallSettingsPage() {
   return (
-    <div className="flex max-w-lg flex-col gap-4">
+    <div className="flex w-full flex-col gap-4">
       <BackLink href="/app/settings" />
       <h2 className="text-xl font-bold text-text">{notifySettings.installHeading}</h2>
       <p className="text-text-muted">{notifySettings.installIntro}</p>

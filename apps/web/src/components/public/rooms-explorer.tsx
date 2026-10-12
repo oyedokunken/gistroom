@@ -85,12 +85,7 @@ export function RoomsExplorer({
   const term = query.trim();
 
   return (
-    <div
-      className={cn(
-        "mx-auto w-full",
-        bare ? "px-4 py-6 md:px-6" : "max-w-[1200px] px-6 py-12 md:py-16",
-      )}
-    >
+    <div className={cn("mx-auto w-full", bare ? "" : "max-w-[1200px] px-6 py-12 md:py-16")}>
       <form role="search" noValidate onSubmit={(e) => e.preventDefault()} className="relative">
         <label htmlFor="rooms-search" className="sr-only">
           {copy.label}

@@ -161,8 +161,8 @@ export function CallLog() {
 
   return (
     <div className="flex flex-col">
-      <div className="flex flex-col gap-3 border-b border-border px-4 py-4 md:px-6">
-        <div className="flex flex-wrap items-center gap-3">
+      <div className="mx-auto flex w-full max-w-[720px] flex-col items-center gap-3 pb-4">
+        <div className="flex flex-wrap items-center justify-center gap-3">
           <SegmentedTabs
             label={copy.logs.title}
             value={media}
@@ -185,10 +185,10 @@ export function CallLog() {
             ]}
           />
         </div>
-        <div className="relative max-w-md">
+        <div className="relative w-full">
           <Search
             aria-hidden
-            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted"
+            className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-text-muted"
           />
           <Input
             type="search"
@@ -197,13 +197,13 @@ export function CallLog() {
             placeholder={copy.logs.searchPlaceholder}
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            className="rounded-full pl-9"
+            className="rounded-full pl-11"
           />
         </div>
       </div>
 
       {query.isPending ? (
-        <div className="flex flex-col gap-3 p-4">
+        <div className="flex flex-col gap-3">
           {Array.from({ length: 5 }, (_, i) => (
             <div key={i} className="flex items-center gap-3">
               <Skeleton className="size-12 rounded-full" />
@@ -241,12 +241,17 @@ export function CallLog() {
         )
       ) : data ? (
         <>
-          <ul className={cn("divide-y divide-border", query.isFetching && "opacity-70")}>
+          <ul
+            className={cn(
+              "divide-y divide-border rounded-card border border-border bg-surface",
+              query.isFetching && "opacity-70",
+            )}
+          >
             {data.items.map((entry) => (
               <Row key={entry.id} entry={entry} />
             ))}
           </ul>
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-4 md:px-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border py-4">
             <p role="status" className="tabular text-sm text-text-muted">
               {copy.logs.total(data.total)}
             </p>

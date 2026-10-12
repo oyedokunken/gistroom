@@ -22,6 +22,8 @@ export const GET = api(async (request) => {
   const { user } = await requireOnboarded();
   const params = new URL(request.url).searchParams;
   const unreadOnly = params.get("unread") === "1";
+  // Activity is the person's own receipts. It never mixes into All or Unread.
+  const activity = params.get("tab") === "activity";
   const limit = Math.min(50, Math.max(1, Number(params.get("limit")) || LIMITS.PAGE_SIZE_DEFAULT));
   const after = decodeCursor(params.get("cursor"), isCursor);
   const afterDate = after ? new Date(after.t) : null;
@@ -29,6 +31,9 @@ export const GET = api(async (request) => {
   const rows = await getDb().notification.findMany({
     where: {
       userId: user.id,
+      ...(activity
+        ? { type: "ACTIVITY", expiresAt: { gt: new Date() } }
+        : { type: { not: "ACTIVITY" } }),
       ...(unreadOnly ? { readAt: null } : {}),
       ...(after && afterDate
         ? {
@@ -51,11 +56,20 @@ export const GET = api(async (request) => {
   return json(page);
 });
 
-/** Clear all of them (Section 9.7). */
+/** Clear all of them (Section 9.7), or just the ones with ?ids=a,b,c. Activity is cleared with ?tab=activity. */
 export const DELETE = api(async (request) => {
   assertSameOrigin(request);
   const { user } = await requireOnboarded();
-  await getDb().notification.deleteMany({ where: { userId: user.id } });
+  const params = new URL(request.url).searchParams;
+  const ids = (params.get("ids") ?? "").split(",").filter(Boolean).slice(0, 100);
+  const activity = params.get("tab") === "activity";
+  await getDb().notification.deleteMany({
+    where: {
+      userId: user.id,
+      ...(ids.length ? { id: { in: ids } } : {}),
+      ...(!ids.length ? (activity ? { type: "ACTIVITY" } : { type: { not: "ACTIVITY" } }) : {}),
+    },
+  });
   void publish({ type: "badge", userId: user.id });
   return json({ ok: true });
 });

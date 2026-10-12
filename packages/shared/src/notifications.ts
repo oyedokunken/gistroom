@@ -10,6 +10,7 @@ export const NOTIFICATION_TYPES: readonly NotificationType[] = [
   "ROOM_INVITE",
   "ROOM_STARTING",
   "ROOM_ROLE_CHANGED",
+  "ROOM_ENDED",
   "SECURITY_NEW_DEVICE",
   "REPORT_UPDATE",
   "SYSTEM",
@@ -25,7 +26,8 @@ export interface ChannelSwitches {
 export function defaultSwitches(type: NotificationType): ChannelSwitches {
   return {
     inApp: true,
-    push: true,
+    // A finished room is only worth a line in the list.
+    push: type !== "ROOM_ENDED",
     email: type === "CALL_MISSED" || type === "SECURITY_NEW_DEVICE",
   };
 }
@@ -123,7 +125,10 @@ export function notificationHref(type: NotificationType, payload: Record<string,
     case "ROOM_INVITE":
     case "ROOM_STARTING":
     case "ROOM_ROLE_CHANGED":
+    case "ROOM_ENDED":
       return str("roomSlug") ? `/app/rooms/${str("roomSlug")}` : "/app/rooms";
+    case "ACTIVITY":
+      return str("href") ?? "/app/notifications";
     case "SECURITY_NEW_DEVICE":
       return "/app/settings/devices";
     case "REPORT_UPDATE":
@@ -306,14 +311,41 @@ export function notificationCopy(
         ref: s("roomId", id),
         url,
       };
-    case "ROOM_ROLE_CHANGED":
+    case "ROOM_ROLE_CHANGED": {
+      const role = s("role", "moderator").toLowerCase();
+      const room = s("roomTitle", "the room");
+      const body =
+        role === "removed"
+          ? pushCopy.removedBody(room)
+          : role === "banned"
+            ? pushCopy.bannedBody(room)
+            : role === "member"
+              ? pushCopy.demotedBody(room)
+              : pushCopy.roleChangedBody(role, room);
       return {
         kind: "GENERIC",
-        title: pushCopy.roleChangedTitle,
-        body: pushCopy.roleChangedBody(
-          s("role", "a moderator").toLowerCase(),
-          s("roomTitle", "the room"),
-        ),
+        title:
+          role === "removed" || role === "banned"
+            ? pushCopy.removedTitle
+            : pushCopy.roleChangedTitle,
+        body,
+        ref: id,
+        url,
+      };
+    }
+    case "ROOM_ENDED":
+      return {
+        kind: "GENERIC",
+        title: pushCopy.roomEndedTitle,
+        body: pushCopy.roomEndedBody(s("roomTitle", "The room")),
+        ref: s("roomId", id),
+        url,
+      };
+    case "ACTIVITY":
+      return {
+        kind: "GENERIC",
+        title: pushCopy.activityTitle,
+        body: s("text", pushCopy.genericBody),
         ref: id,
         url,
       };

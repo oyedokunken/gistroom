@@ -42,3 +42,11 @@ export async function recordActivity(input: ActivityInput, now = new Date()): Pr
     // Activity is a convenience. The action already happened.
   }
 }
+
+/** Removes Activity lines past their week. Run by the daily sweep. */
+export async function purgeExpiredActivity(now = new Date()): Promise<number> {
+  const done = await getDb().notification.deleteMany({
+    where: { type: ACTIVITY_TYPE, expiresAt: { lte: now } },
+  });
+  return done.count;
+}

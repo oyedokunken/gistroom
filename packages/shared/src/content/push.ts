@@ -18,6 +18,13 @@ export const pushCopy = {
   roomStartingBody: (title: string) => `${title} starts in a few minutes.`,
   roleChangedTitle: "Your role changed",
   roleChangedBody: (role: string, title: string) => `You are now ${role} in ${title}.`,
+  removedTitle: "Removed from a room",
+  removedBody: (title: string) => `A moderator removed you from ${title}.`,
+  bannedBody: (title: string) => `A moderator banned you from ${title}.`,
+  demotedBody: (title: string) => `You are no longer a moderator in ${title}.`,
+  roomEndedTitle: "Room ended",
+  roomEndedBody: (title: string) => `${title} has ended. See the summary.`,
+  activityTitle: "Your activity",
   securityTitle: "New sign in",
   securityBody: (device: string) =>
     `Your account was signed in on ${device}. If it was not you, sign out that device in Settings.`,

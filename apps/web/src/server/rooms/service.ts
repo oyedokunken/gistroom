@@ -435,6 +435,14 @@ async function finishRoom(room: Room, actorId: string | null): Promise<void> {
   // The chat goes with the room. Reports already hold their own evidence snapshot, and the totals stay on the room.
   await db.roomMessage.deleteMany({ where: { roomId: room.id } });
   if (actorId) await log(room.id, actorId, "END");
+  for (const m of attended) {
+    void notify({
+      userId: m.userId,
+      type: "ROOM_ENDED",
+      payload: { roomId: room.id, roomSlug: room.slug, roomTitle: room.title },
+      dedupeKey: `room-ended:${room.id}`,
+    }).catch(() => null);
+  }
   void closeLiveKitRoom(room.livekitRoom);
   void publish({ type: "room", roomId: room.id, change: "ended" });
 }

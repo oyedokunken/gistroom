@@ -248,6 +248,36 @@ export const notices = {
   clearBody: "Every notification is removed from this list. This cannot be undone.",
   clearConfirm: "Clear all",
   unreadDot: "Unread",
+  activity: "Activity",
+  emptyActivity:
+    "Nothing here yet. The things you do, like starting a room or archiving a chat, show up here for a week.",
+  activityNote: "A receipt for what you did. These disappear after 7 days.",
+  undo: "Undo",
+  undone: "Done. That is undone.",
+  select: "Select",
+  selectDone: "Done",
+  selectAll: "Select all",
+  selected: (n: number) => (n === 1 ? "1 selected" : n + " selected"),
+  rowCheck: (title: string) => "Select " + title,
+  deleteTitle: (n: number) =>
+    n === 1 ? "Delete 1 notification?" : "Delete " + n + " notifications?",
+  deleteBody: (n: number) =>
+    n === 1
+      ? "This notification is removed from your list."
+      : n + " notifications are removed from your list. This cannot be undone.",
+  deleteConfirm: "Delete",
+  today: "Today",
+  open: "Open",
+  close: "Close",
+  detailTitle: "Notification",
+  accept: "Accept",
+  decline: "Decline",
+  join: "Join room",
+  summary: "See room summary",
+  viewRequests: "See requests",
+  reply: "Open chat",
+  actionFailed: "That did not work. Check your connection and try again.",
+  requestGone: "This request is no longer open.",
   push: {
     heading: "Alerts on this device",
     body: "Get calls and messages even when Gistroom is closed.",

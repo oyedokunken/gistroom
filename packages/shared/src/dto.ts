@@ -85,9 +85,12 @@ export type NotificationType =
   | "ROOM_INVITE"
   | "ROOM_STARTING"
   | "ROOM_ROLE_CHANGED"
+  | "ROOM_ENDED"
   | "SECURITY_NEW_DEVICE"
   | "REPORT_UPDATE"
-  | "SYSTEM";
+  | "SYSTEM"
+  /** A receipt for something the person did. Lives in the Activity tab, never pushed or emailed, expires after a week. */
+  | "ACTIVITY";
 
 export interface NotificationDto {
   id: string;

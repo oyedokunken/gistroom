@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { api, json } from "@/server/http";
 import { getEnv } from "@/server/env";
 import { expireDueCalls } from "@/server/calls/service";
+import { purgeExpiredActivity } from "@/server/notifications/activity";
 import { endEmptyRooms, purgeEndedRoomChat } from "@/server/rooms/service";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +28,7 @@ async function run(request: Request): Promise<Response> {
     expiredCalls: await expireDueCalls(),
     endedRooms: await endEmptyRooms(),
     purgedRoomChat: await purgeEndedRoomChat(),
+    purgedActivity: await purgeExpiredActivity(),
   });
 }
 

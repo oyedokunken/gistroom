@@ -83,6 +83,7 @@ export const UsernameField = forwardRef<HTMLInputElement, UsernameFieldProps>(
             ref={ref}
             id={id}
             type="text"
+            placeholder={auth.usernamePlaceholder}
             autoComplete="username"
             autoCapitalize="none"
             spellCheck={false}

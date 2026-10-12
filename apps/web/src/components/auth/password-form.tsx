@@ -83,15 +83,25 @@ export function PasswordForm({ next, intro }: { next: string; intro?: "signup" |
       <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
         <Field label={auth.passwordLabel} help={auth.passwordHelp} error={errors.password?.message}>
           {(props) => (
-            <PasswordInput {...props} autoComplete="new-password" {...form.register("password")} />
+            <PasswordInput
+              {...props}
+              autoComplete="new-password"
+              placeholder={auth.newPasswordPlaceholder}
+              {...form.register("password")}
+            />
+          )}
+        </Field>
+        <Field label={copy.confirmLabel} error={errors.confirm?.message}>
+          {(props) => (
+            <PasswordInput
+              {...props}
+              autoComplete="new-password"
+              placeholder={auth.confirmPlaceholder}
+              {...form.register("confirm")}
+            />
           )}
         </Field>
         <PasswordStrength strength={strength} />
-        <Field label={copy.confirmLabel} error={errors.confirm?.message}>
-          {(props) => (
-            <PasswordInput {...props} autoComplete="new-password" {...form.register("confirm")} />
-          )}
-        </Field>
         <Button type="submit" loading={form.formState.isSubmitting} className="min-h-12">
           {form.formState.isSubmitting ? copy.submitting : copy.submit}
         </Button>

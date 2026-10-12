@@ -46,9 +46,11 @@ test.describe("rooms never show a technical error", () => {
       await page.getByRole("button", { name: "football" }).click();
       await page.getByRole("button", { name: "football" }).click();
       const main = page.locator("main");
-      await expect(main).toContainText("No rooms live right now", { timeout: 15_000 });
-      await expect(main).toContainText("Start one and let people join the gist.");
-      await expect(main.getByRole("link", { name: "Start a room" }).first()).toBeVisible();
+      // Other specs run at the same time and may have public rooms of their own, so the page shows either the
+      // friendly empty state or real rooms. What it never shows is a technical error.
+      await expect(main).toContainText(/No rooms live right now|Live now|Starting soon/i, {
+        timeout: 15_000,
+      });
       expect(await main.innerText()).not.toMatch(banned);
     });
   }
@@ -57,7 +59,7 @@ test.describe("rooms never show a technical error", () => {
     await decideCookies(page);
     await page.goto("/rooms");
     const main = page.locator("main");
-    await expect(main).toContainText("No rooms live right now");
+    await expect(main).toContainText(/No rooms live right now|Live now|Starting soon/i);
     expect(await main.innerText()).not.toMatch(/could not load|failed|try again/i);
   });
 });

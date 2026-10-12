@@ -174,7 +174,6 @@ export function ForgotForm({
               />
             )}
           </Field>
-          <PasswordStrength strength={strength} />
           <Field
             label={auth.confirmLabel}
             help={auth.confirmHelp}
@@ -189,6 +188,7 @@ export function ForgotForm({
               />
             )}
           </Field>
+          <PasswordStrength strength={strength} />
           <Button type="submit" loading={form.formState.isSubmitting} className="min-h-12">
             {form.formState.isSubmitting ? copy.submitting : copy.submit}
           </Button>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -83,7 +84,27 @@ export function OnboardingForm({ defaultName, next }: { defaultName: string; nex
           {...form.register("ageConfirmed")}
         />
         <Checkbox
-          label={copy.termsLabel}
+          label={
+            <span>
+              {copy.termsBefore}
+              <Link
+                href="/terms"
+                target="_blank"
+                className="font-semibold text-green-700 underline underline-offset-4"
+              >
+                {auth.termsLink}
+              </Link>
+              {auth.termsAnd}
+              <Link
+                href="/privacy"
+                target="_blank"
+                className="font-semibold text-green-700 underline underline-offset-4"
+              >
+                {auth.privacyLink}
+              </Link>
+              .
+            </span>
+          }
           error={errors.termsAccepted?.message}
           {...form.register("termsAccepted")}
         />

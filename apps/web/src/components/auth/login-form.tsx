@@ -126,7 +126,9 @@ export function LoginForm({ next, error }: AuthFormProps) {
       } else if (res.state === "GOOGLE_ONLY") {
         emailForm.setError("email", { message: auth.identify.googleOnly });
       } else {
-        setEmail(address);
+        emailForm.setError("email", {
+          message: address.includes("@") ? auth.identify.none : auth.identify.noUsername,
+        });
       }
     } catch (e) {
       if (e instanceof ApiClientError && (e.status === 429 || e.status === 400 || e.fields.email)) {
@@ -243,6 +245,7 @@ export function LoginForm({ next, error }: AuthFormProps) {
             <PasswordInput
               {...props}
               autoComplete="current-password"
+              placeholder={auth.passwordPlaceholder}
               {...passwordForm.register("password")}
             />
           )}

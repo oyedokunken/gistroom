@@ -112,8 +112,8 @@ export async function identifyAccount(identifier: string, ip: string): Promise<A
   await enforce(policies.loginEmail, identifier);
   const found = await findByIdentifier(identifier);
   if (found?.status === "SUSPENDED") throw new AppError(403, "FORBIDDEN", errors.accountSuspended);
-  // An unknown account looks exactly like a known one until the password is checked, so nothing leaks.
-  if (!found || found.status === "DELETED") return "PASSWORD";
+  // The forms say plainly when there is no account (D38), so nobody types a password into nothing.
+  if (!found || found.status === "DELETED") return "NONE";
   const googleLinked = (await getDb().authAccount.count({ where: { userId: found.id } })) > 0;
   const state = accountState({
     passwordHash: found.passwordHash,

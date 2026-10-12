@@ -282,6 +282,8 @@ export const notices = {
   reply: "Open chat",
   actionFailed: "That did not work. Check your connection and try again.",
   requestGone: "This request is no longer open.",
+  accepted: "Accepted",
+  viewProfile: "View profile",
   push: {
     heading: "Alerts on this device",
     body: "Get calls and messages even when Gistroom is closed.",

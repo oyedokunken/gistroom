@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Bell,
   CheckCheck,
@@ -20,6 +20,7 @@ import {
 import {
   notificationCopy,
   pushCopy,
+  type FriendRequestDto,
   type NotificationDto,
   type NotificationType,
   type Page,
@@ -88,18 +89,29 @@ function Detail({
   onChange: () => void;
 }) {
   const { showError } = useFeedback();
+  const queryClient = useQueryClient();
   const [busy, setBusy] = useState(false);
+  const requestId = n && n.type === "FRIEND_REQUEST_RECEIVED" ? str(n, "requestId") : null;
+  // The request itself, not the notification: it knows whether you already answered it.
+  const request = useQuery({
+    queryKey: ["friend-request", requestId],
+    queryFn: () => apiFetch<{ request: FriendRequestDto }>(`/api/friends/requests/${requestId}`),
+    enabled: Boolean(requestId),
+  });
   if (!n) return null;
   const { title, body } = titleOf(n);
-  const requestId = str(n, "requestId");
   const roomSlug = str(n, "roomSlug");
+  const req = request.data?.request;
+  const answered = req ? req.status !== "PENDING" : false;
 
-  async function run(fn: () => Promise<unknown>) {
+  async function answer(kind: "accept" | "reject") {
     setBusy(true);
     try {
-      await fn();
+      await post(`/api/friends/requests/${requestId}/${kind}`, {});
+      await queryClient.invalidateQueries({ queryKey: ["friend-request", requestId] });
       onChange();
-      onClose();
+      void queryClient.invalidateQueries({ queryKey: ["friends"] });
+      void queryClient.invalidateQueries({ queryKey: ["requests"] });
     } catch (e) {
       showError(e instanceof ApiClientError ? e.message : notices.actionFailed);
     } finally {
@@ -119,25 +131,25 @@ function Detail({
       footer={
         <>
           {n.type === "FRIEND_REQUEST_RECEIVED" && requestId ? (
-            <>
-              <Button
-                variant="secondary"
-                loading={busy}
-                onClick={() =>
-                  void run(() => post(`/api/friends/requests/${requestId}/reject`, {}))
-                }
-              >
-                {notices.decline}
+            answered ? (
+              <Button disabled>
+                {req?.status === "ACCEPTED" ? notices.accepted : notices.requestGone}
               </Button>
-              <Button
-                loading={busy}
-                onClick={() =>
-                  void run(() => post(`/api/friends/requests/${requestId}/accept`, {}))
-                }
-              >
-                {notices.accept}
-              </Button>
-            </>
+            ) : (
+              <>
+                <Button
+                  variant="secondary"
+                  loading={busy}
+                  disabled={!req}
+                  onClick={() => void answer("reject")}
+                >
+                  {notices.decline}
+                </Button>
+                <Button loading={busy} disabled={!req} onClick={() => void answer("accept")}>
+                  {notices.accept}
+                </Button>
+              </>
+            )
           ) : null}
           {n.type === "ROOM_INVITE" || n.type === "ROOM_STARTING" ? (
             <Link href={n.href} onClick={onClose} className={buttonStyles("primary")}>
@@ -160,6 +172,25 @@ function Detail({
         </>
       }
     >
+      {req ? (
+        <div className="mb-3 flex items-center gap-3 rounded-2xl bg-surface-2 p-3 text-left">
+          <Avatar name={req.user.name} src={req.user.avatarUrl} size={56} />
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-semibold text-text">{req.user.name}</p>
+            <p className="truncate text-sm text-text-muted">@{req.user.username}</p>
+            {req.user.bio ? (
+              <p className="mt-1 line-clamp-3 text-sm text-text">{req.user.bio}</p>
+            ) : null}
+            <Link
+              href={`/app/u/${req.user.username}`}
+              onClick={onClose}
+              className="mt-1 inline-block text-sm font-semibold text-green-700 underline-offset-4 hover:underline"
+            >
+              {notices.viewProfile}
+            </Link>
+          </div>
+        </div>
+      ) : null}
       <time dateTime={n.createdAt} className="tabular block text-center text-sm text-text-muted">
         {formatFull(new Date(n.createdAt))}
       </time>

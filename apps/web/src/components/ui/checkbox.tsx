@@ -1,8 +1,9 @@
-import { forwardRef, type InputHTMLAttributes } from "react";
+import { forwardRef, useId, type InputHTMLAttributes, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
-  label: string;
+  /** Text, or text with links such as the Terms. */
+  label: ReactNode;
   error?: string;
 }
 
@@ -11,7 +12,8 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
   { label, error, id, className, ...rest },
   ref,
 ) {
-  const fieldId = id ?? `cb-${label.replace(/\W+/g, "-").toLowerCase()}`;
+  const generated = useId();
+  const fieldId = id ?? `cb-${generated}`;
   const errorId = `${fieldId}-error`;
   return (
     <div className="flex flex-col gap-1">

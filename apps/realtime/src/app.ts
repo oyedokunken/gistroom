@@ -81,11 +81,16 @@ export function createRealtime(options: RealtimeOptions): Realtime {
     passGraceMs: options.passGraceMs,
   });
 
+  const startedAt = Date.now();
+  // Small diagnostics for the keepalive pinger and for a person looking at a sleepy instance. No user data.
   app.get("/health", (_req, res) => {
     res.json({
       ok: true,
       service: "realtime",
       online: hub.onlineCount(),
+      sockets: io.engine.clientsCount,
+      uptimeSec: Math.round((Date.now() - startedAt) / 1000),
+      startedAt: new Date(startedAt).toISOString(),
       time: new Date().toISOString(),
     });
   });

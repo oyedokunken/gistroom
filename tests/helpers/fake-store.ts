@@ -5,7 +5,13 @@ import type {
   PublicUser,
 } from "../../packages/shared/src";
 import { defaultPrefs } from "../../packages/shared/src";
-import type { AckResult, NotificationBundle, PushSub, Store } from "../../apps/realtime/src/store";
+import type {
+  AckResult,
+  NotificationBundle,
+  PushSub,
+  RoomDelivery,
+  Store,
+} from "../../apps/realtime/src/store";
 
 export interface FakeUser {
   id: string;
@@ -168,8 +174,27 @@ export class FakeStore implements Store {
   async counts() {
     return this.counts_;
   }
-  async roomForDelivery(): Promise<null> {
-    return null;
+  rooms = new Map<string, RoomDelivery & { id: string }>();
+  addRoom(room: Partial<RoomDelivery> & { id: string; joinedIds: string[] }): this {
+    this.rooms.set(room.id, {
+      slug: `slug-${room.id}`,
+      title: "Match talk",
+      locked: false,
+      hostName: "Ada",
+      allIds: room.joinedIds,
+      member: null,
+      chat: null,
+      ...room,
+    });
+    return this;
+  }
+  async roomForDelivery(input: { roomId: string; userId?: string }) {
+    const room = this.rooms.get(input.roomId);
+    if (!room) return null;
+    const member = input.userId
+      ? { userId: input.userId, role: "MEMBER" as const, state: "REMOVED" as const }
+      : null;
+    return { ...room, member: room.member ?? member };
   }
   async callForDelivery(): Promise<null> {
     return null;

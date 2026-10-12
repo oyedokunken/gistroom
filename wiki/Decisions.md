@@ -42,4 +42,7 @@ Decision log. Newest at the bottom. Defaults D1 to D13 live in CLAUDE.md Section
 - D49 (2026-10-13): The realtime socket never decides a person is signed out. It confirms with `/api/auth/session` and retries on any other failure, because an offline phone or a sleeping server used to send people to the sign in page.
 - D50 (2026-10-13): Push subscriptions belong to a device (the `gr_device` cookie, one year), not a session. After a session ends alerts continue for 30 days as plain text, then the device is marked as needing a sign in. Signing out on purpose removes that device's alerts.
 - D51 (2026-10-13): Sensitive actions need a sign in from the last 15 minutes. Accounts with a password type it again, Google only accounts sign in again.
+- D52 (2026-10-13): Test people are marked `User.isSeed` and only that mark is used to remove them. Their emails are on gmail.com and yahoo.com at the owner request, so they are never emailed: the mail code skips them, and they have no password. They are removed before launch.
+- D53 (2026-10-13): Unknown accounts are told at step one of sign in (back to D38), because a person should not type a password into nothing.
+- D54 (2026-10-13): Calls are recorded in the chat as system messages that never count as unread.
 - D41 (2026-10-11): Notes are private to their author and attach to one chat or one room. Anyone who took part in a room keeps their notes after it ends, and a note is never visible to the other people in the chat or room.

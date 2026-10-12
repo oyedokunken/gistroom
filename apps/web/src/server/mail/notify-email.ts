@@ -45,9 +45,10 @@ async function recipient(
 ): Promise<{ email: string; name: string; timezone: string } | null> {
   const user = await getDb().user.findUnique({
     where: { id: userId },
-    select: { email: true, name: true, status: true, timezone: true },
+    select: { email: true, name: true, status: true, timezone: true, isSeed: true },
   });
-  if (!user || user.status !== "ACTIVE") return null;
+  // Seeded test people have invented addresses. They are never emailed.
+  if (!user || user.status !== "ACTIVE" || user.isSeed) return null;
   const prefs = await loadPrefs(userId).catch(() => defaultPrefs);
   const channels = channelsFor({ type, prefs, timeZone: user.timezone, now: new Date() });
   return channels.email ? { email: user.email, name: user.name, timezone: user.timezone } : null;

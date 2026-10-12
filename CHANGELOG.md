@@ -6,6 +6,8 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ### Production migrations to run
 
+- `20261013120000_user_is_seed`: marks seeded test people so they can be removed in one command.
+
 - `20261013090000_sessions_push_devices`: session end reasons, device id and sign in time on sessions, device id, label, health and sign out fields on push subscriptions.
 - `20261013091000_push_session_ended`: when the session on a device ended.
 
@@ -16,6 +18,14 @@ These are applied to the dev and test schemas already. Run them on production wi
 - `20261012095014_settings_email_change_internal`: email change fields and the internal account flag.
 - `20261012102631_room_settings_reactions_activity`: room settings, room reactions and activity expiry.
 - `20261012140000_room_invite_link_token`: the link token that lets active links show in full.
+
+### Test data and polish
+
+- `npm run seed:friends` builds a test world of 30 Nigerian people around real accounts, with chats, calls and rooms, and `--remove` deletes all of it. `npm run seed:act` makes a seeded person message or friend request a real account. See `wiki/Test-Data.md`.
+- Chat heads show a green dot and Active now or Last seen for the other person, from the server as well as the socket. Calls appear in the middle of a chat with a voice or video icon, how long it lasted and when it started, and never count as unread.
+- Signing in with an email or username that has no account stops at step one. Auth fields have placeholders, the Terms and Privacy Policy are links, and confirm password sits under the password with the rules after it.
+- A friend request alert shows who sent it with a link to their profile, and shows Accepted once you accept.
+- The topic picker has search that understands Nigerian words, popular topics first and the full list behind a button. Emails use the landing page logo. Settings opens on Profile.
 
 ### Sessions and alerts
 

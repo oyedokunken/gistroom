@@ -43,6 +43,8 @@
     "db:seed:reference": "tsx scripts/seed.ts --reference",
     "seed:demo": "node scripts/assert-safe-db.mjs tsx ../../scripts/seed.ts",
     "seed:qa": "tsx scripts/seed-qa.ts",
+    "seed:friends": "tsx scripts/seed-friends.ts",
+    "seed:act": "tsx scripts/seed-act.ts",
     "sessions:ends": "tsx scripts/session-ends.ts",
     "db:migrate:deploy": "npm run migrate:deploy -w @gistroom/db"
   },

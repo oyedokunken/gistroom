@@ -196,6 +196,10 @@ model User {
   avatarKey         String?
   /// Internal accounts (QA, staff) are hidden from search, suggestions and public counts for everyone else.
   isInternal        Boolean         @default(false)
+  /**
+   * Made by the targeted seed for testing. Never emailed, removed by `npm run seed:friends -- --remove`.
+   */
+  isSeed            Boolean         @default(false)
   bio               String?
   timezone          String          @default("Africa/Lagos")
   status            UserStatus      @default(ACTIVE)
@@ -545,6 +549,7 @@ model PushSubscription {
   failureCount    Int       @default(0)
   /// The session on this device ended more than 30 days ago, so alerts stopped until the person signs in again.
   /**
+   * /**
    * /** When the session on this device ended (first noticed). Alerts go out as plain text for 30 days after this.
    */
   sessionEndedAt  DateTime?

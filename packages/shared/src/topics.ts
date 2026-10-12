@@ -361,3 +361,9 @@ export function searchTopics(query: string): TopicInfo[] {
     return words.every((w) => hay.includes(w));
   });
 }
+
+/** A room has no photo of its own, so its avatar is its topic's picture. Rooms with no topic get the open gist one. */
+export function roomAvatarSrc(topicSlug: string | null | undefined): string {
+  const topic = topicSlug ? topicBySlug(topicSlug) : undefined;
+  return `/images/icons/${topic?.icon ?? "open-gist"}.png`;
+}

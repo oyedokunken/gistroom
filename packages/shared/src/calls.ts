@@ -148,6 +148,8 @@ export interface CallLogDto {
   peer: PublicUser | null;
   conversationId: string | null;
   roomId: string | null;
+  /** A picture for rooms, from their topic. People use `peer.avatarUrl`. */
+  avatarSrc?: string | null;
   startedAt: string;
   durationSec: number;
 }

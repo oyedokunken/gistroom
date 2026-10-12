@@ -308,6 +308,7 @@ export interface RoomSummaryDto {
   slug: string;
   title: string;
   topicName: string | null;
+  topicSlug: string | null;
   media: "AUDIO" | "VIDEO";
   host: PublicUser;
   startedAt: string | null;

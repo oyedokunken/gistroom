@@ -6,6 +6,7 @@ import {
   errors,
   liveKitIdentity,
   logOutcomeFor,
+  roomAvatarSrc,
   resolveGlare,
   ringExpiry,
   type CallAction,
@@ -379,6 +380,14 @@ export async function listCallLogs(
   const peerIds = [...new Set(items.map((r) => r.peerUserId).filter((v): v is string => !!v))];
   const peers = peerIds.length ? await db.user.findMany({ where: { id: { in: peerIds } } }) : [];
   const byId = new Map(peers.map((p) => [p.id, p]));
+  const roomIds = [...new Set(items.map((r) => r.roomId).filter((v): v is string => !!v))];
+  const rooms = roomIds.length
+    ? await db.room.findMany({
+        where: { id: { in: roomIds } },
+        select: { id: true, topic: { select: { slug: true } } },
+      })
+    : [];
+  const topicOf = new Map(rooms.map((r) => [r.id, r.topic?.slug ?? null]));
   const out: CallLogDto[] = [];
   for (const r of items) {
     const peer = r.peerUserId ? byId.get(r.peerUserId) : undefined;
@@ -392,6 +401,7 @@ export async function listCallLogs(
       peer: peer ? toPublicUser(peer) : null,
       conversationId: peer ? await conversationOf(me.id, peer.id) : null,
       roomId: r.roomId,
+      avatarSrc: r.roomId ? roomAvatarSrc(topicOf.get(r.roomId)) : null,
       startedAt: r.startedAt.toISOString(),
       durationSec: r.durationSec,
     });

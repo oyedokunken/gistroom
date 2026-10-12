@@ -28,6 +28,7 @@ import {
 import {
   LANGUAGE_LABELS,
   REACTIONS,
+  roomAvatarSrc,
   canDo,
   errors,
   type RoomJoin,
@@ -500,6 +501,7 @@ export function RoomScreen({
     <div className="fixed inset-0 z-[60] flex flex-col bg-ink-950 text-white">
       <div ref={lk.audioHost} className="sr-only" aria-hidden />
       <header className="flex items-center gap-3 border-b border-white/10 px-4 py-3">
+        <Avatar name={room.title} src={roomAvatarSrc(room.topicSlug)} size={44} />
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-lg font-bold">{room.title}</h1>
           <p className="tabular flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/70">

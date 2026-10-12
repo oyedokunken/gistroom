@@ -1189,7 +1189,7 @@ export async function roomSummary(me: User, slug: string): Promise<RoomSummaryDt
     where: { slug },
     include: {
       host: true,
-      topic: { select: { name: true } },
+      topic: { select: { name: true, slug: true } },
       members: { include: { user: true } },
     },
   });
@@ -1211,6 +1211,7 @@ export async function roomSummary(me: User, slug: string): Promise<RoomSummaryDt
     slug: room.slug,
     title: room.title,
     topicName: room.topic?.name ?? null,
+    topicSlug: room.topic?.slug ?? null,
     media: room.media === "VIDEO" ? "VIDEO" : "AUDIO",
     host: toPublicUser(room.host),
     startedAt: room.startedAt?.toISOString() ?? null,

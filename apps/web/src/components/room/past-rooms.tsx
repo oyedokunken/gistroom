@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown } from "lucide-react";
+import { roomAvatarSrc } from "@gistroom/shared";
 import { PageShell } from "@/components/app/page-shell";
+import { Avatar } from "@/components/ui/avatar";
 import { RoomSummaryView } from "@/components/room/room-summary";
 import { Button, buttonStyles } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -55,6 +57,7 @@ export function PastRooms() {
                   onClick={() => setOpen(expanded ? null : s.slug)}
                   className="flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left"
                 >
+                  <Avatar name={s.title} src={roomAvatarSrc(s.topicSlug)} size={44} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-semibold text-text">{s.title}</span>
                     <span className="tabular block text-sm text-text-muted">

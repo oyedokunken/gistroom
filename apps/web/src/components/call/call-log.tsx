@@ -74,7 +74,7 @@ function Row({ entry }: { entry: CallLogDto }) {
 
   return (
     <li className="flex items-center gap-3 rounded-card border border-border bg-surface px-4 py-3 md:px-5">
-      <Avatar name={entry.title} src={entry.peer?.avatarUrl} size={48} />
+      <Avatar name={entry.title} src={entry.peer?.avatarUrl ?? entry.avatarSrc} size={48} />
       <div className="min-w-0 flex-1">
         <p className="truncate font-semibold text-text">{entry.title}</p>
         <p className="flex flex-wrap items-center gap-x-2 text-sm text-text-muted">

@@ -22,7 +22,16 @@ import { isPasswordAcceptable, usePasswordStrength } from "@/lib/password-streng
 import { auth } from "@/content/auth";
 import { ApiClientError, apiFetch } from "@/lib/api";
 
-const newPasswordForm = z.object({ code: otpCodeSchema, password: newPasswordSchema });
+const newPasswordForm = z
+  .object({
+    code: otpCodeSchema,
+    password: newPasswordSchema,
+    confirm: z.string().min(1, auth.confirmRequired),
+  })
+  .refine((v) => v.password === v.confirm, {
+    path: ["confirm"],
+    message: auth.confirmMismatch,
+  });
 type NewPasswordValues = z.infer<typeof newPasswordForm>;
 
 /** Forgot password: email, then the one time code together with a new password. This is the only place a code is used after sign up. */
@@ -45,10 +54,15 @@ export function ForgotForm({
   });
   const form = useForm<NewPasswordValues>({
     resolver: zodResolver(newPasswordForm),
-    defaultValues: { code: "", password: "" },
+    defaultValues: { code: "", password: "", confirm: "" },
   });
 
   const newPassword = form.watch("password");
+  const confirmValue = form.watch("confirm");
+  // The mismatch shows as soon as the person types something different, not only on submit.
+  useEffect(() => {
+    if (confirmValue) void form.trigger("confirm");
+  }, [newPassword, confirmValue, form]);
   const strength = usePasswordStrength(newPassword);
 
   // Opened from Settings with the address filled in: the code goes out straight away.
@@ -83,7 +97,7 @@ export function ForgotForm({
     }
     try {
       const res = await apiFetch<{ needsOnboarding: boolean }>("/api/auth/reset/verify", {
-        body: { email: sentTo, ...values },
+        body: { email: sentTo, code: values.code, password: values.password },
       });
       router.replace(res.needsOnboarding ? "/onboarding" : "/app/chats?back=1");
       router.refresh();
@@ -155,11 +169,26 @@ export function ForgotForm({
               <PasswordInput
                 {...props}
                 autoComplete="new-password"
+                placeholder={auth.newPasswordPlaceholder}
                 {...form.register("password")}
               />
             )}
           </Field>
           <PasswordStrength strength={strength} />
+          <Field
+            label={auth.confirmLabel}
+            help={auth.confirmHelp}
+            error={form.formState.errors.confirm?.message}
+          >
+            {(props) => (
+              <PasswordInput
+                {...props}
+                autoComplete="new-password"
+                placeholder={auth.confirmPlaceholder}
+                {...form.register("confirm")}
+              />
+            )}
+          </Field>
           <Button type="submit" loading={form.formState.isSubmitting} className="min-h-12">
             {form.formState.isSubmitting ? copy.submitting : copy.submit}
           </Button>

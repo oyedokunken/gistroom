@@ -25,7 +25,12 @@ export function connectionFor(url: string | undefined, schema: string | undefine
 export function getDb(): PrismaClient {
   if (!globalForPrisma.prisma) {
     const { url, schema } = connectionFor(process.env.DATABASE_URL, process.env.DATABASE_SCHEMA);
-    const adapter = new PrismaPg({ connectionString: url }, schema ? { schema } : undefined);
+    // A small pool where the database allows few connections at once (tests, and the hosted pooler in session mode).
+    const max = Number(process.env.DATABASE_POOL_MAX);
+    const adapter = new PrismaPg(
+      { connectionString: url, ...(Number.isInteger(max) && max > 0 ? { max } : {}) },
+      schema ? { schema } : undefined,
+    );
     globalForPrisma.prisma = new PrismaClient({ adapter });
   }
   return globalForPrisma.prisma;

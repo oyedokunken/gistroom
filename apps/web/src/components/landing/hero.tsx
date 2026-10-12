@@ -12,6 +12,7 @@ import {
   useTransform,
 } from "motion/react";
 import { AnimatedArt } from "@/components/public/animated-art";
+import { AuthLink } from "@/components/public/auth-cta";
 import { buttonStyles } from "@/components/ui/button";
 import { hero } from "@/content/landing";
 
@@ -113,9 +114,10 @@ export function Hero() {
         </h1>
         <p className="max-w-[52ch] text-lg text-text-muted">{hero.subhead}</p>
         <div className="flex flex-wrap gap-3">
-          <Link href={hero.primary.href} className={buttonStyles("primary", "min-h-12 px-7")}>
-            {hero.primary.label}
-          </Link>
+          <AuthLink
+            to={hero.primary}
+            className={buttonStyles("primary", "min-h-12 min-w-[11rem] justify-center px-7")}
+          />
           <Link href={hero.secondary.href} className={buttonStyles("accent", "min-h-12 px-7")}>
             {hero.secondary.label}
           </Link>

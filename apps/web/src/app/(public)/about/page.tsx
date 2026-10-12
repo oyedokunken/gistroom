@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CardIcon, type CardIconName } from "@/components/public/card-icon";
+import { AuthLink } from "@/components/public/auth-cta";
 import { PublicPage } from "@/components/public/public-page";
 import { AnimatedArt } from "@/components/public/animated-art";
 import { MAKER_PHOTOS, MakerRing } from "@/components/public/maker-ring";
@@ -59,12 +60,13 @@ export default function Page() {
             >
               {p.story.title}
             </h2>
-            <Link
-              href={cta.enter.href}
-              className={buttonStyles("accent", "min-h-12 w-fit px-8 text-base")}
-            >
-              {cta.enter.label}
-            </Link>
+            <AuthLink
+              to={cta.enter}
+              className={buttonStyles(
+                "accent",
+                "min-h-12 w-fit min-w-[11rem] justify-center px-8 text-base",
+              )}
+            />
           </div>
           <div className="flex flex-col gap-5 text-lg text-text-muted">
             {p.story.body.map((para) => (

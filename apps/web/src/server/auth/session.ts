@@ -2,6 +2,7 @@ import { cache } from "react";
 import { cookies, headers } from "next/headers";
 import { getDb, type Session, type User } from "@gistroom/db";
 import { errors } from "@gistroom/shared";
+import { AUTHED_HINT_COOKIE } from "@/lib/authed-hint";
 import { deviceLabel } from "@/lib/device-label";
 import { getEnv } from "../env";
 import { isNewDevice } from "./rules";
@@ -66,10 +67,19 @@ export async function setSessionCookie(token: string): Promise<void> {
     path: "/",
     maxAge: 30 * 86_400,
   });
+  // A hint for the public pages, which are static. No token and no name, only "1". Never trusted for anything.
+  (await cookies()).set(AUTHED_HINT_COOKIE, "1", {
+    httpOnly: false,
+    secure,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 30 * 86_400,
+  });
 }
 
 export async function clearSessionCookie(): Promise<void> {
   (await cookies()).delete(SESSION_COOKIE);
+  (await cookies()).delete(AUTHED_HINT_COOKIE);
 }
 
 /** Looks up the current session. Memoised per request. Returns null for any invalid state. */

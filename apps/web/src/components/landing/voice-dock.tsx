@@ -24,9 +24,9 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { LogoMark } from "@/components/brand/logo-mark";
-import { buttonStyles } from "@/components/ui/button";
 import { ScrollGauge, ScrollWave } from "@/components/ui/scroll-wave";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { DockAccount, useAuthCta } from "@/components/public/auth-cta";
 import { MoreSheet } from "./more-sheet";
 import { nav } from "@/content/landing";
 import { cn } from "@/lib/cn";
@@ -118,9 +118,16 @@ function DesktopDock() {
     }
   }
 
+  const enter = useAuthCta(nav.cta);
   const fanItems = [
     ...nav.items.slice(0, 2).map((i) => ({ ...i, icon: icons[i.id] ?? Sparkles, short: i.label })),
-    { id: "cta", label: nav.cta.label, href: nav.cta.href, icon: MessageCircle, short: "Enter" },
+    {
+      id: "cta",
+      label: enter.label,
+      href: enter.href,
+      icon: MessageCircle,
+      short: enter.signedIn ? "Open" : "Enter",
+    },
     ...nav.items.slice(2).map((i) => ({ ...i, icon: icons[i.id] ?? Sparkles, short: i.label })),
   ];
   const angles = [155, 122, 90, 58, 25];
@@ -185,9 +192,7 @@ function DesktopDock() {
               </ul>
             </LayoutGroup>
             {liveCount ? <LivePill count={liveCount} /> : null}
-            <Link href={nav.cta.href} className={buttonStyles("primary", "px-4 md:px-6")}>
-              {nav.cta.label}
-            </Link>
+            <DockAccount />
           </motion.div>
         ) : (
           <motion.div
@@ -301,6 +306,7 @@ function MobileDock() {
   const right = [third, fourth];
 
   const [pressed, setPressed] = useState<string | null>(null);
+  const enter = useAuthCta(nav.cta);
 
   const item = (i: (typeof nav.items)[number] | undefined) => {
     if (!i) return null;
@@ -363,8 +369,8 @@ function MobileDock() {
               </span>
               <motion.div whileTap={{ scale: 0.92 }} transition={spring}>
                 <Link
-                  href={nav.cta.href}
-                  aria-label={nav.cta.label}
+                  href={enter.href}
+                  aria-label={enter.label}
                   className="relative -mt-6 flex size-14 items-center justify-center rounded-full bg-green-600 text-white shadow-lift"
                 >
                   <MessageCircle aria-hidden className="size-6" />

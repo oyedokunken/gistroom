@@ -7,6 +7,7 @@ import { maker } from "./maker";
 
 export const cta = {
   enter: { label: "Enter Gistroom", href: "/signup" },
+  open: { label: "Open Gistroom", href: "/app/discover" },
   rooms: { label: "See live rooms", href: "/rooms" },
   startRoom: { label: "Start a room", href: "/app/rooms?new=1" },
   joinRoom: { label: "Join a room", href: "/rooms" },

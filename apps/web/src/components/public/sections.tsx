@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Check } from "lucide-react";
 import { buttonStyles } from "@/components/ui/button";
 import { AnimatedArt } from "./animated-art";
+import { AuthLink } from "./auth-cta";
 import { CardIcon, type CardIconName } from "./card-icon";
 import { CtaFloat } from "./cta-float";
 import { cn } from "@/lib/cn";
@@ -136,10 +137,11 @@ export function HeroActions({
 }) {
   return (
     <>
-      <Link href={primary.href} className={buttonStyles("accent", "min-h-12 px-8 text-base")}>
-        {primary.icon}
-        {primary.label}
-      </Link>
+      <AuthLink
+        to={primary}
+        icon={primary.icon}
+        className={buttonStyles("accent", "min-h-12 min-w-[11rem] justify-center px-8 text-base")}
+      />
       {secondary ? (
         <Link
           href={secondary.href}

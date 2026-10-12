@@ -57,6 +57,7 @@ import {
 } from "@/components/mock/screens";
 import { LitRoom, PitchPhoto, StreetPhoto } from "@/components/mock/scenes";
 import { AnimatedArt } from "@/components/public/animated-art";
+import { AuthLink } from "@/components/public/auth-cta";
 import { CardIcon, type CardIconName } from "@/components/public/card-icon";
 import { HeroActions } from "@/components/public/sections";
 import { buttonStyles } from "@/components/ui/button";
@@ -1296,12 +1297,13 @@ export function DataSlider() {
             {n <= 2 ? copy.data.weak : copy.data.strong}
           </p>
         </div>
-        <Link
-          href={cta.enter.href}
-          className={buttonStyles("accent", "mt-8 min-h-12 w-fit px-8 text-base")}
-        >
-          {cta.enter.label}
-        </Link>
+        <AuthLink
+          to={cta.enter}
+          className={buttonStyles(
+            "accent",
+            "mt-8 min-h-12 w-fit min-w-[11rem] justify-center px-8 text-base",
+          )}
+        />
       </div>
       <div className="order-first flex justify-center md:order-2">
         <PhoneFrame>

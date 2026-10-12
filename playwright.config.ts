@@ -13,6 +13,7 @@ const dbEnv: Record<string, string> = testUrl
       DATABASE_URL: testUrl,
       DIRECT_URL: testUrl,
       DATABASE_SCHEMA: "gistroom_test",
+      DATABASE_POOL_MAX: "4",
       SESSION_SECRET: "e".repeat(48),
       REALTIME_PASS_SECRET: "r".repeat(48),
       INTERNAL_SERVICE_TOKEN: "i".repeat(48),
@@ -24,7 +25,10 @@ const dbEnv: Record<string, string> = testUrl
       NEXT_PUBLIC_APP_URL: `http://localhost:${PORT}`,
     }
   : {};
-if (testUrl) Object.assign(process.env, { TEST_DATABASE_URL: testUrl, ...dbEnv });
+if (testUrl) {
+  // The test processes keep their own pools small, because the hosted pooler allows only so many connections in total.
+  Object.assign(process.env, { TEST_DATABASE_URL: testUrl, ...dbEnv, DATABASE_POOL_MAX: "2" });
+}
 
 /**
  * Browser, a11y and responsive tests. They run against a production build on its own port and its own build folder (npm run e2e:build),

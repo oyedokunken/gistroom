@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { MotionConfig } from "motion/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AuthStateProvider } from "@/components/system/auth-state-provider";
 import { ConsentBanner } from "@/components/system/consent-banner";
 import { FeedbackProvider } from "@/components/feedback/feedback-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -21,6 +22,7 @@ export function Providers({ children }: { children: ReactNode }) {
           <FeedbackProvider>
             {children}
             <ConsentBanner />
+            <AuthStateProvider />
           </FeedbackProvider>
         </TooltipProvider>
       </QueryClientProvider>

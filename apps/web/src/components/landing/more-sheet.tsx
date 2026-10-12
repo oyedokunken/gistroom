@@ -13,7 +13,11 @@ import {
   Sparkles,
   type LucideIcon,
 } from "lucide-react";
+import { Avatar } from "@/components/ui/avatar";
+import { buttonStyles } from "@/components/ui/button";
 import { Sheet } from "@/components/ui/sheet";
+import { cta } from "@/content/marketing";
+import { useAuthState } from "@/lib/auth-state";
 import { cn } from "@/lib/cn";
 
 export interface MoreItem {
@@ -53,8 +57,25 @@ export function MoreSheet({
   items: readonly MoreItem[];
 }) {
   const pathname = usePathname();
+  const person = useAuthState((st) => st.person);
   return (
     <Sheet open={open} onOpenChange={onOpenChange} title={title}>
+      {person ? (
+        <div className="mb-3 flex items-center gap-3 rounded-2xl bg-surface-2 p-3">
+          <Avatar name={person.name} src={person.avatarUrl} size={44} />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate font-semibold text-text">{person.name}</span>
+            <span className="block truncate text-sm text-text-muted">@{person.username}</span>
+          </span>
+          <Link
+            href={cta.open.href}
+            onClick={() => onOpenChange(false)}
+            className={buttonStyles("primary", "min-h-11 px-4")}
+          >
+            {cta.open.label}
+          </Link>
+        </div>
+      ) : null}
       <ul className="flex flex-col gap-1.5">
         {items.map((item) => {
           const Icon = moreIconFor(item.href);

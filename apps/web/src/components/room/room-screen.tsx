@@ -48,6 +48,7 @@ import { ApiClientError } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { roomApi } from "@/lib/rooms/api";
 import { useRoomStore } from "@/lib/rooms/store";
+import { stageColumns, stageRows } from "@/lib/rooms/grid";
 import { useRoomLiveKit } from "@/lib/rooms/use-room-livekit";
 import { formatFull } from "@/lib/time";
 import { ParticipantTile } from "./participant-tile";
@@ -343,6 +344,15 @@ export function RoomScreen({
     // version bumps on every track change, which is when these flags move.
   }, [people, lk.version]);
 
+  // The stage grid follows the screen and the number of people, so tiles are as big as they can be.
+  const [viewportWidth, setViewportWidth] = useState(1024);
+  useEffect(() => {
+    const update = () => setViewportWidth(window.innerWidth);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
   // ----- Not in the room yet -----
   if (view.isPending) {
     return (
@@ -562,11 +572,13 @@ export function RoomScreen({
       <div className="flex min-h-0 flex-1">
         <ul
           className={cn(
-            "grid min-h-0 flex-1 auto-rows-min content-center gap-3 overflow-y-auto p-4",
-            people.length <= 1
-              ? "grid-cols-1 sm:mx-auto sm:max-w-xl"
-              : "grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+            "grid min-h-0 flex-1 gap-3 overflow-y-auto p-3 sm:p-4",
+            people.length <= 1 && "mx-auto w-full max-w-4xl",
           )}
+          style={{
+            gridTemplateColumns: `repeat(${stageColumns(people.length, viewportWidth)}, minmax(0, 1fr))`,
+            gridTemplateRows: `repeat(${stageRows(people.length, stageColumns(people.length, viewportWidth))}, minmax(10rem, 1fr))`,
+          }}
         >
           {people.map(({ p, id, role: r, avatarUrl }) => (
             <ParticipantTile

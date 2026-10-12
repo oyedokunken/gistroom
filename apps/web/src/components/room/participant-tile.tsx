@@ -52,7 +52,7 @@ export function ParticipantTile({
   return (
     <li
       className={cn(
-        "relative flex aspect-[4/3] min-h-32 flex-col items-center justify-center overflow-hidden rounded-card bg-ink-700 text-white",
+        "relative flex h-full min-h-40 flex-col items-center justify-center overflow-hidden rounded-card bg-ink-700 text-white",
         speaking && "ring-4 ring-green-600",
       )}
     >
@@ -65,7 +65,7 @@ export function ParticipantTile({
         aria-label={name}
         className={cn("absolute inset-0 size-full object-cover", hasVideo ? "block" : "hidden")}
       />
-      {hasVideo ? null : <Avatar name={name} src={avatarUrl} size={80} speaking={speaking} />}
+      {hasVideo ? null : <Avatar name={name} src={avatarUrl} size={96} speaking={speaking} />}
 
       <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-10 top-0">
         <AnimatePresence>

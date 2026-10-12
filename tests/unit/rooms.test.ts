@@ -254,3 +254,18 @@ describe("room settings and moderation additions", () => {
     expect("ROOM_CHAT_RETENTION_HOURS" in LIMITS).toBe(false);
   });
 });
+
+describe("the stage grid", () => {
+  it("makes tiles big for few people and spreads crowds toward a square", async () => {
+    const { stageColumns, stageRows } = await import("../../apps/web/src/lib/rooms/grid");
+    expect(stageColumns(1, 390)).toBe(1);
+    expect(stageColumns(2, 390)).toBe(1);
+    expect(stageColumns(2, 1280)).toBe(2);
+    expect(stageColumns(4, 390)).toBe(2);
+    expect(stageColumns(6, 390)).toBe(2);
+    expect(stageColumns(6, 1280)).toBe(3);
+    expect(stageColumns(16, 1920)).toBe(4);
+    expect(stageColumns(32, 390)).toBe(1 + 1);
+    expect(stageRows(5, 2)).toBe(3);
+  });
+});

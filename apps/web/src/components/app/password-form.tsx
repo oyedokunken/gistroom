@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,6 +9,8 @@ import { useFeedback } from "@/components/feedback/feedback-provider";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { PasswordInput } from "@/components/ui/password-input";
+import { PasswordStrength } from "@/components/ui/password-strength";
+import { usePasswordStrength } from "@/lib/password-strength";
 import { passwordSettings as copy } from "@/content/app";
 import { ApiClientError, apiFetch } from "@/lib/api";
 
@@ -36,9 +37,14 @@ export function PasswordForm({ hasPassword, email }: { hasPassword: boolean; ema
     defaultValues: { currentPassword: "", newPassword: "", confirm: "" },
   });
   const errors = form.formState.errors;
+  const strength = usePasswordStrength(form.watch("newPassword"));
 
   async function onSubmit(v: { currentPassword?: string; newPassword: string }) {
     setSaved(false);
+    if (!strength.acceptable) {
+      form.setError("newPassword", { message: passwordMessages.tooWeak });
+      return;
+    }
     try {
       await apiFetch("/api/me/password", {
         body: { currentPassword: v.currentPassword || undefined, newPassword: v.newPassword },
@@ -90,6 +96,7 @@ export function PasswordForm({ hasPassword, email }: { hasPassword: boolean; ema
           <PasswordInput {...props} autoComplete="new-password" {...form.register("newPassword")} />
         )}
       </Field>
+      <PasswordStrength strength={strength} />
       <Field label={copy.confirm} error={errors.confirm?.message}>
         {(props) => (
           <PasswordInput {...props} autoComplete="new-password" {...form.register("confirm")} />
@@ -105,14 +112,6 @@ export function PasswordForm({ hasPassword, email }: { hasPassword: boolean; ema
           </p>
         ) : null}
       </div>
-      {hasPassword ? (
-        <Link
-          href={`/forgot?email=${encodeURIComponent(email)}`}
-          className="inline-flex min-h-11 w-fit items-center text-sm font-semibold text-green-700 underline-offset-4 hover:underline"
-        >
-          {copy.forgot}
-        </Link>
-      ) : null}
     </form>
   );
 }

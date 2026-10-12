@@ -12,12 +12,16 @@ export const metadata: Metadata = {
 export default async function ForgotPage({
   searchParams,
 }: {
-  searchParams: Promise<{ email?: string }>;
+  searchParams: Promise<{ email?: string; auto?: string }>;
 }) {
-  const parsed = identifierSchema.safeParse((await searchParams).email ?? "");
+  const params = await searchParams;
+  const parsed = identifierSchema.safeParse(params.email ?? "");
   return (
     <AuthShell artId={authArt.forgot}>
-      <ForgotForm initialEmail={parsed.success ? parsed.data : ""} />
+      <ForgotForm
+        initialEmail={parsed.success ? parsed.data : ""}
+        autoSend={params.auto === "1" && parsed.success}
+      />
     </AuthShell>
   );
 }

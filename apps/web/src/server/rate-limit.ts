@@ -29,6 +29,10 @@ export const policies = {
   roomChat: { name: "room-chat", limit: 30, windowSec: 60 },
   roomInvite: { name: "room-invite", limit: 40, windowSec: 3600 },
   roomMod: { name: "room-mod", limit: 120, windowSec: 60 },
+  emailChange: { name: "email-change", limit: 5, windowSec: 3600 },
+  usernameChange: { name: "username-change", limit: 5, windowSec: 86_400 },
+  dataExport: { name: "data-export", limit: 3, windowSec: 3600 },
+  accountDelete: { name: "account-delete", limit: 5, windowSec: 3600 },
   noteWrite: { name: "note-write", limit: 60, windowSec: 60 },
 } as const satisfies Record<string, Policy>;
 

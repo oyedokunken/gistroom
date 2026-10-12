@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { SettingsNav } from "@/components/app/settings-nav";
 import { SignOutButton } from "@/components/app/sign-out-button";
+import { TourButton } from "@/components/app/tour";
 import { settings } from "@/content/app";
 
 export const metadata: Metadata = { title: settings.title };
@@ -13,7 +14,10 @@ export default function SettingsIndexPage() {
         <SettingsNav mode="index" />
       </div>
       <div className="hidden text-text-muted md:block">{settings.sections[0]?.description}</div>
-      <SignOutButton />
+      <div className="flex flex-wrap gap-3">
+        <TourButton />
+        <SignOutButton />
+      </div>
     </div>
   );
 }

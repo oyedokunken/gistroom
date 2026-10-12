@@ -5,7 +5,15 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { BIO_MAX, nameSchema, type MeUser, type UpdateProfileInput } from "@gistroom/shared";
+import {
+  BIO_MAX,
+  nameSchema,
+  usernameSchema,
+  type MeUser,
+  type UpdateProfileInput,
+} from "@gistroom/shared";
+import { UsernameField } from "@/components/auth/username-field";
+import { useCalmSetting } from "@/lib/calm";
 import { useFeedback } from "@/components/feedback/feedback-provider";
 import { Button } from "@/components/ui/button";
 import { AvatarUploader } from "./avatar-uploader";
@@ -20,17 +28,22 @@ function useSave() {
   const router = useRouter();
   const { showError } = useFeedback();
   const [saved, setSaved] = useState(false);
-  async function save(patch: UpdateProfileInput) {
+  async function save(
+    patch: UpdateProfileInput,
+  ): Promise<{ ok: boolean; fields: Record<string, string> }> {
     setSaved(false);
     try {
       await apiFetch("/api/me", { method: "PATCH", body: patch });
       setSaved(true);
       router.refresh();
-      return true;
+      return { ok: true, fields: {} };
     } catch (e) {
-      if (e instanceof ApiClientError) showError(e.message);
-      else throw e;
-      return false;
+      if (e instanceof ApiClientError) {
+        // A message about one field belongs under that field, the rest goes in a window.
+        if (Object.keys(e.fields).length === 0) showError(e.message);
+        return { ok: false, fields: e.fields };
+      }
+      throw e;
     }
   }
   return { save, saved, clear: () => setSaved(false) };
@@ -39,6 +52,7 @@ function useSave() {
 const profileSchema = z.object({
   name: nameSchema,
   bio: z.string().trim().max(BIO_MAX, `Use ${BIO_MAX} characters or fewer.`),
+  username: usernameSchema,
 });
 type ProfileValues = z.infer<typeof profileSchema>;
 
@@ -47,7 +61,7 @@ export function ProfileForm({ user }: { user: MeUser }) {
   const { save, saved, clear } = useSave();
   const form = useForm<ProfileValues>({
     resolver: zodResolver(profileSchema),
-    defaultValues: { name: user.name, bio: user.bio ?? "" },
+    defaultValues: { name: user.name, bio: user.bio ?? "", username: user.username },
   });
   const errors = form.formState.errors;
   return (
@@ -55,7 +69,12 @@ export function ProfileForm({ user }: { user: MeUser }) {
       noValidate
       onChange={clear}
       onSubmit={form.handleSubmit(async (v) => {
-        await save({ name: v.name, bio: v.bio === "" ? null : v.bio });
+        const result = await save({
+          name: v.name,
+          bio: v.bio === "" ? null : v.bio,
+          ...(v.username !== user.username ? { username: v.username } : {}),
+        });
+        if (result.fields.username) form.setError("username", { message: result.fields.username });
       })}
       className="flex w-full flex-col gap-4"
     >
@@ -66,10 +85,14 @@ export function ProfileForm({ user }: { user: MeUser }) {
       <Field label={copy.bioLabel} help={copy.bioHelp} error={errors.bio?.message}>
         {(props) => <Textarea {...props} rows={3} {...form.register("bio")} />}
       </Field>
-      <Field label={copy.usernameLabel} help={copy.usernameHelp}>
-        {(props) => <Input {...props} value={`@${user.username}`} readOnly />}
-      </Field>
-      <Field label={copy.emailLabel} help={copy.emailHelp}>
+      <UsernameField
+        label={copy.usernameLabel}
+        value={form.watch("username")}
+        own={user.username}
+        serverError={errors.username?.message}
+        {...form.register("username", { setValueAs: (v: string) => v.toLowerCase() })}
+      />
+      <Field label={copy.emailLabel} help={`${copy.emailHelp} ${copy.emailManage}`}>
         {(props) => <Input {...props} value={user.email} readOnly />}
       </Field>
       <div className="flex items-center gap-4">
@@ -190,5 +213,18 @@ export function DataSaverForm({ user }: { user: MeUser }) {
         ) : null}
       </div>
     </div>
+  );
+}
+
+/** The "Reduce animations" choice, kept on this device. */
+export function CalmSwitch() {
+  const [on, setOn] = useCalmSetting();
+  return (
+    <Switch
+      label={settings.appearance.calmHeading}
+      help={settings.appearance.calmHelp}
+      checked={on}
+      onChange={setOn}
+    />
   );
 }

@@ -20,7 +20,7 @@ export interface RequestOtpResult {
   resendAfterSec: number;
 }
 
-export type CodeTemplate = "verify-otp" | "reset-otp" | "delete-account-otp";
+export type CodeTemplate = "verify-otp" | "reset-otp" | "delete-account-otp" | "email-change-otp";
 
 /**
  * Create and email a one time code for a purpose. Codes are only used to confirm a new email at sign up,

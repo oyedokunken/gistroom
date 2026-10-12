@@ -149,6 +149,7 @@ export async function completeReset(
     where: { userId: user.id, revokedAt: null },
     data: { revokedAt: new Date() },
   });
+  await announcePasswordChanged(updated);
   return updated;
 }
 
@@ -163,6 +164,16 @@ export async function setInitialPassword(user: User, password: string): Promise<
     where: { id: user.id },
     data: { passwordHash: await hashPassword(password), passwordUpdatedAt: new Date() },
   });
+}
+
+/** The email that says a password changed, with the time in the person's own time zone. Never blocks the change. */
+async function announcePasswordChanged(user: User): Promise<void> {
+  const when = new Intl.DateTimeFormat("en-NG", {
+    dateStyle: "long",
+    timeStyle: "short",
+    timeZone: user.timezone,
+  }).format(new Date());
+  await sendTemplate("password-changed", user.email, { when }).catch(() => undefined);
 }
 
 /** Change a password. People who already have one must give the current one. Other devices are signed out. */
@@ -186,6 +197,7 @@ export async function changePassword(
   }
   await setInitialPassword(user, input.newPassword);
   await revokeOtherSessions(user.id, sessionId);
+  await announcePasswordChanged(user);
 }
 
 /** After a sign in from a device we have not seen: tell the person in the app, by alert and by email (Section 10.6). */

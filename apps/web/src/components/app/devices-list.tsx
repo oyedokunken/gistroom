@@ -114,6 +114,7 @@ export function DevicesList() {
           </li>
         ))}
       </ul>
+      {sessions.length <= 1 ? <p className="text-sm text-text-muted">{copy.onlyThis}</p> : null}
       {sessions.length > 1 ? (
         <Button variant="secondary" onClick={() => void revokeOthers()} className="w-fit">
           {copy.signOutOthers}

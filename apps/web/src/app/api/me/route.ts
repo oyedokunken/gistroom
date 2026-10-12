@@ -2,6 +2,7 @@ import { getDb } from "@gistroom/db";
 import { updateProfileSchema } from "@gistroom/shared";
 import { api, json, parseJson } from "@/server/http";
 import { requireUser } from "@/server/auth/session";
+import { changeUsername } from "@/server/account/service";
 import { toMe } from "@/server/users/serialize";
 
 export const GET = api(async () => {
@@ -12,8 +13,9 @@ export const GET = api(async () => {
 export const PATCH = api(async (request) => {
   const { user } = await requireUser();
   const input = await parseJson(request, updateProfileSchema);
+  const renamed = input.username !== undefined ? await changeUsername(user, input.username) : user;
   const updated = await getDb().user.update({
-    where: { id: user.id },
+    where: { id: renamed.id },
     data: {
       ...(input.name !== undefined && { name: input.name }),
       ...(input.bio !== undefined && { bio: input.bio === "" ? null : input.bio }),

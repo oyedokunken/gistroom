@@ -1,6 +1,6 @@
 import type { PublicRoomCard } from "./dto";
 import { z } from "zod";
-import { nameSchema } from "./auth";
+import { emailSchema, nameSchema, otpCodeSchema, usernameSchema } from "./auth";
 import { validation } from "./content/validation";
 
 export const BIO_MAX = 160;
@@ -15,6 +15,7 @@ export const updateProfileSchema = z
     roomInvitesFrom: z.enum(["FRIENDS", "EVERYONE"]),
     dataSaver: z.boolean(),
     timezone: z.string().trim().min(1).max(64),
+    username: usernameSchema,
   })
   .partial();
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
@@ -79,3 +80,16 @@ export interface SearchResults {
   rooms: PublicRoomCard[];
   notes: { id: string; body: string; where: string; href: string }[];
 }
+
+/** Changing the email takes the current password (when there is one), then a code sent to the new address. */
+export const changeEmailStartSchema = z.object({
+  newEmail: emailSchema,
+  password: z.string().max(128).optional(),
+});
+export const changeEmailConfirmSchema = z.object({ newEmail: emailSchema, code: otpCodeSchema });
+
+/** Deleting the account asks for a code sent to the email, and the password when there is one. */
+export const deleteAccountConfirmSchema = z.object({
+  code: otpCodeSchema,
+  password: z.string().max(128).optional(),
+});

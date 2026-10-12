@@ -26,7 +26,13 @@ const newPasswordForm = z.object({ code: otpCodeSchema, password: newPasswordSch
 type NewPasswordValues = z.infer<typeof newPasswordForm>;
 
 /** Forgot password: email, then the one time code together with a new password. This is the only place a code is used after sign up. */
-export function ForgotForm({ initialEmail }: { initialEmail: string }) {
+export function ForgotForm({
+  initialEmail,
+  autoSend = false,
+}: {
+  initialEmail: string;
+  autoSend?: boolean;
+}) {
   const router = useRouter();
   const { showError } = useFeedback();
   const copy = auth.forgotPage;
@@ -44,6 +50,11 @@ export function ForgotForm({ initialEmail }: { initialEmail: string }) {
 
   const newPassword = form.watch("password");
   const strength = usePasswordStrength(newPassword);
+
+  // Opened from Settings with the address filled in: the code goes out straight away.
+  useEffect(() => {
+    if (autoSend && initialEmail) void send(initialEmail);
+  }, []);
 
   useEffect(() => {
     if (wait <= 0) return;

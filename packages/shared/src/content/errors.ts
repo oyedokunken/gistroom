@@ -23,6 +23,11 @@ export const errors = {
   loginFailedEmail: "Email or password is incorrect.",
   loginFailedUsername: "Username or password is incorrect.",
   resetSent: "If an account matches, we sent a code to its email.",
+  emailInUse: "That email address is already used by another account.",
+  emailSame: "That is already your email address.",
+  emailChanged: "Your email address is updated.",
+  usernameChangeLimit: "You changed your username a lot today. Try again tomorrow.",
+  deleteWrongPassword: "That password is not right.",
   noAccount: "There is no Gistroom account with that email. Sign up to get started.",
   emailTaken: "That email already has an account. Sign in instead.",
   googleOnly:

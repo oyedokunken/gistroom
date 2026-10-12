@@ -1,18 +1,6 @@
-import type { Metadata } from "next";
-import { BackLink } from "@/components/app/back-link";
-import { PasswordForm } from "@/components/app/password-form";
-import { passwordSettings } from "@/content/app";
-import { requireUserForPage } from "@/server/auth/page";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: passwordSettings.heading };
-
-export default async function PasswordSettingsPage() {
-  const { user } = await requireUserForPage();
-  return (
-    <div className="flex flex-col gap-4">
-      <BackLink href="/app/settings" />
-      <h2 className="text-xl font-bold text-text">{passwordSettings.heading}</h2>
-      <PasswordForm hasPassword={user.passwordHash !== null} email={user.email} />
-    </div>
-  );
+/** The password lives under Security now. Old links still land in the right place. */
+export default function PasswordSettingsPage() {
+  redirect("/app/settings/security");
 }

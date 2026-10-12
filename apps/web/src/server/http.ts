@@ -2,7 +2,7 @@ import { cookies, headers } from "next/headers";
 import { ZodError, type ZodTypeAny, type z } from "zod";
 import { errors, type ApiErrorBody, type ApiErrorCode } from "@gistroom/shared";
 import { getAppUrl } from "./env";
-import { isAllowedOrigin } from "./auth/tokens";
+import { isAllowedOrigin, isOriginOnHost } from "./auth/tokens";
 
 /** A failure the client should see. Anything else becomes a generic 500. */
 export class AppError extends Error {
@@ -82,7 +82,9 @@ const MUTATING = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 /** CSRF defence: SameSite=Lax plus an Origin check on every mutating route (Section 6.2). */
 export function assertSameOrigin(request: Request): void {
   if (!MUTATING.has(request.method)) return;
-  if (!isAllowedOrigin(request.headers.get("origin"), getAppUrl())) {
+  const origin = request.headers.get("origin");
+  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  if (!isAllowedOrigin(origin, getAppUrl()) && !isOriginOnHost(origin, host)) {
     throw new AppError(403, "ORIGIN", errors.originMismatch);
   }
 }

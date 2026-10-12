@@ -45,6 +45,19 @@ export {
   type RealtimePass,
 } from "@gistroom/shared/pass";
 
+/**
+ * True when the Origin is this very host. A page loaded from any address that reaches the app (the main domain, an alias,
+ * a preview address) may call its own API, while a page on another site never matches.
+ */
+export function isOriginOnHost(origin: string | null, host: string | null): boolean {
+  if (!origin || !host) return false;
+  try {
+    return new URL(origin).host === host;
+  } catch {
+    return false;
+  }
+}
+
 /** Origin header check for mutating routes (CSRF, Section 6.2). Missing Origin on a mutation is refused. */
 export function isAllowedOrigin(origin: string | null, appUrl: string): boolean {
   if (!origin) return false;

@@ -196,6 +196,8 @@ model User {
   ageConfirmedAt   DateTime?
   termsAcceptedAt  DateTime?
   deletedAt        DateTime?
+  /// The cookie choice the person made, so a new device does not ask again. Shape: { v, functional, analytics }.
+  cookieConsent    Json?
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
 

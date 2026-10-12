@@ -23,7 +23,7 @@ export async function decideCookies(page: Page): Promise<void> {
   await page.context().addCookies([
     {
       name: "gr_consent",
-      value: encodeURIComponent(JSON.stringify({ v: 1, functional: false, analytics: false })),
+      value: encodeURIComponent(JSON.stringify({ v: 2, functional: false, analytics: false })),
       url: "http://localhost:3217",
     },
   ]);

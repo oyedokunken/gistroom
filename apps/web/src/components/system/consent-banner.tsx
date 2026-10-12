@@ -24,15 +24,31 @@ export function ConsentBanner() {
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
+    let live = true;
     const existing = readCookie();
-    if (existing) setChoice(existing);
-    else setOpen(true);
+    if (existing) {
+      setChoice(existing);
+    } else {
+      // A signed in person who chose on another device is not asked again. Everyone else is.
+      void apiFetch<{ consent: Consent | null }>("/api/consent")
+        .then((res) => {
+          if (!live) return;
+          if (res.consent) setChoice(res.consent);
+          else setOpen(true);
+        })
+        .catch(() => {
+          if (live) setOpen(true);
+        });
+    }
     const reopen = () => {
       setCustom(true);
       setOpen(true);
     };
     window.addEventListener(OPEN_CONSENT_EVENT, reopen);
-    return () => window.removeEventListener(OPEN_CONSENT_EVENT, reopen);
+    return () => {
+      live = false;
+      window.removeEventListener(OPEN_CONSENT_EVENT, reopen);
+    };
   }, []);
 
   async function save(next: Consent) {

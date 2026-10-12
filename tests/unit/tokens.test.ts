@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   hashToken,
   isAllowedOrigin,
+  isOriginOnHost,
   newSessionToken,
   sessionCookieAttributes,
   sessionExpiry,
@@ -77,5 +78,15 @@ describe("origin check", () => {
     expect(isAllowedOrigin("https://evil.example", "https://gistroom.ng")).toBe(false);
     expect(isAllowedOrigin(null, "https://gistroom.ng")).toBe(false);
     expect(isAllowedOrigin("not a url", "https://gistroom.ng")).toBe(false);
+  });
+});
+
+describe("origin on the same host", () => {
+  it("allows the page that is served from this host and no other site", () => {
+    expect(isOriginOnHost("https://gistroom.vercel.app", "gistroom.vercel.app")).toBe(true);
+    expect(isOriginOnHost("http://localhost:3217", "localhost:3217")).toBe(true);
+    expect(isOriginOnHost("https://evil.example", "gistroom.vercel.app")).toBe(false);
+    expect(isOriginOnHost(null, "gistroom.vercel.app")).toBe(false);
+    expect(isOriginOnHost("https://gistroom.vercel.app", null)).toBe(false);
   });
 });

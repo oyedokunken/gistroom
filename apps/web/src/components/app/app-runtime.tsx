@@ -3,23 +3,30 @@
 import { PwaRuntime } from "@/components/app/pwa-runtime";
 import { UpdateBar } from "@/components/app/update-bar";
 import { IncomingCall } from "@/components/call/incoming-call";
-import { ConnectionBanner } from "@/components/ui/connection-banner";
+import { ActivityChips } from "@/components/session/activity-chips";
+import { ConnectionBar } from "@/components/session/connection-bar";
+import { SessionModalHost } from "@/components/session/session-modal-host";
 import { useOutboxFlusher } from "@/lib/chat/hooks";
-import { useRealtimeStore } from "@/lib/realtime/store";
-import { useOnline } from "@/lib/use-online";
+import { useConnection } from "@/lib/session/connection";
+import { ConnectionMonitorHost } from "@/lib/session/connection-host";
 
-/** Background work that must run on every signed in screen: the outbox flush and the connection banner. */
+/**
+ * Background work that must run on every signed in screen: the connection monitor, the outbox flush, the offline
+ * bar, the one dialog host for calls and rooms, and the activity chips.
+ */
 export function AppRuntime() {
-  const online = useOnline();
-  const connection = useRealtimeStore((s) => s.connection);
-  useOutboxFlusher(online);
-  const state = !online ? "offline" : connection === "reconnecting" ? "reconnecting" : "online";
+  const { state } = useConnection();
+  // Messages go out as soon as the line is back, without waiting for the "Back online" bar to finish.
+  useOutboxFlusher(state !== "OFFLINE");
   return (
     <>
+      <ConnectionMonitorHost />
       <PwaRuntime />
       <UpdateBar />
       <IncomingCall />
-      <ConnectionBanner state={state} />
+      <ConnectionBar />
+      <SessionModalHost />
+      <ActivityChips />
     </>
   );
 }

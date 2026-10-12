@@ -21,6 +21,11 @@ These are applied to the dev and test schemas already. Run them on production wi
 - `20261012102631_room_settings_reactions_activity`: room settings, room reactions and activity expiry.
 - `20261012140000_room_invite_link_token`: the link token that lets active links show in full.
 
+### Connection states, calls and rooms
+
+- A connection monitor (`useConnection()`) checks our own server every 10 seconds, so a captive portal or Wi-Fi with no data counts as offline. A change has to hold for 3 seconds before anything reacts and recovery for 2 seconds. Offline shows a bar under the header, and "Back online" for 3 seconds when it returns. If only the chat connection is down the bar says Connecting to chat quietly.
+- One dialog host for calls and rooms (one at a time, most urgent first) and activity chips for in-call notices.
+
 ### Test data and polish
 
 - `npm run verify:changed` runs only the checks that match the files you changed.

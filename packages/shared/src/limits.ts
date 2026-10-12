@@ -9,6 +9,26 @@ export const LIMITS = {
   INVITE_LINK_TTL_OPTIONS_HOURS: [1, 12, 24, 168],
   // Calls
   CALL_RING_TIMEOUT_SEC: 45,
+  /** The other person in a 1:1 call stays disconnected this long and the call ends. */
+  CALL_PEER_GONE_SEC: 60,
+  /** A call or room participant that stops sending heartbeats this long counts as left. */
+  HEARTBEAT_GONE_SEC: 20,
+  /** A removed person can come back to a public room after this long. */
+  ROOM_REMOVE_COOLDOWN_MIN: 10,
+  /** Rooms end after this long, with a warning 15 minutes before. */
+  ROOM_MAX_DURATION_HOURS: 8,
+  /** A live room with nobody connected for this long is ended by the sweeper. */
+  ROOM_EMPTY_SWEEP_MIN: 5,
+  /** The host dropped. Everyone sees "Host is reconnecting" this long, then the room passes on. */
+  HOST_RECONNECT_GRACE_SEC: 120,
+  /** One ring per person every 30 seconds, and at most three rings per room in ten minutes. */
+  ROOM_RING_COOLDOWN_SEC: 30,
+  ROOM_RING_PER_ROOM: 3,
+  ROOM_RING_WINDOW_MIN: 10,
+  /** Above this many people, join and leave notices become a single count chip. */
+  ROOM_CHIP_CROWD: 24,
+  /** Join and leave sounds only play in rooms this small. */
+  ROOM_SOUND_MAX_PEOPLE: 12,
   // Auth
   OTP_LENGTH: 6,
   OTP_TTL_MIN: 10,

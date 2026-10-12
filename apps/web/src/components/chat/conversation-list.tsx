@@ -28,7 +28,8 @@ function whenLabel(iso: string | null): string {
 }
 
 function Row({ c, viewerId, active }: { c: ConversationDto; viewerId: string; active: boolean }) {
-  const online = useRealtimeStore((s) => s.presence[c.peer.id]?.online);
+  const live = useRealtimeStore((s) => s.presence[c.peer.id]);
+  const online = live ? live.online : c.peerLastSeenAt ? false : undefined;
   const typing = useRealtimeStore((s) => (s.typing[c.id] ?? []).length > 0);
   const preview = c.lastMessage
     ? previewText({
@@ -36,6 +37,7 @@ function Row({ c, viewerId, active }: { c: ConversationDto; viewerId: string; ac
         body: c.lastMessage.body,
         deletedForEveryone: c.lastMessage.deletedForEveryone,
         mine: c.lastMessage.senderId === viewerId,
+        meta: c.lastMessage.meta,
       })
     : chat.startOfChatNew(c.peer.name);
   return (

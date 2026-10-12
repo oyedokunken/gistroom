@@ -56,6 +56,11 @@ export interface ConversationDto {
   archived: boolean;
   muted: boolean;
   availability: ChatAvailability;
+  /**
+   * When the other person was last on, from the database. Null when either of you hides presence.
+   * It fills the gap before the socket tells us who is online right now.
+   */
+  peerLastSeenAt?: string | null;
 }
 
 export type FriendRequestDirection = "INCOMING" | "OUTGOING";

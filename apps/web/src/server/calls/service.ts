@@ -86,6 +86,56 @@ function logRow(row: CallRow, viewer: "caller" | "callee", status: CallStatus) {
 }
 
 /**
+ * A line in the middle of the chat: a voice or video call, how long it lasted or how it ended, and when it started.
+ * It is a system message, so it never counts as unread and never sends an alert of its own.
+ */
+async function postCallRecord(row: CallRow, status: CallStatus): Promise<void> {
+  const outcome =
+    status === "ENDED"
+      ? row.answeredAt
+        ? "ANSWERED"
+        : "MISSED"
+      : status === "DECLINED"
+        ? "DECLINED"
+        : status === "MISSED" || status === "CANCELLED" || status === "BUSY"
+          ? "MISSED"
+          : null;
+  if (!outcome) return;
+  const db = getDb();
+  const conv = await db.conversation.findUnique({
+    where: { dmKey: dmKeyOf(row.callerId, row.calleeId) },
+    select: { id: true },
+  });
+  if (!conv) return;
+  const ended = row.endedAt ?? new Date();
+  const created = await db.message.upsert({
+    where: { senderId_clientId: { senderId: row.callerId, clientId: `call:${row.id}` } },
+    create: {
+      conversationId: conv.id,
+      senderId: row.callerId,
+      clientId: `call:${row.id}`,
+      type: "SYSTEM",
+      body: null,
+      meta: {
+        kind: "CALL",
+        callId: row.id,
+        media: row.initialMedia,
+        outcome,
+        durationSec: outcome === "ANSWERED" ? durationSec(row.answeredAt, ended) : 0,
+        startedAt: (row.answeredAt ?? row.createdAt).toISOString(),
+        callerId: row.callerId,
+      },
+    },
+    update: {},
+  });
+  await db.conversation.update({
+    where: { id: conv.id },
+    data: { lastMessageAt: created.createdAt },
+  });
+  void publish({ type: "message:new", messageId: created.id });
+}
+
+/**
  * Move a call to a finished state exactly once. The update only succeeds while the call is still in the state
  * we read, so two devices ending it together cannot write two log rows (R17).
  */
@@ -103,6 +153,7 @@ async function finish(row: CallRow, next: CallStatus, reason: string): Promise<C
     (e): e is NonNullable<typeof e> => e !== null,
   );
   if (entries.length > 0) await db.callLogEntry.createMany({ data: entries });
+  await postCallRecord(fresh, next).catch(() => undefined);
 
   if (next === "MISSED" || next === "CANCELLED") {
     // The ring is over. The callee gets a quiet record in the app, with no second push (the cancel push covers it).

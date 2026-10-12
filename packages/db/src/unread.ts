@@ -38,6 +38,7 @@ export async function unreadByConversation(userId: string): Promise<Map<string, 
         return {
           conversationId: m.conversationId,
           senderId: { not: userId },
+          type: { not: "SYSTEM" as const },
           deletedForEveryoneAt: null,
           hiddenBy: { none: { userId } },
           ...(cutoff ? { createdAt: { gt: cutoff } } : {}),

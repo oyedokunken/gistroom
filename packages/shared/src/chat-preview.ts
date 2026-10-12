@@ -4,6 +4,7 @@ export function previewText(input: {
   body: string | null;
   deletedForEveryone: boolean;
   mine: boolean;
+  meta?: Record<string, unknown> | null;
 }): string {
   const prefix = input.mine ? "You: " : "";
   if (input.deletedForEveryone) return `${prefix}This message was deleted`;
@@ -16,8 +17,16 @@ export function previewText(input: {
       return `${prefix}Voice note`;
     case "FILE":
       return `${prefix}File`;
-    case "SYSTEM":
+    case "SYSTEM": {
+      if (input.meta?.kind === "CALL") {
+        const video = input.meta.media === "VIDEO";
+        const outcome = input.meta.outcome;
+        if (outcome === "MISSED") return video ? "Missed video call" : "Missed voice call";
+        if (outcome === "DECLINED") return video ? "Declined video call" : "Declined voice call";
+        return video ? "Video call" : "Voice call";
+      }
       return "Friendship anniversary";
+    }
     case "ROOM_INVITE":
       return `${prefix}Room invite`;
     default:

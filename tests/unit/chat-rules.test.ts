@@ -138,3 +138,19 @@ describe("editing and block visibility", () => {
     );
   });
 });
+
+describe("call records in the chat", () => {
+  it("previews a call by what happened, not as an anniversary", async () => {
+    const { previewText } = await import("../../packages/shared/src");
+    const base = { type: "SYSTEM", body: null, deletedForEveryone: false, mine: false };
+    expect(
+      previewText({ ...base, meta: { kind: "CALL", media: "AUDIO", outcome: "ANSWERED" } }),
+    ).toBe("Voice call");
+    expect(
+      previewText({ ...base, meta: { kind: "CALL", media: "VIDEO", outcome: "MISSED" } }),
+    ).toBe("Missed video call");
+    expect(previewText({ ...base, meta: { kind: "FRIENDIVERSARY" } })).toBe(
+      "Friendship anniversary",
+    );
+  });
+});

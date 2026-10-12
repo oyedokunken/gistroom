@@ -145,6 +145,7 @@ export async function listConversations(me: User, archived: boolean): Promise<Co
       archived: m.archivedAt !== null,
       muted: m.mutedUntil !== null && m.mutedUntil > new Date(),
       availability: availability.get(peer.id) ?? "OK",
+      peerLastSeenAt: seenFor(me, peer),
     });
   });
   return out.sort((a, b) => (b.lastMessageAt ?? "").localeCompare(a.lastMessageAt ?? ""));
@@ -647,5 +648,12 @@ export async function getConversation(me: User, conversationId: string): Promise
     archived: member.archivedAt !== null,
     muted: member.mutedUntil !== null && member.mutedUntil > new Date(),
     availability: (await availabilityFor(me.id, [peer])).get(peer.id) ?? "OK",
+    peerLastSeenAt: seenFor(me, peer),
   };
+}
+
+/** Last seen only when both people share presence (Section 9.3b). */
+function seenFor(me: User, peer: User): string | null {
+  if (!me.showPresence || !peer.showPresence) return null;
+  return peer.lastSeenAt?.toISOString() ?? null;
 }

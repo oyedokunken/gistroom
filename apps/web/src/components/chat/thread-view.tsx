@@ -22,9 +22,10 @@ import { keys, useMessages } from "@/lib/chat/hooks";
 import { useOutbox } from "@/lib/chat/outbox-store";
 import { toggleReactionLocal } from "@/lib/chat/reactions";
 import { buildRows, type Row } from "@/lib/chat/rows";
-import { presenceLabel } from "@/lib/presence";
+import { presenceLabel, presenceOf } from "@/lib/presence";
 import { useRealtime } from "@/lib/realtime/provider";
 import { useRealtimeStore } from "@/lib/realtime/store";
+import { CallRecord } from "./call-record";
 import { AnniversaryCard } from "./anniversary-card";
 import { ChatBubble } from "./chat-bubble";
 import { ChatSettings, ReportDialog, StarredDialog } from "./chat-dialogs";
@@ -66,7 +67,8 @@ export function ThreadView({
   const conversation = conv.data?.conversation;
   const peer = conversation?.peer;
   const availability = conversation?.availability ?? "OK";
-  const presence = useRealtimeStore((s) => (peer ? s.presence[peer.id] : undefined));
+  const livePresence = useRealtimeStore((s) => (peer ? s.presence[peer.id] : undefined));
+  const presence = presenceOf(livePresence, conversation?.peerLastSeenAt);
   const peerTyping = useRealtimeStore((s) => (s.typing[conversationId] ?? []).length > 0);
   const live = availability === "OK";
 
@@ -341,6 +343,9 @@ export function ThreadView({
   function renderMessage(row: Extract<Row, { kind: "message" }>) {
     const m = row.message;
     const meta = m.meta as { kind?: string; years?: number } | null;
+    if (m.type === "SYSTEM" && (m.meta as { kind?: string } | null)?.kind === "CALL") {
+      return <CallRecord message={m} meId={viewerId} peerName={peer?.name ?? ""} />;
+    }
     if (m.type === "SYSTEM" && meta?.kind === "FRIENDIVERSARY") {
       return <AnniversaryCard id={m.id} years={meta.years ?? 1} name={peer?.name ?? ""} />;
     }

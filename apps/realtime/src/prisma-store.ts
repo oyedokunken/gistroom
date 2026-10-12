@@ -281,6 +281,8 @@ export function createPrismaStore(): Store {
               : (room.members.find((m) => m.userId === sender.id)?.role ?? "MEMBER")) as RoomRole,
             body: row.body,
             createdAt: row.createdAt.toISOString(),
+            editedAt: null,
+            deleted: null,
             reactions: [],
           };
         }

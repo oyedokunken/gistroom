@@ -3,8 +3,19 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Camera, CameraOff, Mic, MicOff, PhoneOff, RefreshCcw, WifiOff } from "lucide-react";
-import { durationSec, isFinished, type CallDto, type CallJoin } from "@gistroom/shared";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import {
+  Camera,
+  CameraOff,
+  Mic,
+  MicOff,
+  PhoneOff,
+  RefreshCcw,
+  SmilePlus,
+  WifiOff,
+} from "lucide-react";
+import { REACTIONS, durationSec, isFinished, type CallDto, type CallJoin } from "@gistroom/shared";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useFeedback } from "@/components/feedback/feedback-provider";
 import { Avatar } from "@/components/ui/avatar";
 import { Button, buttonStyles } from "@/components/ui/button";
@@ -71,7 +82,15 @@ export function CallScreen({
   const ringingIn = incoming && status === "RINGING";
 
   const startWithVideo = call?.media === "VIDEO" && !dataSaver;
+  const reduced = useReducedMotion();
+  const [floating, setFloating] = useState<{ id: string; emoji: string; left: number }[]>([]);
+  const float = (emoji: string) =>
+    setFloating((list) => [
+      ...list.slice(-24),
+      { id: crypto.randomUUID(), emoji, left: 12 + Math.round(Math.random() * 70) },
+    ]);
   const lk = useLiveKit({
+    onReaction: float,
     url: finished ? null : (join?.url ?? null),
     token: finished ? null : (join?.token ?? null),
     startWithVideo,
@@ -247,7 +266,23 @@ export function CallScreen({
           ) : null}
         </div>
 
-        {}
+        <div aria-hidden className="pointer-events-none absolute inset-0 z-30 overflow-hidden">
+          <AnimatePresence>
+            {floating.map((r) => (
+              <motion.span
+                key={r.id}
+                initial={reduced ? { opacity: 1 } : { opacity: 0, y: 40, scale: 0.7 }}
+                animate={reduced ? { opacity: 1 } : { opacity: [0, 1, 1, 0], y: -220, scale: 1.2 }}
+                transition={{ duration: reduced ? 1.6 : 2.4, ease: "easeOut" }}
+                onAnimationComplete={() => setFloating((l) => l.filter((x) => x.id !== r.id))}
+                className="absolute bottom-6 text-4xl"
+                style={{ left: `${r.left}%` }}
+              >
+                {r.emoji}
+              </motion.span>
+            ))}
+          </AnimatePresence>
+        </div>
         <video
           ref={lk.localVideo}
           autoPlay
@@ -309,7 +344,7 @@ export function CallScreen({
           </Link>
         </div>
       ) : (
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
           {ringingIn ? (
             <>
               <RoundButton
@@ -355,6 +390,41 @@ export function CallScreen({
                   <CameraOff aria-hidden className="size-6" />
                 )}
               </RoundButton>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label={copy.reactions}
+                    title={copy.reactions}
+                    disabled={!lk.state.connected}
+                    className="flex size-16 items-center justify-center rounded-full bg-white/15 text-white transition-colors hover:bg-white/25 disabled:opacity-50"
+                  >
+                    <SmilePlus aria-hidden className="size-6" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent side="top" align="center" keepOpenOnFocusOutside className="p-2">
+                  <div
+                    role="group"
+                    aria-label={copy.reactions}
+                    className="grid grid-cols-5 gap-1 text-text"
+                  >
+                    {REACTIONS.map((r) => (
+                      <button
+                        key={r.id}
+                        type="button"
+                        aria-label={r.label}
+                        onClick={() => {
+                          float(r.emoji);
+                          void lk.sendReaction(r.emoji);
+                        }}
+                        className="flex size-11 items-center justify-center rounded-full text-2xl hover:bg-green-100"
+                      >
+                        {r.emoji}
+                      </button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
               {lk.state.camOn ? (
                 <RoundButton label={copy.flip} onClick={() => void lk.flipCamera()}>
                   <RefreshCcw aria-hidden className="size-6" />

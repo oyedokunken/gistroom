@@ -62,6 +62,11 @@ export const roomChatSchema = z.object({
   body: z.string().trim().min(1).max(ROOM_CHAT_MAX),
 });
 
+export const roomChatEditSchema = z.object({
+  id: z.string().trim().min(1).max(64),
+  body: z.string().trim().min(1).max(ROOM_CHAT_MAX),
+});
+
 export const inviteLinkSchema = z.object({
   hours: z
     .number()
@@ -294,6 +299,10 @@ export interface RoomChatDto {
   senderRole: RoomRole;
   body: string;
   createdAt: string;
+  /** When the sender last edited the text, or null. */
+  editedAt: string | null;
+  /** Deleted messages keep a marker. BY_ME means the viewer deleted it, so they read "You deleted a message". */
+  deleted: "BY_ME" | "BY_OTHER" | null;
   reactions: RoomChatReactionDto[];
 }
 

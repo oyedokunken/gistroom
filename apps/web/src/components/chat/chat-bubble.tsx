@@ -78,7 +78,11 @@ export function ChatBubble({
     message.deletedForEveryone && "italic opacity-80",
   );
 
-  const body = message.deletedForEveryone ? chat.deletedMessage : (message.body ?? "");
+  const body = message.deletedForEveryone
+    ? mine
+      ? chat.youDeletedMessage
+      : chat.deletedMessage
+    : (message.body ?? "");
   const hasMedia = !message.deletedForEveryone && message.attachments.length > 0;
 
   const content = (

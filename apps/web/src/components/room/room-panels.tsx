@@ -17,6 +17,7 @@ import {
   Send,
   Shield,
   SmilePlus,
+  Pencil,
   Trash2,
   UserPlus,
 } from "lucide-react";
@@ -143,6 +144,16 @@ export function ChatPanel({ room, meId, role }: { room: RoomDto; meId: string; r
     onError: (e) => showError(fail(e)),
   });
 
+  const [editing, setEditing] = useState<{ id: string; text: string } | null>(null);
+  const edit = useMutation({
+    mutationFn: (v: { id: string; body: string }) => roomApi.editMessage(room.slug, v.id, v.body),
+    onSuccess: () => {
+      setEditing(null);
+      void queryClient.invalidateQueries({ queryKey: ["room-chat", room.slug] });
+    },
+    onError: (e) => showError(fail(e)),
+  });
+
   async function remove(m: RoomChatDto) {
     const ok = await confirm({
       title: copy.chat.deleteTitle,
@@ -193,8 +204,52 @@ export function ChatPanel({ room, meId, role }: { room: RoomDto; meId: string; r
                       {formatClock(new Date(m.createdAt))}
                     </time>
                   </p>
-                  <p className="whitespace-pre-wrap break-words text-text">{m.body}</p>
-                  {m.reactions.length > 0 ? (
+                  {m.deleted ? (
+                    <p className="italic text-text-muted">
+                      {m.deleted === "BY_ME" ? copy.chat.youDeleted : copy.chat.wasDeleted}
+                    </p>
+                  ) : editing?.id === m.id ? (
+                    <form
+                      noValidate
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        const body = editing.text.trim();
+                        if (body) edit.mutate({ id: m.id, body });
+                      }}
+                      className="flex items-center gap-1"
+                    >
+                      <Input
+                        aria-label={copy.chat.edit}
+                        value={editing.text}
+                        ref={(el) => el?.focus()}
+                        onChange={(e) => setEditing({ id: m.id, text: e.target.value })}
+                        className="rounded-full"
+                      />
+                      <Button type="submit" loading={edit.isPending} className="min-h-11 px-4">
+                        {copy.chat.editSave}
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        className="min-h-11 px-4"
+                        onClick={() => setEditing(null)}
+                      >
+                        {copy.chat.editCancel}
+                      </Button>
+                    </form>
+                  ) : (
+                    <p className="whitespace-pre-wrap break-words text-text">
+                      {m.body}
+                      {m.editedAt ? (
+                        <span
+                          title={formatFull(new Date(m.editedAt))}
+                          className="ml-2 text-xs text-text-muted"
+                        >
+                          {copy.chat.edited}
+                        </span>
+                      ) : null}
+                    </p>
+                  )}
+                  {!m.deleted && m.reactions.length > 0 ? (
                     <div className="mt-1 flex flex-wrap gap-1">
                       {m.reactions.map((r) => (
                         <button
@@ -215,10 +270,22 @@ export function ChatPanel({ room, meId, role }: { room: RoomDto; meId: string; r
                   ) : null}
                 </div>
                 <span className="flex shrink-0 items-center">
-                  {room.settings.reactionsOn ? (
+                  {!m.deleted && room.settings.reactionsOn ? (
                     <ReactionPicker onPick={(emoji) => react.mutate({ id: m.id, emoji })} />
                   ) : null}
-                  {own || privileged ? (
+                  {own &&
+                  !m.deleted &&
+                  Date.now() - new Date(m.createdAt).getTime() <=
+                    LIMITS.EDIT_WINDOW_MIN * 60_000 ? (
+                    <IconButton
+                      label={copy.chat.edit}
+                      onClick={() => setEditing({ id: m.id, text: m.body })}
+                      className="size-9"
+                    >
+                      <Pencil aria-hidden className="size-4" />
+                    </IconButton>
+                  ) : null}
+                  {!m.deleted && (own || privileged) ? (
                     <IconButton
                       label={copy.chat.delete}
                       onClick={() => void remove(m)}

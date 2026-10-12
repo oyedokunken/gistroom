@@ -550,6 +550,7 @@ model PushSubscription {
   /// The session on this device ended more than 30 days ago, so alerts stopped until the person signs in again.
   /**
    * /**
+   * /**
    * /** When the session on this device ended (first noticed). Alerts go out as plain text for 30 days after this.
    */
   sessionEndedAt  DateTime?
@@ -709,16 +710,21 @@ model RoomModLog {
 }
 
 model RoomMessage {
-  id        String         @id @default(cuid(2))
-  roomId    String
-  senderId  String
-  clientId  String
-  body      String
-  expiresAt DateTime?
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  room      Room           @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  reactions RoomReaction[]
+  id          String         @id @default(cuid(2))
+  roomId      String
+  senderId    String
+  clientId    String
+  body        String
+  expiresAt   DateTime?
+  /// Set when the sender edits the text. The bubble shows Edited.
+  editedAt    DateTime?
+  /// Deleted messages stay as a marker until the room ends. The text is cleared.
+  deletedAt   DateTime?
+  deletedById String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  room        Room           @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  reactions   RoomReaction[]
 
   @@unique([senderId, clientId])
   @@index([roomId, createdAt])

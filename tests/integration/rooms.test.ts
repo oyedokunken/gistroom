@@ -200,8 +200,42 @@ describe.skipIf(!testDbEnabled)("rooms", () => {
     });
     await m.deleteRoomMessage(member, room.slug, first.id);
     await m.deleteRoomMessage(host, room.slug, hostSays.id);
-    const left = await m.db.roomMessage.count({ where: { id: { in: [first.id, hostSays.id] } } });
-    expect(left).toBe(0);
+    // The rows stay as markers: the deleter reads "You deleted a message", everyone else sees it was removed.
+    const seenByMember = await m.listRoomMessages(member, room.slug, null);
+    const mine = seenByMember.items.find((x) => x.id === first.id);
+    const hosts = seenByMember.items.find((x) => x.id === hostSays.id);
+    expect(mine).toMatchObject({ deleted: "BY_ME", body: "" });
+    expect(hosts).toMatchObject({ deleted: "BY_OTHER", body: "" });
+    const seenByHost = await m.listRoomMessages(host, room.slug, null);
+    expect(seenByHost.items.find((x) => x.id === hostSays.id)?.deleted).toBe("BY_ME");
+  });
+
+  it("lets a sender edit their own room message for a short while", async () => {
+    const host = await person("e1");
+    const member = await person("e2");
+    const room = await liveRoom(host);
+    await m.joinRoom(member, room.slug);
+    const msg = await m.postRoomMessage(member, room.slug, {
+      clientId: "client-0101",
+      body: "hii",
+    });
+    await expect(m.editRoomMessage(host, room.slug, msg.id, "nope")).rejects.toMatchObject({
+      status: 403,
+    });
+    await m.editRoomMessage(member, room.slug, msg.id, "hi");
+    const after = (await m.listRoomMessages(host, room.slug, null)).items.find(
+      (x) => x.id === msg.id,
+    );
+    expect(after).toMatchObject({ body: "hi" });
+    expect(after?.editedAt).not.toBeNull();
+    // Too late once the window has passed.
+    await m.db.roomMessage.update({
+      where: { id: msg.id },
+      data: { createdAt: new Date(Date.now() - 20 * 60_000) },
+    });
+    await expect(m.editRoomMessage(member, room.slug, msg.id, "late")).rejects.toMatchObject({
+      status: 403,
+    });
   });
 
   it("toggles a reaction on a chat message and counts it for the summary", async () => {

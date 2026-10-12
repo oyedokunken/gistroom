@@ -1056,18 +1056,29 @@ export async function forwardRoom(
 // ---------- Room chat ----------
 
 const chatDto = (
-  row: { id: string; clientId: string; body: string; createdAt: Date },
+  row: {
+    id: string;
+    clientId: string;
+    body: string;
+    createdAt: Date;
+    editedAt: Date | null;
+    deletedAt: Date | null;
+    deletedById: string | null;
+  },
   sender: User,
   senderRole: RoomRole,
+  viewerId: string,
   reactions: RoomChatDto["reactions"] = [],
 ): RoomChatDto => ({
   id: row.id,
   clientId: row.clientId,
   sender: toPublicUser(sender),
   senderRole,
-  body: row.body,
+  body: row.deletedAt ? "" : row.body,
   createdAt: row.createdAt.toISOString(),
-  reactions,
+  editedAt: row.editedAt?.toISOString() ?? null,
+  deleted: row.deletedAt ? (row.deletedById === viewerId ? "BY_ME" : "BY_OTHER") : null,
+  reactions: row.deletedAt ? [] : reactions,
 });
 
 export async function postRoomMessage(
@@ -1084,7 +1095,7 @@ export async function postRoomMessage(
   const existing = await db.roomMessage.findUnique({
     where: { senderId_clientId: { senderId: me.id, clientId: input.clientId } },
   });
-  if (existing) return chatDto(existing, me, role);
+  if (existing) return chatDto(existing, me, role, me.id);
   const privileged = canDo(role, "DELETE_MESSAGE");
   if (room.chatMode === "OFF" || (room.chatMode === "MODERATORS" && !privileged)) {
     throw forbidden(errors.roomChatClosed);
@@ -1105,7 +1116,7 @@ export async function postRoomMessage(
   });
   await db.room.update({ where: { id: room.id }, data: { messageCount: { increment: 1 } } });
   void publish({ type: "room", roomId: room.id, change: "chat", messageId: row.id });
-  return chatDto(row, me, role);
+  return chatDto(row, me, role, me.id);
 }
 
 interface ChatCursor {
@@ -1179,6 +1190,7 @@ export async function listRoomMessages(
         r,
         s,
         role,
+        me.id,
         [...grouped].map(([emoji, g]) => ({ emoji, ...g })),
       ),
     ];
@@ -1203,8 +1215,36 @@ export async function deleteRoomMessage(me: User, slug: string, messageId: strin
   if (!row) return;
   const own = row.senderId === me.id;
   if (!own && !canDo(role, "DELETE_MESSAGE")) throw forbidden(errors.roomNotAllowed);
-  await db.roomMessage.delete({ where: { id: row.id } });
+  if (row.deletedAt) return;
+  // The row stays as a marker, so the person who deleted it reads "You deleted a message" and others see it was removed.
+  await db.roomMessage.update({
+    where: { id: row.id },
+    data: { deletedAt: new Date(), deletedById: me.id, body: "" },
+  });
+  await db.roomReaction.deleteMany({ where: { messageId: row.id } });
   if (!own) await log(room.id, me.id, "MESSAGE_DELETED", row.senderId, { messageId });
+  void publish({ type: "room", roomId: room.id, change: "chat-deleted", messageId });
+}
+
+/** The sender edits their own message for a short while. Everyone sees Edited next to it. */
+export async function editRoomMessage(
+  me: User,
+  slug: string,
+  messageId: string,
+  body: string,
+): Promise<void> {
+  await enforce(policies.roomChat, me.id);
+  const db = getDb();
+  const room = await loadBySlug(slug);
+  const member = await memberOf(room.id, me.id);
+  if (room.status !== "LIVE" || member?.state !== "JOINED") throw forbidden(errors.roomNotAllowed);
+  const row = await db.roomMessage.findFirst({ where: { id: messageId, roomId: room.id } });
+  if (!row) throw notFound();
+  const fresh = Date.now() - row.createdAt.getTime() <= LIMITS.EDIT_WINDOW_MIN * 60_000;
+  if (row.senderId !== me.id || row.deletedAt || !fresh) {
+    throw forbidden(errors.roomNotAllowed);
+  }
+  await db.roomMessage.update({ where: { id: row.id }, data: { body, editedAt: new Date() } });
   void publish({ type: "room", roomId: room.id, change: "chat-deleted", messageId });
 }
 

@@ -60,6 +60,8 @@ export const roomApi = {
     ),
   say: (slug: string, clientId: string, body: string) =>
     apiFetch<{ message: RoomChatDto }>(`${base(slug)}/chat`, { body: { clientId, body } }),
+  editMessage: (slug: string, id: string, body: string) =>
+    apiFetch<{ ok: true }>(`${base(slug)}/chat`, { method: "PATCH", body: { id, body } }),
   deleteMessage: (slug: string, id: string) =>
     apiFetch<{ ok: true }>(`${base(slug)}/chat?id=${encodeURIComponent(id)}`, {
       method: "DELETE",

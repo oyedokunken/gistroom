@@ -37,6 +37,7 @@ export const chat = {
   today: "Today",
   yesterday: "Yesterday",
   deletedMessage: "This message was deleted",
+  youDeletedMessage: "You deleted a message",
   replyingTo: (name: string) => `Replying to ${name}`,
   cancelReply: "Cancel reply",
   composerLabel: "Message",
@@ -95,6 +96,10 @@ export const chat = {
   starredEmptyTitle: "No starred messages",
   starredEmptyBody: "Star a message to find it here later.",
   jumpToMessage: "Open in chat",
+  list: {
+    viewProfile: "View profile",
+    optionsFor: (name: string) => `Options for ${name}`,
+  },
   conversation: {
     menu: "Chat options",
     archive: "Archive chat",

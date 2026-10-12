@@ -6,6 +6,8 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ### Production migrations to run
 
+- `20261013150000_room_message_edit_delete`: edited and deleted markers on room chat messages.
+
 - `20261013120000_user_is_seed`: marks seeded test people so they can be removed in one command.
 
 - `20261013090000_sessions_push_devices`: session end reasons, device id and sign in time on sessions, device id, label, health and sign out fields on push subscriptions.
@@ -20,6 +22,10 @@ These are applied to the dev and test schemas already. Run them on production wi
 - `20261012140000_room_invite_link_token`: the link token that lets active links show in full.
 
 ### Test data and polish
+
+- Calls have reactions: the smile button opens the ten reactions, and they float up on both screens, sent over the call itself with no server in between.
+- A deleted message reads You deleted a message to the person who deleted it and This message was deleted to everyone else, in chats and in room chat. Room chat messages can be edited for 15 minutes and show Edited, like chats.
+- Every chat in the list has an options menu with View profile, Mute and Archive, so you can reach a profile without opening the chat.
 
 - Room reactions allow bursts (60 in 10 seconds). Room settings switches move the moment they are pressed. Friends already in the room show as Already in the room and cannot be invited again. Calling someone who is in a live room tells the caller, and leaves them a missed call.
 - The chats right pane no longer scrolls. The welcome tour opens with a personal Welcome, @username slide with Explore or Skip. The Rooms header buttons shrink to icons on small screens.

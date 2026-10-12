@@ -159,6 +159,12 @@ export const roomCopy = {
     slow: (sec: number) => `Slow mode: one message every ${sec} seconds.`,
     react: "React to this message",
     emoji: "Add an emoji",
+    youDeleted: "You deleted a message",
+    wasDeleted: "This message was deleted",
+    edited: "Edited",
+    edit: "Edit message",
+    editSave: "Save",
+    editCancel: "Cancel",
   },
   people: {
     count: (n: number) => (n === 1 ? "1 person in the room" : `${n} people in the room`),

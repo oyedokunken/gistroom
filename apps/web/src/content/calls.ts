@@ -16,6 +16,7 @@ export const callCopy = {
   cameraOn: "Turn camera on",
   cameraOff: "Turn camera off",
   flip: "Flip camera",
+  reactions: "Send a reaction",
   speaker: "Choose audio device",
   you: "You",
   timer: "Call time",

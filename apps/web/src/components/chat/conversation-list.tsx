@@ -1,11 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { Archive, ChevronLeft, Search, UserPlus } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  Archive,
+  ArchiveRestore,
+  Bell,
+  BellOff,
+  ChevronLeft,
+  EllipsisVertical,
+  Search,
+  User,
+  UserPlus,
+} from "lucide-react";
 import { previewText, type ConversationDto } from "@gistroom/shared";
 import { Avatar } from "@/components/ui/avatar";
+import {
+  DropdownContent,
+  DropdownItem,
+  DropdownMenu,
+  DropdownTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useFeedback } from "@/components/feedback/feedback-provider";
+import { ApiClientError, apiFetch } from "@/lib/api";
 import { buttonStyles } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/field";
@@ -31,6 +50,17 @@ function Row({ c, viewerId, active }: { c: ConversationDto; viewerId: string; ac
   const live = useRealtimeStore((s) => s.presence[c.peer.id]);
   const online = live ? live.online : c.peerLastSeenAt ? false : undefined;
   const typing = useRealtimeStore((s) => (s.typing[c.id] ?? []).length > 0);
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { showError } = useFeedback();
+  async function patch(body: { archived?: boolean; muteMinutes?: number }) {
+    try {
+      await apiFetch(`/api/conversations/${c.id}`, { method: "PATCH", body });
+      void queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    } catch (e) {
+      showError(e instanceof ApiClientError ? e.message : chat.loadError);
+    }
+  }
   const preview = c.lastMessage
     ? previewText({
         type: c.lastMessage.type,
@@ -41,12 +71,12 @@ function Row({ c, viewerId, active }: { c: ConversationDto; viewerId: string; ac
       })
     : chat.startOfChatNew(c.peer.name);
   return (
-    <li>
+    <li className="relative">
       <Link
         href={`/app/chats/${c.id}`}
         aria-current={active ? "page" : undefined}
         className={cn(
-          "flex min-h-[4.5rem] items-center gap-3 px-3 py-2.5 md:px-4",
+          "flex min-h-[4.5rem] items-center gap-3 py-2.5 pl-3 pr-12 md:pl-4",
           active ? "bg-green-100" : "hover:bg-surface-2",
         )}
       >
@@ -97,6 +127,34 @@ function Row({ c, viewerId, active }: { c: ConversationDto; viewerId: string; ac
           </span>
         </span>
       </Link>
+      <DropdownMenu>
+        <DropdownTrigger asChild>
+          <button
+            type="button"
+            aria-label={chat.list.optionsFor(c.peer.name)}
+            className="absolute right-1.5 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full text-text-muted hover:bg-surface-2 hover:text-text"
+          >
+            <EllipsisVertical aria-hidden className="size-5" />
+          </button>
+        </DropdownTrigger>
+        <DropdownContent>
+          <DropdownItem icon={User} onSelect={() => router.push(`/app/u/${c.peer.username}`)}>
+            {chat.list.viewProfile}
+          </DropdownItem>
+          <DropdownItem
+            icon={c.muted ? Bell : BellOff}
+            onSelect={() => void patch({ muteMinutes: c.muted ? 0 : 8 * 60 })}
+          >
+            {c.muted ? chat.conversation.unmute : chat.conversation.mute}
+          </DropdownItem>
+          <DropdownItem
+            icon={c.archived ? ArchiveRestore : Archive}
+            onSelect={() => void patch({ archived: !c.archived })}
+          >
+            {c.archived ? chat.conversation.unarchive : chat.conversation.archive}
+          </DropdownItem>
+        </DropdownContent>
+      </DropdownMenu>
     </li>
   );
 }

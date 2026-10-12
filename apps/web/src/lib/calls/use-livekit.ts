@@ -2,6 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Room } from "livekit-client";
+import { isReactionEmoji } from "@gistroom/shared";
+
+const REACTION_TOPIC = "reaction";
 
 export interface LiveKitState {
   connected: boolean;
@@ -39,8 +42,12 @@ export function useLiveKit(args: {
   startWithVideo: boolean;
   /** Hold video at 360p when data saver is on. */
   lowData: boolean;
+  /** Called when the other person sends a reaction over the call. */
+  onReaction?: (emoji: string) => void;
 }) {
   const { url, token, startWithVideo, lowData } = args;
+  const onReactionRef = useRef(args.onReaction);
+  onReactionRef.current = args.onReaction;
   const [state, setState] = useState<LiveKitState>(initial);
   const roomRef = useRef<Room | null>(null);
   const remoteVideo = useRef<HTMLVideoElement | null>(null);
@@ -121,6 +128,11 @@ export function useLiveKit(args: {
           10_000,
         );
       });
+      room.on(lk.RoomEvent.DataReceived, (payload, _from, _kind, topic) => {
+        if (topic !== REACTION_TOPIC) return;
+        const emoji = new TextDecoder().decode(payload);
+        if (isReactionEmoji(emoji)) onReactionRef.current?.(emoji);
+      });
       room.on(lk.RoomEvent.Reconnecting, () => setState((s) => ({ ...s, reconnecting: true })));
       room.on(lk.RoomEvent.Reconnected, () => setState((s) => ({ ...s, reconnecting: false })));
       room.on(lk.RoomEvent.Disconnected, () =>
@@ -195,9 +207,28 @@ export function useLiveKit(args: {
     if (next) await room.switchActiveDevice("videoinput", next.deviceId);
   }, []);
 
+  /** Floats a reaction for the other person. Lossy delivery is fine, so a burst never queues up. */
+  const sendReaction = useCallback(async (emoji: string) => {
+    const room = roomRef.current;
+    if (!room) return;
+    await room.localParticipant
+      .publishData(new TextEncoder().encode(emoji), { reliable: false, topic: REACTION_TOPIC })
+      .catch(() => undefined);
+  }, []);
+
   const leave = useCallback(() => {
     roomRef.current?.disconnect();
   }, []);
 
-  return { state, toggleMic, setCamera, flipCamera, leave, remoteVideo, localVideo, audioHost };
+  return {
+    state,
+    toggleMic,
+    setCamera,
+    flipCamera,
+    sendReaction,
+    leave,
+    remoteVideo,
+    localVideo,
+    audioHost,
+  };
 }

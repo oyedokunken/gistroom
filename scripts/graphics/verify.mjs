@@ -37,7 +37,7 @@ for (const f of required) {
 }
 
 for (const a of manifest.assets ?? []) {
-  if (!a.alt && !a.decorative) fail(`${a.id}: missing alt text`);
+  if (!a.alt && !a.decorative) fail(`${a.id}: missin=g alt text`);
   if (release && a.status === "PLACEHOLDER")
     fail(`${a.id}: still a placeholder in a release build`);
   if (a.animated) {

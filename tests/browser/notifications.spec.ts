@@ -49,8 +49,19 @@ test.describe("notifications", () => {
     const dialog = page.getByRole("dialog");
     await expect(dialog.getByRole("button", { name: "Accept" })).toBeVisible();
     await expect(dialog.getByRole("button", { name: "Decline" })).toBeVisible();
+    // The sender is shown, with a way to see their profile.
+    await expect(dialog.getByRole("link", { name: "View profile" })).toBeVisible();
     await dialog.getByRole("button", { name: "Accept" }).click();
+    // After accepting, the button says so and cannot be pressed again, here or when the modal is opened again.
+    await expect(dialog.getByRole("button", { name: "Accepted" })).toBeDisabled();
+    await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);
+    await page.getByRole("button", { name: /New friend request/ }).click();
+    await expect(page.getByRole("dialog").getByRole("button", { name: "Accepted" })).toBeDisabled();
+    await expect(
+      page.getByRole("dialog").getByRole("button", { name: "Accept", exact: true }),
+    ).toHaveCount(0);
+    await page.keyboard.press("Escape");
     const row = await db.friendRequest.findUniqueOrThrow({ where: { id: request.id } });
     expect(row.status).toBe("ACCEPTED");
 

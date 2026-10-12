@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { PasswordInput } from "@/components/ui/password-input";
 import { PasswordStrength } from "@/components/ui/password-strength";
-import { usePasswordStrength } from "@/lib/password-strength";
+import { isPasswordAcceptable, usePasswordStrength } from "@/lib/password-strength";
 import { passwordSettings as copy } from "@/content/app";
 import { ApiClientError, apiFetch } from "@/lib/api";
 
@@ -41,7 +41,7 @@ export function PasswordForm({ hasPassword, email }: { hasPassword: boolean; ema
 
   async function onSubmit(v: { currentPassword?: string; newPassword: string }) {
     setSaved(false);
-    if (!strength.acceptable) {
+    if (!(await isPasswordAcceptable(v.newPassword))) {
       form.setError("newPassword", { message: passwordMessages.tooWeak });
       return;
     }

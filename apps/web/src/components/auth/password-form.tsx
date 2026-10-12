@@ -13,7 +13,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { PasswordStrength } from "@/components/ui/password-strength";
 import { auth } from "@/content/auth";
 import { ApiClientError, apiFetch } from "@/lib/api";
-import { usePasswordStrength } from "@/lib/password-strength";
+import { isPasswordAcceptable, usePasswordStrength } from "@/lib/password-strength";
 
 const schema = z
   .object({
@@ -49,7 +49,7 @@ export function PasswordForm({ next, intro }: { next: string; intro?: "signup" |
   }, [password, confirm, form]);
 
   async function onSubmit(values: Values) {
-    if (!strength.acceptable) {
+    if (!(await isPasswordAcceptable(values.password))) {
       form.setError("password", { message: passwordMessages.tooWeak });
       return;
     }

@@ -140,3 +140,28 @@ export async function befriend(a: E2eUser, b: E2eUser): Promise<string> {
   });
   return conversation.id;
 }
+
+/** The newest code mailed to an address. The test server writes every message to apps/web/.mail-capture. */
+export async function capturedCode(email: string, timeoutMs = 20_000): Promise<string> {
+  const { readdirSync, readFileSync } = await import("node:fs");
+  const dir = `${process.cwd()}/apps/web/.mail-capture`;
+  const safe = email.replace(/[^a-z0-9@._-]/gi, "_");
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      const files = readdirSync(dir)
+        .filter((f) => f.endsWith(`-${safe}.json`))
+        .sort()
+        .reverse();
+      for (const f of files) {
+        const mail = JSON.parse(readFileSync(`${dir}/${f}`, "utf8")) as { text: string };
+        const m = /Your code: (\d{6})/.exec(mail.text);
+        if (m?.[1]) return m[1];
+      }
+    } catch {
+      // The folder appears with the first message.
+    }
+    await new Promise((r) => setTimeout(r, 300));
+  }
+  throw new Error(`no code mailed to ${email}`);
+}

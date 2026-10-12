@@ -47,6 +47,20 @@ export function levelFor(
   return "okay";
 }
 
+/**
+ * The answer a form needs at the moment of submit. It waits for the estimator if it is still loading, so a password
+ * pasted by a manager and sent at once is judged properly instead of being called weak for want of a score.
+ */
+export async function isPasswordAcceptable(
+  password: string,
+  userInputs: string[] = [],
+): Promise<boolean> {
+  const issueFree = password.length > 0 && passwordIssue(password) === null;
+  if (!issueFree) return false;
+  const run = await loadEstimator();
+  return levelFor(run(password, userInputs), issueFree, passwordChecks(password)) !== "weak";
+}
+
 export function usePasswordStrength(password: string, userInputs: string[] = []): Strength {
   const [score, setScore] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);

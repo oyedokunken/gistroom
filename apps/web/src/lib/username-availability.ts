@@ -66,6 +66,9 @@ export function useUsernameAvailability(
 ): UsernameState {
   const [state, setState] = useState<UsernameState>({ status: "idle" });
   const runs = useRef(latestRun());
+  // The checker is read when the timer fires, so a new function from the caller never restarts the wait.
+  const checkRef = useRef(check);
+  checkRef.current = check;
 
   useEffect(() => {
     const run = runs.current.next();
@@ -79,7 +82,11 @@ export function useUsernameAvailability(
     const timer = window.setTimeout(async () => {
       if (!runs.current.isLatest(run)) return;
       setState({ status: "checking" });
-      const next = await resolveUsername(raw.trim().toLowerCase(), check, controller.signal);
+      const next = await resolveUsername(
+        raw.trim().toLowerCase(),
+        checkRef.current,
+        controller.signal,
+      );
       if (next === "aborted" || !runs.current.isLatest(run)) return;
       setState(next);
     }, DEBOUNCE_MS);
@@ -87,7 +94,7 @@ export function useUsernameAvailability(
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [raw, own, check]);
+  }, [raw, own]);
 
   return state;
 }

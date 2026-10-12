@@ -1,3 +1,4 @@
+import { tmpdir } from "node:os";
 import { mkdtemp, readdir, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -20,6 +21,7 @@ const base: MailConfig = {
   enableReal: false,
   allowedDomains: ["example.com"],
   nodeEnv: "test",
+  appUrl: "https://gistroom.ng",
   fromName: "Gistroom",
   fromAddress: "no-reply@gistroom.ng",
   captureDir: "",
@@ -107,6 +109,21 @@ describe("deliver", () => {
     const msg = { to: "t@example.com", subject: "s", html: "h", text: "t" };
     await expect(
       deliver(msg, { ...base, nodeEnv: "production", transport: "console" }),
+    ).rejects.toThrow(/smtp/);
+  });
+  it("allows file capture in a production build that runs on localhost, and nowhere else", async () => {
+    const msg = { to: "t@example.com", subject: "s", html: "h", text: "t" };
+    await expect(
+      deliver(msg, {
+        ...base,
+        nodeEnv: "production",
+        transport: "capture",
+        appUrl: "http://localhost:3217",
+        captureDir: tmpdir(),
+      }),
+    ).resolves.toBeUndefined();
+    await expect(
+      deliver(msg, { ...base, nodeEnv: "production", transport: "capture" }),
     ).rejects.toThrow(/smtp/);
   });
   it("fails loudly on bad props instead of queueing", async () => {

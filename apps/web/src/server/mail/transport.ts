@@ -9,6 +9,8 @@ export interface MailConfig {
   enableReal: boolean;
   allowedDomains: string[];
   nodeEnv: string;
+  /** The public address of the app. Mail that only goes to a file is allowed when this is a local address. */
+  appUrl: string;
   fromName: string;
   fromAddress: string;
   smtpUser?: string;
@@ -40,6 +42,7 @@ export function mailConfigFromEnv(env: NodeJS.ProcessEnv): MailConfig {
       .map((d) => d.trim().toLowerCase())
       .filter(Boolean),
     nodeEnv: env.NODE_ENV ?? "development",
+    appUrl: env.APP_URL ?? "http://localhost:3000",
     fromName: env.MAIL_FROM_NAME ?? "Gistroom",
     fromAddress: env.MAIL_FROM_ADDRESS ?? env.SMTP_USER ?? "no-reply@gistroom.ng",
     smtpUser: env.SMTP_USER,
@@ -67,7 +70,9 @@ export const capturedMail: MailMessage[] = [];
 
 export async function deliver(message: MailMessage, cfg: MailConfig): Promise<void> {
   checkRecipient(message.to, cfg);
-  if (cfg.nodeEnv === "production" && cfg.transport !== "smtp") {
+  // A production build must send real mail. The browser tests run a production build on localhost and capture to a file.
+  const local = /^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(cfg.appUrl);
+  if (cfg.nodeEnv === "production" && cfg.transport !== "smtp" && !local) {
     throw new MailBlockedError("MAIL_TRANSPORT must be smtp in production.");
   }
 

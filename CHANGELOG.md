@@ -6,6 +6,9 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ### Production migrations to run
 
+- `20261013090000_sessions_push_devices`: session end reasons, device id and sign in time on sessions, device id, label, health and sign out fields on push subscriptions.
+- `20261013091000_push_session_ended`: when the session on a device ended.
+
 These are applied to the dev and test schemas already. Run them on production with `npm run db:migrate:deploy`, in this order. Nothing was run against production by the build.
 
 - `20261012100000_topics_expand`: the wider topic list.
@@ -14,7 +17,15 @@ These are applied to the dev and test schemas already. Run them on production wi
 - `20261012102631_room_settings_reactions_activity`: room settings, room reactions and activity expiry.
 - `20261012140000_room_invite_link_token`: the link token that lets active links show in full.
 
-### Environment
+### Sessions and alerts
+
+- People stay signed in for 30 days, sliding, up to 90 days. The cookie is renewed on page loads, so it no longer ends 30 days after sign in for someone who uses Gistroom every day.
+- The real causes of surprise sign outs are fixed: the cookie was never renewed, and the realtime socket treated any failed pass fetch (offline, a cold start, a database blip) as a sign out. It now checks with the server first and retries.
+- Every session end records a reason and is logged. `npm run sessions:ends` shows the last 50.
+- Alerts no longer depend on the session. Subscriptions belong to a device, survive a session ending, and keep arriving as plain text for 30 days, then stop until the person signs in again. Signing out on purpose removes that device's alerts, and a browser used by someone else moves its alerts to the new person.
+- Tapping a notification with an ended session signs in and returns to the same place.
+- Settings, Notifications has a device health panel with a real test button, a device list and help for the usual reasons alerts stop.
+- Exporting your data and setting a first password ask for a recent sign in.
 
 - `DATABASE_POOL_MAX` caps the database pool per process. `QA_PASSWORD` is read only by `npm run seed:qa` and is never stored.
 

@@ -209,7 +209,12 @@ LiveKit API secrets live on web only. Realtime never talks to LiveKit.
 
 ### 6.2 Sessions
 
-- Opaque random session token, stored hashed in the `Session` table, set as an `httpOnly`, `Secure`, `SameSite=Lax` cookie named `gr_session`. 30 day sliding expiry. Record user agent, coarse device label, `lastSeenAt`.
+- Opaque random session token, stored hashed in the `Session` table, set by the server as an `httpOnly`, `Secure`, `SameSite=Lax`, `Path=/` cookie named `gr_session` with an explicit `Max-Age` of 30 days and a matching `Expires`. No short lived access token. Every cookie (session, `gr_device`, `gr_authed`, consent) is a server `Set-Cookie`, never written from JavaScript (Safari caps script cookies at 7 days).
+- Sliding idle expiry of 30 days, written at most once a day per session, with an absolute cap of 90 days from sign in (`LIMITS.SESSION_MAX_DAYS`). The proxy re-issues the same cookie value with a fresh lifetime on page loads, so the cookie slides with the database and a token never rotates (parallel requests and deploys cannot invalidate it). Sessions record user agent, device label, `deviceId`, `lastSeenAt` and `authenticatedAt`.
+- Every session end writes a reason (`EXPIRED`, `REVOKED_BY_USER`, `REVOKED_ALL`, `ACCOUNT_DELETED`, `SWEPT`, `INVALID_COOKIE`, `ERROR`) to `Session.endReason` and the pino log. `npm run sessions:ends` prints the last 50. The daily sweep deletes only sessions that expired more than 7 days ago.
+- Sensitive actions (export, set a password without one, and the others that already ask for the password) need a sign in from the last 15 minutes. Older than that, the person types the password again (`/api/auth/reauth`).
+- The realtime socket never signs anyone out by itself: a failed pass fetch or an `unauthorized` answer is checked against `/api/auth/session` first, and only a real "no session" leaves for the sign in page.
+- The installed PWA on iPhone keeps its own cookies, separate from Safari: sign in once inside the installed app.
 - Settings shows active devices with "sign out this device" and "sign out everywhere else".
 - CSRF: `SameSite=Lax` plus an `Origin` header check on every mutating route.
 
@@ -456,6 +461,18 @@ A short TTL on calls stops a ring arriving twenty minutes late. After TTL the ca
 - `notificationclick`: Answer or body click focuses an existing client and navigates it to `/app/call/{id}?answer=1`, else opens a window. Decline calls `POST /api/calls/{id}/decline` with credentials from the worker, then closes the notification.
 - `pushsubscriptionchange`: resubscribe and update the server.
 - Update the Badge API from the unread count in the payload.
+
+### 10.3b Push is independent of the session
+
+Web Push depends on the browser's push subscription and the notification permission, never on our login cookie. A `PushSubscription` belongs to a person and a device (`deviceId` from the 1 year `gr_device` cookie), not to a session. Session expiry, revocation or rotation never touches it.
+
+- A subscription is removed only when: the person signs out on that device on purpose (the client unsubscribes and the server deletes it), signs out everywhere else (the other devices' subscriptions go, the current device keeps its own), the account is deleted, the push service answers 404 or 410, the person turns alerts off or removes the device in Settings, or there has been no successful delivery for 90 days.
+- `endpoint` is unique. If another person signs in on a browser that already has a subscription, the row moves to them on subscribe or on the next app load.
+- Grace period: after a device's session ends it keeps getting alerts for 30 days (`LIMITS.PUSH_GRACE_DAYS`) with plain text only ("You have a new message", "You have a missed call", "You have a room invite"), and calls as "Incoming call. Open Gistroom to sign in and answer.". After 30 days the device is marked `needsReauth` and skipped. Signing in again on that device relinks it.
+- Tapping a notification with an expired session goes to `/login?next=<deep link>` and returns to the same place after sign in. Answer and Decline that get a 401 open the call link and the sign in.
+- On every signed in load the client resubscribes silently if permission is granted and the subscription is missing, and updates the server if the endpoint changed. Three failures in a row mark the device unhealthy and the person is told once. A browser that blocked alerts gets a modal with steps.
+- Settings, Notifications shows this device's permission, subscription, install state and last delivery, a test button that really pushes to this device, the list of devices with remove, and the real reasons alerts stop.
+- Platform limits, stated plainly: macOS Chrome and Edge deliver only while the browser runs. Windows Chrome needs "continue running background apps". iPhone needs the app on the Home Screen. Some Android phones (Tecno, Infinix, Itel, Xiaomi) kill background apps. Firefox desktop needs to be running.
 
 ### 10.4 Subscription lifecycle
 
@@ -915,6 +932,13 @@ export const LIMITS = {
   OTP_MAX_ATTEMPTS: 5,
   OTP_SENDS_PER_HOUR: 5,
   SESSION_DAYS: 30,
+  SESSION_MAX_DAYS: 90,
+  SESSION_SWEEP_GRACE_DAYS: 7,
+  RECENT_AUTH_MIN: 15,
+  PUSH_GRACE_DAYS: 30,
+  PUSH_STALE_DAYS: 90,
+  PUSH_UNHEALTHY_FAILURES: 3,
+  DEVICE_COOKIE_DAYS: 365,
   REALTIME_PASS_MIN: 15,
   // Social
   FRIEND_REQUEST_COOLDOWN_DAYS: 7,

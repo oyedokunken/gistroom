@@ -154,3 +154,26 @@ Mark each step: [ ] pass, [ ] fail.
 ```
 $env:E2E_LIVE = "1"; npx playwright test --grep @live
 ```
+
+## 11. Alerts after the session ends (real devices)
+
+Use Settings, Notifications, then press Send a test notification on each device. It pushes to that device only and says what happened.
+
+| Step                                                                                                 | Expected                                                                                                                                | Result |
+| ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| Android Chrome: turn alerts on, close the tab, swipe the app away, then message from another account | An alert arrives with the sender and text                                                                                               | [ ]    |
+| Android with battery saver on, same steps                                                            | Alert arrives. If it is late or missing, follow the Not getting alerts help                                                             | [ ]    |
+| Windows Chrome with all windows closed and Continue running background apps ON                       | Alert arrives                                                                                                                           | [ ]    |
+| Windows Chrome with all windows closed and that setting OFF                                          | No alert until Chrome is opened. This is expected                                                                                       | [ ]    |
+| macOS Chrome fully quit                                                                              | No alert. This is expected and documented                                                                                               | [ ]    |
+| Firefox desktop with Firefox running, tab closed                                                     | Alert arrives. With Firefox closed, none                                                                                                | [ ]    |
+| iPhone with the app added to the Home Screen, signed in inside it, app closed                        | Alert arrives. In Safari only, alerts are not offered                                                                                   | [ ]    |
+| Expire a session on purpose (set its expiry in the past, or wait 31 days)                            | Alerts keep coming as plain text: "You have a new message", no names. Opening the app asks you to sign in                               | [ ]    |
+| Tap that plain alert                                                                                 | You land on the sign in page, and after signing in you are at the same chat or room                                                     | [ ]    |
+| Call that device while its session is ended                                                          | "Incoming call. Open Gistroom to sign in and answer." If you sign in within the ring time you can answer, otherwise it is a missed call | [ ]    |
+| After 30 days signed out                                                                             | Alerts stop. Settings shows "Needs a sign in". Signing in on that device brings full alerts back                                        | [ ]    |
+| Sign out on purpose on a shared computer, then message the account                                   | No alert on that computer                                                                                                               | [ ]    |
+| Sign out everywhere else from device A                                                               | Device B stops getting alerts. Device A keeps its session and its alerts                                                                | [ ]    |
+| Two people use one browser: A turns alerts on, signs out, B signs in                                 | A's messages never show on that browser. B's do                                                                                         | [ ]    |
+| Block notifications in the browser after turning them on, then open Gistroom                         | A modal explains how to turn them back on, and Settings shows Blocked                                                                   | [ ]    |
+| Press Send a test notification with alerts on                                                        | "Sent" and the alert appears                                                                                                            | [ ]    |

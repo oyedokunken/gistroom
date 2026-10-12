@@ -4,7 +4,7 @@ import { getDb } from "@gistroom/db";
 import { api, assertSameOrigin, json, parseJson, userAgent } from "@/server/http";
 import { requireOnboarded } from "@/server/auth/session";
 import { DEVICE_COOKIE, isDeviceId } from "@/server/auth/tokens";
-import { deviceLabel } from "@/lib/device-label";
+import { saveSubscription } from "@/server/push/subscriptions";
 
 const subscribeSchema = z.object({
   endpoint: z.string().url().max(1024),
@@ -24,26 +24,11 @@ export const POST = api(async (request) => {
   const jar = await cookies();
   const cookieId = jar.get(DEVICE_COOKIE)?.value;
   const deviceId = session.deviceId ?? (cookieId && isDeviceId(cookieId) ? cookieId : null);
-  const ua = (await userAgent()).slice(0, 300);
-  const data = {
-    userId: user.id,
-    p256dh: input.keys.p256dh,
-    auth: input.keys.auth,
-    userAgent: ua,
-    deviceId,
-    deviceLabel: deviceLabel(ua),
-    revokedAt: null,
-    failureCount: 0,
-    needsReauth: false,
-    sessionEndedAt: null,
-    unhealthyAt: null,
-    unhealthySeenAt: null,
-  };
-  await getDb().pushSubscription.upsert({
-    where: { endpoint: input.endpoint },
-    create: { endpoint: input.endpoint, ...data },
-    update: data,
-  });
+  await saveSubscription(
+    user,
+    { endpoint: input.endpoint, p256dh: input.keys.p256dh, auth: input.keys.auth },
+    { deviceId, userAgent: await userAgent() },
+  );
   return json({ ok: true });
 });
 

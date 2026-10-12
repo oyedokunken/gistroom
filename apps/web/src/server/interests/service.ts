@@ -1,7 +1,6 @@
 import { getDb } from "@gistroom/db";
-import { topicBySlug, type DiscoverData, type SuggestedPerson } from "@gistroom/shared";
+import { topicBySlug, type SuggestedPerson } from "@gistroom/shared";
 import { blockedIdsOf, friendIdsOf, relationshipFor } from "../friends/relations";
-import { listPublicRooms } from "../rooms/public";
 import { toPublicUser } from "../users/serialize";
 
 export async function getInterests(userId: string): Promise<string[]> {
@@ -25,23 +24,26 @@ export async function setInterests(userId: string, slugs: readonly string[]): Pr
 }
 
 /** Public rooms on the topics a person picked, and people who picked some of the same ones. */
-export async function discover(viewerId: string): Promise<DiscoverData> {
+/** People who picked some of the same topics as the viewer, most shared first. Never friends, blocked people or hidden accounts. */
+export async function suggestedPeople(
+  viewerId: string,
+  interests: string[],
+  viewerIsInternal = false,
+): Promise<SuggestedPerson[]> {
   const db = getDb();
-  const interests = await getInterests(viewerId);
-  const { rooms: live } = await listPublicRooms();
-  const matching = live.filter((r) => r.topicSlug !== null && interests.includes(r.topicSlug));
-  const rooms = (matching.length > 0 ? matching : live).slice(0, 12);
-
-  if (interests.length === 0) {
-    return { interests, matched: false, rooms, people: [] };
-  }
+  if (interests.length === 0) return [];
 
   const [hidden, friends] = await Promise.all([blockedIdsOf(viewerId), friendIdsOf(viewerId)]);
   const rows = await db.userInterest.findMany({
     where: {
       topicSlug: { in: interests },
       userId: { not: viewerId, notIn: [...hidden, ...friends] },
-      user: { status: "ACTIVE", discoverable: true, onboardedAt: { not: null } },
+      user: {
+        status: "ACTIVE",
+        discoverable: true,
+        onboardedAt: { not: null },
+        ...(viewerIsInternal ? {} : { isInternal: false }),
+      },
     },
     select: { userId: true, topicSlug: true },
     take: 500,
@@ -49,7 +51,7 @@ export async function discover(viewerId: string): Promise<DiscoverData> {
   const shared = new Map<string, string[]>();
   for (const r of rows) shared.set(r.userId, [...(shared.get(r.userId) ?? []), r.topicSlug]);
   const ranked = [...shared.entries()].sort((a, b) => b[1].length - a[1].length).slice(0, 12);
-  if (ranked.length === 0) return { interests, matched: matching.length > 0, rooms, people: [] };
+  if (ranked.length === 0) return [];
 
   const ids = ranked.map(([id]) => id);
   const now = new Date();
@@ -89,5 +91,5 @@ export async function discover(viewerId: string): Promise<DiscoverData> {
       sharedTopics: slugs.map((s) => topicBySlug(s)?.name ?? s),
     });
   }
-  return { interests, matched: matching.length > 0, rooms, people };
+  return people;
 }

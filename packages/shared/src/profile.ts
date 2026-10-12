@@ -66,13 +66,38 @@ export interface SuggestedPerson extends PersonResult {
   sharedTopics: string[];
 }
 
-export interface DiscoverData {
+/** A room as the Discover page shows it. Private rooms appear only for people who are invited. */
+export interface DiscoverRoom extends PublicRoomCard {
+  /** True for a private room the viewer is invited to. */
+  invitedOnly: boolean;
+}
+
+export interface DiscoverTopic {
+  slug: string;
+  name: string;
+  /** Live and upcoming rooms the viewer can see on this topic. */
+  rooms: number;
+}
+
+export interface DiscoverFeed {
   interests: string[];
-  /** True when the rooms are the ones that match the interests, false when it is just what is live. */
-  matched: boolean;
-  rooms: PublicRoomCard[];
+  live: DiscoverRoom[];
+  soon: DiscoverRoom[];
+  forYou: DiscoverRoom[];
+  topics: DiscoverTopic[];
   people: SuggestedPerson[];
 }
+
+export const DISCOVER_SORTS = ["active", "newest"] as const;
+export type DiscoverSort = (typeof DISCOVER_SORTS)[number];
+
+export const discoverQuerySchema = z.object({
+  topic: z.string().trim().max(60).optional(),
+  language: z.string().trim().max(12).optional(),
+  q: z.string().trim().max(80).optional(),
+  sort: z.enum(DISCOVER_SORTS).default("active"),
+});
+export type DiscoverQuery = z.infer<typeof discoverQuerySchema>;
 
 export interface SearchResults {
   people: PersonResult[];

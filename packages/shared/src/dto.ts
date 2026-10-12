@@ -117,4 +117,8 @@ export interface PublicRoomCard {
   host: PublicUser;
   /** People currently in the room. */
   listeners: number;
+  /** What the room is about. A label only, anyone can turn their camera on or off inside. */
+  media: "AUDIO" | "VIDEO";
+  /** A few of the people inside, for the avatar stack. */
+  people: PublicUser[];
 }

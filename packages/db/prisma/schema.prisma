@@ -93,6 +93,13 @@ enum Language {
   OTHER
 }
 
+/// Who may write in the room chat.
+enum RoomChatMode {
+  EVERYONE
+  MODERATORS
+  OFF
+}
+
 enum RoomVisibility {
   PUBLIC
   PRIVATE
@@ -120,6 +127,8 @@ enum RoomMemberState {
 
 enum RoomModAction {
   MUTE
+  MUTE_VIDEO
+  SETTINGS
   MUTE_ALL
   REMOVE
   BAN
@@ -488,6 +497,8 @@ model Notification {
   type      String
   payload   Json
   dedupeKey String?
+  /// Activity entries (what you did yourself) expire after a week. Other notices leave this empty.
+  expiresAt DateTime?
   readAt    DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -586,6 +597,21 @@ model Room {
   endedAt         DateTime?
   locked          Boolean          @default(false)
   maxParticipants Int              @default(32)
+  /// What the room is about: audio talk or video talk. A label only, everyone can switch their camera any time.
+  media           MediaKind        @default(AUDIO)
+  /// Room settings, changed live by the host and moderators.
+  cameraAllowed   Boolean          @default(true)
+  joinMuted       Boolean          @default(false)
+  chatMode        RoomChatMode     @default(EVERYONE)
+  reactionsOn     Boolean          @default(true)
+  slowModeSec     Int              @default(0)
+  membersCanShare Boolean          @default(true)
+  /// After "mute everyone": only moderators may unmute people.
+  unmuteLocked    Boolean          @default(false)
+  /// Numbers kept for the summary after the room ends and its chat is gone.
+  peakParticipants Int             @default(0)
+  messageCount    Int              @default(0)
+  reactionCount   Int              @default(0)
   livekitRoom     String           @unique
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -596,6 +622,7 @@ model Room {
   modLogs         RoomModLog[]
   messages        RoomMessage[]
   notes           Note[]
+  reactions       RoomReaction[]
 
   @@index([visibility, status, startedAt])
   @@index([topicId, status])
@@ -660,10 +687,26 @@ model RoomMessage {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   room      Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  reactions RoomReaction[]
 
   @@unique([senderId, clientId])
   @@index([roomId, createdAt])
   @@index([expiresAt])
+}
+
+/// A reaction on a message in room chat.
+model RoomReaction {
+  id        String      @id @default(cuid(2))
+  roomId    String
+  messageId String
+  userId    String
+  emoji     String
+  createdAt DateTime    @default(now())
+  room      Room        @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  message   RoomMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+  @@index([roomId])
 }
 
 model CallLogEntry {

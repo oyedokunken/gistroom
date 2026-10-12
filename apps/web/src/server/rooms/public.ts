@@ -32,6 +32,12 @@ async function query(filters: RoomFilters): Promise<PublicRoomCard[]> {
     include: {
       host: true,
       topic: true,
+      members: {
+        where: { state: "JOINED" },
+        include: { user: true },
+        orderBy: { joinedAt: "asc" },
+        take: 4,
+      },
       _count: { select: { members: { where: { state: "JOINED" } } } },
     },
     orderBy: [{ status: "asc" }, { startedAt: "desc" }, { scheduledFor: "asc" }],
@@ -49,6 +55,8 @@ async function query(filters: RoomFilters): Promise<PublicRoomCard[]> {
     startedAt: r.startedAt?.toISOString() ?? null,
     host: toPublicUser(r.host),
     listeners: r._count.members,
+    media: r.media,
+    people: r.members.map((m) => toPublicUser(m.user)),
   }));
 }
 

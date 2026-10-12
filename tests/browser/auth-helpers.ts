@@ -165,3 +165,58 @@ export async function capturedCode(email: string, timeoutMs = 20_000): Promise<s
   }
   throw new Error(`no code mailed to ${email}`);
 }
+
+export interface RoomSpec {
+  title: string;
+  topic?: string;
+  status?: "LIVE" | "SCHEDULED";
+  visibility?: "PUBLIC" | "PRIVATE";
+  media?: "AUDIO" | "VIDEO";
+  language?: "ENGLISH" | "PIDGIN" | "YORUBA" | "IGBO" | "HAUSA" | "OTHER";
+  description?: string;
+  scheduledInMinutes?: number;
+  /** People inside (JOINED) or invited (INVITED). The host is always a member. */
+  members?: { person: E2eUser; state: "JOINED" | "INVITED"; role?: "MEMBER" | "MODERATOR" }[];
+}
+
+let roomCounter = 0;
+
+/** A room straight in the database, for pages that only need to look at rooms. Calls inside it still need LiveKit. */
+export async function createRoom(host: E2eUser, spec: RoomSpec) {
+  const db = getDb();
+  const status = spec.status ?? "LIVE";
+  const topic = spec.topic ? await db.topic.findUnique({ where: { slug: spec.topic } }) : null;
+  const n = (roomCounter += 1);
+  const suffix = `${Date.now().toString(36)}${n}${randomBytes(2).toString("hex")}`;
+  const now = new Date();
+  return db.room.create({
+    data: {
+      slug: `e2e${suffix}`.slice(0, 14),
+      hostId: host.user.id,
+      title: spec.title,
+      topicId: topic?.id ?? null,
+      language: spec.language ?? "ENGLISH",
+      description: spec.description ?? null,
+      visibility: spec.visibility ?? "PUBLIC",
+      status,
+      media: spec.media ?? "AUDIO",
+      startedAt: status === "LIVE" ? now : null,
+      scheduledFor:
+        status === "SCHEDULED"
+          ? new Date(now.getTime() + (spec.scheduledInMinutes ?? 120) * 60_000)
+          : null,
+      livekitRoom: `e2e_room_${suffix}`,
+      members: {
+        create: [
+          { userId: host.user.id, role: "HOST", state: "JOINED", joinedAt: now },
+          ...(spec.members ?? []).map((m) => ({
+            userId: m.person.user.id,
+            role: m.role ?? "MEMBER",
+            state: m.state,
+            joinedAt: m.state === "JOINED" ? now : null,
+          })),
+        ],
+      },
+    },
+  });
+}

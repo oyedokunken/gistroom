@@ -440,3 +440,19 @@ export const avatarUploader = {
   removeConfirm: "Remove",
   failed: "We could not save that photo. Check your connection and try again.",
 } as const;
+
+export const soundSettings = {
+  heading: "Sounds",
+  help: "These stay on this device. Quiet hours and Do not disturb silence them, and a hidden tab stays quiet except for an incoming call.",
+  volume: "Volume",
+  volumeLow: "Low",
+  volumeMedium: "Medium",
+  volumeHigh: "High",
+  sample: "Play sample",
+  sampleFor: (kind: string) => `Play a sample of ${kind.toLowerCase()} sounds`,
+  kinds: {
+    calls: { label: "Calls", help: "Ringing, connecting and ending a call." },
+    rooms: { label: "Rooms", help: "People joining and leaving small rooms, and a room ending." },
+    messages: { label: "Messages", help: "A soft tone for a new message while Gistroom is open." },
+  },
+} as const;

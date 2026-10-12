@@ -6,6 +6,7 @@ import { IncomingCall } from "@/components/call/incoming-call";
 import { ActivityChips } from "@/components/session/activity-chips";
 import { ConnectionBar } from "@/components/session/connection-bar";
 import { SessionModalHost } from "@/components/session/session-modal-host";
+import { SoundGate } from "@/components/session/sound-gate";
 import { useOutboxFlusher } from "@/lib/chat/hooks";
 import { useConnection } from "@/lib/session/connection";
 import { ConnectionMonitorHost } from "@/lib/session/connection-host";
@@ -21,6 +22,7 @@ export function AppRuntime() {
   return (
     <>
       <ConnectionMonitorHost />
+      <SoundGate />
       <PwaRuntime />
       <UpdateBar />
       <IncomingCall />

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { BackLink } from "@/components/app/back-link";
+import { SoundSettingsCard } from "@/components/app/sound-settings";
 import { NotificationPrefsForm } from "@/components/app/notification-prefs-form";
 import { PushCard } from "@/components/app/push-card";
 import { PushHealth } from "@/components/app/push-health";
@@ -17,6 +18,7 @@ export default function NotificationSettingsPage() {
       </div>
       <PushHealth />
       <NotificationPrefsForm />
+      <SoundSettingsCard />
     </div>
   );
 }

@@ -2,7 +2,17 @@ import { createHash, randomBytes } from "node:crypto";
 import type { BrowserContext } from "@playwright/test";
 import { getDb, type User } from "@gistroom/db";
 import { seedReference } from "../../packages/db/src/seed/reference";
-import { hashPassword } from "../../apps/web/src/server/auth/password";
+
+// The web app is not an ES module package, so on Node 20 the named export is only reachable through default.
+async function hashPassword(password: string): Promise<string> {
+  const mod = (await import("../../apps/web/src/server/auth/password")) as {
+    hashPassword?: (p: string) => Promise<string>;
+    default?: { hashPassword: (p: string) => Promise<string> };
+  };
+  const fn = mod.hashPassword ?? mod.default?.hashPassword;
+  if (!fn) throw new Error("hashPassword is not available");
+  return fn(password);
+}
 
 // The same token rules as apps/web/src/server/auth/tokens.ts, repeated here so the test loader needs nothing from the server.
 const SESSION_COOKIE = "gr_session";

@@ -1,6 +1,6 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated"
+  provider        = "prisma-client"
+  output          = "../src/generated"
   previewFeatures = ["postgresqlExtensions"]
 }
 
@@ -184,43 +184,43 @@ enum ReportStatus {
 
 // ---------- Identity ----------
 model User {
-  id               String          @id @default(cuid(2))
-  email            String          @unique @db.Citext
-  emailVerifiedAt  DateTime?
-  passwordHash     String?
+  id                String          @id @default(cuid(2))
+  email             String          @unique @db.Citext
+  emailVerifiedAt   DateTime?
+  passwordHash      String?
   passwordUpdatedAt DateTime?
-  name             String
-  username         String          @unique
-  avatarPath       String?
+  name              String
+  username          String          @unique
+  avatarPath        String?
   /// The illustrated avatar picked at sign up, kept until the person uploads their own. A key from packages/shared/src/avatars.ts.
-  avatarKey        String?
+  avatarKey         String?
   /// Internal accounts (QA, staff) are hidden from search, suggestions and public counts for everyone else.
-  isInternal       Boolean         @default(false)
-  bio              String?
-  timezone         String          @default("Africa/Lagos")
-  status           UserStatus      @default(ACTIVE)
-  role             UserRole        @default(USER)
-  discoverable     Boolean         @default(true)
-  showPresence     Boolean         @default(true)
-  sendReadReceipts Boolean         @default(true)
-  roomInvitesFrom  RoomInvitesFrom @default(FRIENDS)
-  dataSaver        Boolean         @default(true)
-  onboardedAt      DateTime?
-  lastSeenAt       DateTime?
-  ageConfirmedAt   DateTime?
-  termsAcceptedAt  DateTime?
-  deletedAt        DateTime?
+  isInternal        Boolean         @default(false)
+  bio               String?
+  timezone          String          @default("Africa/Lagos")
+  status            UserStatus      @default(ACTIVE)
+  role              UserRole        @default(USER)
+  discoverable      Boolean         @default(true)
+  showPresence      Boolean         @default(true)
+  sendReadReceipts  Boolean         @default(true)
+  roomInvitesFrom   RoomInvitesFrom @default(FRIENDS)
+  dataSaver         Boolean         @default(true)
+  onboardedAt       DateTime?
+  lastSeenAt        DateTime?
+  ageConfirmedAt    DateTime?
+  termsAcceptedAt   DateTime?
+  deletedAt         DateTime?
   /// The cookie choice the person made, so a new device does not ask again. Shape: { v, functional, analytics }.
-  cookieConsent    Json?
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+  cookieConsent     Json?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
 
   authAccounts           AuthAccount[]
   sessions               Session[]
-  sentRequests           FriendRequest[]      @relation("RequestSender")
-  receivedRequests       FriendRequest[]      @relation("RequestReceiver")
-  blocksMade             Block[]              @relation("Blocker")
-  blocksReceived         Block[]              @relation("Blocked")
+  sentRequests           FriendRequest[]         @relation("RequestSender")
+  receivedRequests       FriendRequest[]         @relation("RequestReceiver")
+  blocksMade             Block[]                 @relation("Blocker")
+  blocksReceived         Block[]                 @relation("Blocked")
   memberships            ConversationMember[]
   messages               Message[]
   stars                  MessageStar[]
@@ -230,8 +230,8 @@ model User {
   notifications          Notification[]
   notificationPreference NotificationPreference?
   pushSubscriptions      PushSubscription[]
-  callsMade              Call[]               @relation("Caller")
-  callsReceived          Call[]               @relation("Callee")
+  callsMade              Call[]                  @relation("Caller")
+  callsReceived          Call[]                  @relation("Callee")
   hostedRooms            Room[]
   roomMemberships        RoomMember[]
   callLogs               CallLogEntry[]
@@ -266,20 +266,29 @@ model AuthAccount {
 }
 
 model Session {
-  id          String    @id @default(cuid(2))
-  tokenHash   String    @unique
-  userId      String
-  userAgent   String?
-  deviceLabel String?
-  lastSeenAt  DateTime  @default(now())
-  expiresAt   DateTime
-  revokedAt   DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id              String    @id @default(cuid(2))
+  tokenHash       String    @unique
+  userId          String
+  userAgent       String?
+  deviceLabel     String?
+  lastSeenAt      DateTime  @default(now())
+  expiresAt       DateTime
+  revokedAt       DateTime?
+  /// The long lived device cookie this session was made on. Push subscriptions belong to the same device.
+  deviceId        String?
+  /// When the person last proved who they are (password, code or Google). Step up checks read this.
+  authenticatedAt DateTime  @default(now())
+  /// Why the session ended: EXPIRED, REVOKED_BY_USER, REVOKED_ALL, ACCOUNT_DELETED, INVALID_COOKIE, ERROR or SWEPT.
+  endReason       String?
+  endedAt         DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, revokedAt])
   @@index([expiresAt])
+  @@index([deviceId])
+  @@index([endedAt])
 }
 
 model OtpChallenge {
@@ -318,14 +327,16 @@ model FriendRequest {
 }
 
 model Friendship {
-  id         String   @id @default(cuid(2))
-  userLowId  String
-  userHighId String
-  /** Next friendship anniversary. Set to one year after the friendship starts and moved on a year each time it is celebrated. */
+  id                String    @id @default(cuid(2))
+  userLowId         String
+  userHighId        String
+  /**
+   * Next friendship anniversary. Set to one year after the friendship starts and moved on a year each time it is celebrated.
+   */
   nextAnniversaryAt DateTime?
-  celebratedYears   Int      @default(0)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  celebratedYears   Int       @default(0)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   @@unique([userLowId, userHighId])
   @@index([userHighId])
@@ -521,20 +532,29 @@ model NotificationPreference {
 }
 
 model PushSubscription {
-  id            String    @id @default(cuid(2))
-  userId        String
-  endpoint      String    @unique
-  p256dh        String
-  auth          String
-  userAgent     String?
-  lastSuccessAt DateTime?
-  failureCount  Int       @default(0)
-  revokedAt     DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id              String    @id @default(cuid(2))
+  userId          String
+  endpoint        String    @unique
+  p256dh          String
+  auth            String
+  userAgent       String?
+  /// The device this browser is. Set by the server in a one year cookie. A subscription never depends on a session.
+  deviceId        String?
+  deviceLabel     String?
+  lastSuccessAt   DateTime?
+  failureCount    Int       @default(0)
+  /// The session on this device ended more than 30 days ago, so alerts stopped until the person signs in again.
+  needsReauth     Boolean   @default(false)
+  /// Three failures in a row. The person is told the next time they open the app.
+  unhealthyAt     DateTime?
+  unhealthySeenAt DateTime?
+  revokedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, revokedAt])
+  @@index([deviceId])
 }
 
 model ScheduledJob {
@@ -583,46 +603,46 @@ model Topic {
 }
 
 model Room {
-  id              String           @id @default(cuid(2))
-  slug            String           @unique
-  hostId          String
-  title           String
-  topicId         String?
-  language        Language         @default(ENGLISH)
-  description     String?
-  visibility      RoomVisibility   @default(PUBLIC)
-  status          RoomStatus       @default(LIVE)
-  scheduledFor    DateTime?
-  startedAt       DateTime?
-  endedAt         DateTime?
-  locked          Boolean          @default(false)
-  maxParticipants Int              @default(32)
+  id               String           @id @default(cuid(2))
+  slug             String           @unique
+  hostId           String
+  title            String
+  topicId          String?
+  language         Language         @default(ENGLISH)
+  description      String?
+  visibility       RoomVisibility   @default(PUBLIC)
+  status           RoomStatus       @default(LIVE)
+  scheduledFor     DateTime?
+  startedAt        DateTime?
+  endedAt          DateTime?
+  locked           Boolean          @default(false)
+  maxParticipants  Int              @default(32)
   /// What the room is about: audio talk or video talk. A label only, everyone can switch their camera any time.
-  media           MediaKind        @default(AUDIO)
+  media            MediaKind        @default(AUDIO)
   /// Room settings, changed live by the host and moderators.
-  cameraAllowed   Boolean          @default(true)
-  joinMuted       Boolean          @default(false)
-  chatMode        RoomChatMode     @default(EVERYONE)
-  reactionsOn     Boolean          @default(true)
-  slowModeSec     Int              @default(0)
-  membersCanShare Boolean          @default(true)
+  cameraAllowed    Boolean          @default(true)
+  joinMuted        Boolean          @default(false)
+  chatMode         RoomChatMode     @default(EVERYONE)
+  reactionsOn      Boolean          @default(true)
+  slowModeSec      Int              @default(0)
+  membersCanShare  Boolean          @default(true)
   /// After "mute everyone": only moderators may unmute people.
-  unmuteLocked    Boolean          @default(false)
+  unmuteLocked     Boolean          @default(false)
   /// Numbers kept for the summary after the room ends and its chat is gone.
-  peakParticipants Int             @default(0)
-  messageCount    Int              @default(0)
-  reactionCount   Int              @default(0)
-  livekitRoom     String           @unique
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  host            User             @relation(fields: [hostId], references: [id])
-  topic           Topic?           @relation(fields: [topicId], references: [id])
-  members         RoomMember[]
-  inviteLinks     RoomInviteLink[]
-  modLogs         RoomModLog[]
-  messages        RoomMessage[]
-  notes           Note[]
-  reactions       RoomReaction[]
+  peakParticipants Int              @default(0)
+  messageCount     Int              @default(0)
+  reactionCount    Int              @default(0)
+  livekitRoom      String           @unique
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  host             User             @relation(fields: [hostId], references: [id])
+  topic            Topic?           @relation(fields: [topicId], references: [id])
+  members          RoomMember[]
+  inviteLinks      RoomInviteLink[]
+  modLogs          RoomModLog[]
+  messages         RoomMessage[]
+  notes            Note[]
+  reactions        RoomReaction[]
 
   @@index([visibility, status, startedAt])
   @@index([topicId, status])
@@ -680,15 +700,15 @@ model RoomModLog {
 }
 
 model RoomMessage {
-  id        String    @id @default(cuid(2))
+  id        String         @id @default(cuid(2))
   roomId    String
   senderId  String
   clientId  String
   body      String
   expiresAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  room      Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  room      Room           @relation(fields: [roomId], references: [id], onDelete: Cascade)
   reactions RoomReaction[]
 
   @@unique([senderId, clientId])

@@ -3,6 +3,7 @@ import { api, json } from "@/server/http";
 import { getEnv } from "@/server/env";
 import { expireDueCalls } from "@/server/calls/service";
 import { sendFriendDigests, sendRoomReminders } from "@/server/mail/notify-email";
+import { sweepSessions, sweepSubscriptions } from "@/server/auth/sweep";
 import { purgeExpiredActivity } from "@/server/notifications/activity";
 import { endEmptyRooms, purgeEndedRoomChat } from "@/server/rooms/service";
 
@@ -30,6 +31,8 @@ async function run(request: Request): Promise<Response> {
     endedRooms: await endEmptyRooms(),
     purgedRoomChat: await purgeEndedRoomChat(),
     purgedActivity: await purgeExpiredActivity(),
+    sessions: await sweepSessions(),
+    subscriptions: await sweepSubscriptions(),
     roomReminders: await sendRoomReminders(),
     friendDigests: new Date().getUTCHours() === 7 ? await sendFriendDigests() : 0,
   });

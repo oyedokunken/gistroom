@@ -2,6 +2,19 @@ import { createHash, randomBytes } from "node:crypto";
 import { LIMITS } from "@gistroom/shared";
 
 export const SESSION_COOKIE = "gr_session";
+/** A long lived id for this browser. It says which device alerts belong to, and it is not a secret. */
+export const DEVICE_COOKIE = "gr_device";
+
+export type SessionEndReason =
+  | "EXPIRED"
+  | "REVOKED_BY_USER"
+  | "REVOKED_ALL"
+  | "ACCOUNT_DELETED"
+  | "SWEPT"
+  | "INVALID_COOKIE"
+  | "ERROR";
+
+export const isDeviceId = (v: string): boolean => /^[A-Za-z0-9_-]{24,64}$/.test(v);
 
 /** Opaque random session token. Only its hash is stored (Section 6.2). */
 export function newSessionToken(): string {
@@ -12,8 +25,11 @@ export function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
-export function sessionExpiry(now: Date): Date {
-  return new Date(now.getTime() + LIMITS.SESSION_DAYS * 86_400_000);
+/** 30 days from now, but never past 90 days after the session began. */
+export function sessionExpiry(now: Date, createdAt: Date): Date {
+  const idle = now.getTime() + LIMITS.SESSION_DAYS * 86_400_000;
+  const cap = createdAt.getTime() + LIMITS.SESSION_MAX_DAYS * 86_400_000;
+  return new Date(Math.min(idle, cap));
 }
 
 /** Sliding expiry: only write when more than a day has passed, so reads do not become writes. */

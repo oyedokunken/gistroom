@@ -204,6 +204,10 @@ export const settings = {
       "Download a copy of what you gave Gistroom: your profile, friends, the messages you sent, notes, calls and rooms. Other people's messages are not included.",
     exportAction: "Download my data",
     exportLimit: "You can export a few times an hour.",
+    reauthTitle: "Confirm it is you",
+    reauthBody:
+      "It has been a while since you signed in. Type your password to download your data.",
+    reauthAction: "Confirm and download",
     deleteHeading: "Delete your account",
     deleteBody:
       "This removes your photos and files, signs you out everywhere and shows you as Deleted user in other people's chats. It cannot be undone. You can sign up again later with the same email.",

@@ -273,6 +273,7 @@ export async function confirmAccountDeletion(
   const now = new Date();
   const tail = user.id.toLowerCase();
 
+  logger.info({ reason: "ACCOUNT_DELETED", userId: user.id }, "sessions ended");
   await db.$transaction([
     db.session.deleteMany({ where: { userId: user.id } }),
     db.pushSubscription.deleteMany({ where: { userId: user.id } }),

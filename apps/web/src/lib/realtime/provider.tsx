@@ -47,8 +47,15 @@ export function RealtimeProvider({ userId, children }: { userId: string; childre
       // A function, so every reconnect attempt gets a fresh pass instead of a stale one.
       auth: (cb) => {
         apiFetch<{ token: string }>("/api/realtime/pass")
-          .then((r) => cb({ token: r.token }))
-          .catch(() => cb({ token: "" }));
+          .then((r) => {
+            passFailed = false;
+            cb({ token: r.token });
+          })
+          .catch(() => {
+            // A pass that could not be fetched (offline, a cold start, a database blip) is not a sign out.
+            passFailed = true;
+            cb({ token: "" });
+          });
       },
       transports: ["websocket", "polling"],
       reconnection: true,
@@ -69,6 +76,16 @@ export function RealtimeProvider({ userId, children }: { userId: string; childre
       if (open) void queryClient.invalidateQueries({ queryKey: keys.messages(open) });
     };
 
+    let passFailed = false;
+    // Only leave for the sign in page when the server itself says there is no session. Anything else retries.
+    const confirmSignedOut = async () => {
+      try {
+        const r = await apiFetch<{ authed: boolean; unknown?: boolean }>("/api/auth/session");
+        return !r.authed && !r.unknown;
+      } catch {
+        return false;
+      }
+    };
     const sendFocus = () => socket.connected && socket.emit("app:focus", { focused: isFocused() });
     let firstConnect = true;
 
@@ -83,9 +100,14 @@ export function RealtimeProvider({ userId, children }: { userId: string; childre
     });
     socket.on("connect_error", (err: Error & { data?: { code?: string } }) => {
       const code = err.data?.code;
-      if (code === "unauthorized" || code === "session_revoked") {
-        socket.disconnect();
-        router.replace("/login?error=session_expired");
+      if ((code === "unauthorized" || code === "session_revoked") && !passFailed) {
+        void confirmSignedOut().then((out) => {
+          if (out) {
+            socket.disconnect();
+            router.replace("/login?error=session_expired");
+          }
+        });
+        useRealtimeStore.getState().setConnection("reconnecting");
         return;
       }
       useRealtimeStore.getState().setConnection(navigator.onLine ? "reconnecting" : "offline");
@@ -234,8 +256,12 @@ export function RealtimeProvider({ userId, children }: { userId: string; childre
       if (kind === "all" || who === userId) useRoomStore.getState().setNotice(roomSlug, kind);
     });
     on("session:revoked", () => {
-      socket.disconnect();
-      router.replace("/login?error=session_expired");
+      void confirmSignedOut().then((out) => {
+        if (out) {
+          socket.disconnect();
+          router.replace("/login?error=session_expired");
+        }
+      });
     });
 
     const onVisibility = () => {

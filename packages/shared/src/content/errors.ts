@@ -54,6 +54,8 @@ export const errors = {
   blocked: "You cannot do that with this person.",
   roomNotInvited: "You are not invited to this room. Ask the host for a link.",
   roomFull: "This room is full. Try again in a minute.",
+  reauthSignIn: "Sign in again to continue. It has been a while since you signed in.",
+  reauthNeeded: "Confirm your password to continue. It has been a while since you signed in.",
   roomLocked: "This room is locked right now.",
   roomEnded: "This room has ended. Browse live rooms or start your own.",
   roomNotStarted: "This room has not started yet.",
@@ -82,7 +84,7 @@ export const errors = {
   editWindowClosed: "You can only edit a message in the first 15 minutes.",
   editNotAllowed: "You can only edit your own text messages.",
   messageTooLong: (max: number) => `Messages can be up to ${max} characters.`,
-  deleteWindowClosed: "You can only delete a message for everyone in the first hour.",
+  deleteWindowClosed: "You can only delete a message for everyone in the first 15 minutes.",
 } as const;
 
 export type ApiErrorCode =
@@ -94,6 +96,7 @@ export type ApiErrorCode =
   | "RATE_LIMITED"
   | "CONFLICT"
   | "MAIL_FAILED"
+  | "REAUTH"
   | "SERVER";
 
 export interface ApiErrorBody {

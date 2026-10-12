@@ -27,6 +27,39 @@ export function AccountPanel({ hasPassword }: { hasPassword: boolean }) {
   const [password, setPassword] = useState("");
   const [codeError, setCodeError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [reauthOpen, setReauthOpen] = useState(false);
+  const [reauthPassword, setReauthPassword] = useState("");
+  const [reauthError, setReauthError] = useState<string | null>(null);
+
+  function download() {
+    window.location.assign("/api/me/export");
+  }
+
+  // A copy of everything you gave Gistroom needs a recent sign in. Older than 15 minutes, we ask for the password.
+  async function startExport() {
+    try {
+      const r = await apiFetch<{ recent: boolean; hasPassword: boolean }>("/api/auth/reauth");
+      if (r.recent || !r.hasPassword) return download();
+      setReauthPassword("");
+      setReauthError(null);
+      setReauthOpen(true);
+    } catch (e) {
+      if (e instanceof ApiClientError) showError(e.message);
+      else throw e;
+    }
+  }
+
+  async function confirmReauth() {
+    if (!reauthPassword) return setReauthError(auth.passwordLabel + " is needed.");
+    try {
+      await apiFetch("/api/auth/reauth", { body: { password: reauthPassword } });
+      setReauthOpen(false);
+      download();
+    } catch (e) {
+      if (e instanceof ApiClientError) setReauthError(e.fields.password ?? e.message);
+      else throw e;
+    }
+  }
 
   function reset() {
     setSent(false);
@@ -92,10 +125,33 @@ export function AccountPanel({ hasPassword }: { hasPassword: boolean }) {
           {copy.exportHeading}
         </h3>
         <p className="text-text-muted">{copy.exportBody}</p>
-        <a href="/api/me/export" download className={buttonStyles("secondary", "w-fit gap-2")}>
+        <button
+          type="button"
+          onClick={() => void startExport()}
+          className={buttonStyles("secondary", "w-fit gap-2")}
+        >
           <Download aria-hidden className="size-4" />
           {copy.exportAction}
-        </a>
+        </button>
+        <Modal
+          open={reauthOpen}
+          onOpenChange={setReauthOpen}
+          icon={Download}
+          title={copy.reauthTitle}
+          description={copy.reauthBody}
+          footer={<Button onClick={() => void confirmReauth()}>{copy.reauthAction}</Button>}
+        >
+          <Field label={auth.passwordLabel} error={reauthError ?? undefined}>
+            {(props) => (
+              <PasswordInput
+                {...props}
+                autoComplete="current-password"
+                value={reauthPassword}
+                onChange={(e) => setReauthPassword(e.target.value)}
+              />
+            )}
+          </Field>
+        </Modal>
         <p className="text-sm text-text-muted">{copy.exportLimit}</p>
       </section>
 

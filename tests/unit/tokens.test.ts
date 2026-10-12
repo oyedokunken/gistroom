@@ -23,7 +23,7 @@ describe("session tokens", () => {
     expect(hashToken(a)).not.toContain(a);
   });
   it("expire after 30 days and slide at most once a day", () => {
-    expect(sessionExpiry(now).getTime() - now.getTime()).toBe(30 * 86_400_000);
+    expect(sessionExpiry(now, now).getTime() - now.getTime()).toBe(30 * 86_400_000);
     expect(shouldSlide(new Date(now.getTime() - 3_600_000), now)).toBe(false);
     expect(shouldSlide(new Date(now.getTime() - 90_000_000), now)).toBe(true);
   });

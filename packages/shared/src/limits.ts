@@ -16,6 +16,19 @@ export const LIMITS = {
   OTP_MAX_ATTEMPTS: 5,
   OTP_SENDS_PER_HOUR: 5,
   SESSION_DAYS: 30,
+  /** A session never lives longer than this, however active the person is. */
+  SESSION_MAX_DAYS: 90,
+  /** Ended sessions stay this long before the sweep removes them. */
+  SESSION_SWEEP_GRACE_DAYS: 7,
+  /** Sensitive actions need a sign in this recent. */
+  RECENT_AUTH_MIN: 15,
+  /** After a session ends, a device still gets plain alerts this long. */
+  PUSH_GRACE_DAYS: 30,
+  /** A subscription with no successful delivery for this long is removed. */
+  PUSH_STALE_DAYS: 90,
+  /** In a row, before a device is called unhealthy. */
+  PUSH_UNHEALTHY_FAILURES: 3,
+  DEVICE_COOKIE_DAYS: 365,
   REALTIME_PASS_MIN: 15,
   // Social
   FRIEND_REQUEST_COOLDOWN_DAYS: 7,

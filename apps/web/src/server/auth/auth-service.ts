@@ -7,7 +7,14 @@ import { notify } from "../notifications/service";
 import { checkCode, findOrCreateUser, sendCode, type RequestOtpResult } from "./otp-service";
 import { dummyHash, hashPassword, needsRehash, verifyPassword } from "./password";
 import { accountState, isCompleteAccount, type AccountState } from "./rules";
-import { revokeOtherSessions } from "./session";
+import { cookies } from "next/headers";
+import { DEVICE_COOKIE } from "./tokens";
+import {
+  hasRecentAuth,
+  markAuthenticated,
+  revokeAllSessions,
+  revokeOtherSessions,
+} from "./session";
 
 const FIELD = "password";
 
@@ -144,11 +151,8 @@ export async function completeReset(
       emailVerifiedAt: user.emailVerifiedAt ?? new Date(),
     },
   });
-  // Everyone signed in with the old password is signed out.
-  await getDb().session.updateMany({
-    where: { userId: user.id, revokedAt: null },
-    data: { revokedAt: new Date() },
-  });
+  // Everyone signed in with the old password is signed out. The device that is resetting keeps its alerts.
+  await revokeAllSessions(user.id, (await cookies()).get(DEVICE_COOKIE)?.value ?? null);
   await announcePasswordChanged(updated);
   return updated;
 }
@@ -183,6 +187,14 @@ export async function changePassword(
   input: { currentPassword?: string; newPassword: string },
 ): Promise<void> {
   await enforce(policies.passwordChange, user.id);
+  if (!user.passwordHash) {
+    // Nothing to type again, so a stale sign in has to be renewed by signing in.
+    const s = await getDb().session.findUnique({
+      where: { id: sessionId },
+      select: { authenticatedAt: true },
+    });
+    if (!s || !hasRecentAuth(s)) throw new AppError(403, "REAUTH", errors.reauthSignIn);
+  }
   if (user.passwordHash) {
     if (!input.currentPassword) {
       throw new AppError(400, "INVALID", errors.currentPasswordNeeded, {
@@ -196,6 +208,7 @@ export async function changePassword(
     }
   }
   await setInitialPassword(user, input.newPassword);
+  await markAuthenticated(sessionId);
   await revokeOtherSessions(user.id, sessionId);
   await announcePasswordChanged(user);
 }

@@ -16,6 +16,8 @@ export const pushCopy = {
   roomInviteBody: (name: string, title: string) => `${name} invited you to ${title}.`,
   roomStartingTitle: "Room starting soon",
   roomStartingBody: (title: string) => `${title} starts in a few minutes.`,
+  roomLiveTitle: "Room is live",
+  roomLiveBody: (title: string) => `${title} just started. Come in.`,
   roleChangedTitle: "Your role changed",
   roleChangedBody: (role: string, title: string) => `You are now ${role} in ${title}.`,
   removedTitle: "Removed from a room",

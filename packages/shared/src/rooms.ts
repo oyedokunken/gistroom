@@ -259,6 +259,8 @@ export interface RoomDto {
   settings: RoomSettingsDto;
   /** The viewer's role, or null when they are not in the room list. */
   myRole: RoomRole | null;
+  /** True when the viewer asked to be told when this scheduled room starts. */
+  going: boolean;
 }
 
 export interface RoomSettingsDto {

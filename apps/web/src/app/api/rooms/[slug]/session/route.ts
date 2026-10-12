@@ -1,10 +1,17 @@
 import { z } from "zod";
 import { api, json, parseJson } from "@/server/http";
 import { requireOnboarded } from "@/server/auth/session";
-import { endRoom, leaveRoom, muteAll, setLocked, startRoom } from "@/server/rooms/service";
+import {
+  endRoom,
+  leaveRoom,
+  muteAll,
+  setGoing,
+  setLocked,
+  startRoom,
+} from "@/server/rooms/service";
 
 const schema = z.object({
-  action: z.enum(["leave", "start", "end", "mute-all", "lock", "unlock"]),
+  action: z.enum(["leave", "start", "end", "mute-all", "lock", "unlock", "going", "not-going"]),
   /** With mute-all: only moderators can unmute people afterwards. */
   lockUnmute: z.boolean().optional(),
 });
@@ -23,6 +30,9 @@ export const POST = api(async (request, ctx: { params: Promise<{ slug: string }>
     case "end":
       await endRoom(user, slug);
       return json({ ok: true });
+    case "going":
+    case "not-going":
+      return json({ room: await setGoing(user, slug, action === "going") });
     case "mute-all":
       await muteAll(user, slug, { lockUnmute });
       return json({ ok: true });

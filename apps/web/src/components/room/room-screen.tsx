@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  BellRing,
   Camera,
   CameraOff,
   Lock,
@@ -124,6 +125,7 @@ export function RoomScreen({
   const view = useQuery({ queryKey: ["room", slug], queryFn: () => roomApi.view(slug, invite) });
   const [join, setJoin] = useState<RoomJoin | null>(null);
   const [joining, setJoining] = useState(false);
+  const [reminding, setReminding] = useState(false);
   const [block, setBlock] = useState<Block>(null);
   const [panel, setPanel] = useState<Panel>(null);
   const [leaveOpen, setLeaveOpen] = useState(false);
@@ -196,6 +198,18 @@ export function RoomScreen({
       else showError(e instanceof ApiClientError ? e.message : copy.stage.failed);
     } finally {
       setJoining(false);
+    }
+  }
+
+  async function toggleGoing(next: boolean) {
+    setReminding(true);
+    try {
+      await roomApi.session(slug, next ? "going" : "not-going");
+      await queryClient.invalidateQueries({ queryKey: ["room", slug] });
+    } catch (e) {
+      showError(e instanceof ApiClientError ? e.message : copy.stage.failed);
+    } finally {
+      setReminding(false);
     }
   }
 
@@ -452,7 +466,27 @@ export function RoomScreen({
             {copy.stage.startingSoon(formatFull(new Date(room.scheduledFor)))}
           </p>
         ) : null}
-        {scheduled && !host ? null : (
+        {scheduled && !host ? (
+          <div className="flex flex-col items-center gap-2">
+            {room.going ? (
+              <p className="flex items-center gap-2 font-semibold text-green-700">
+                <BellRing aria-hidden className="size-4" />
+                {copy.stage.goingTitle}
+              </p>
+            ) : null}
+            <p className="max-w-sm text-sm text-text-muted">
+              {room.going ? copy.stage.goingBody : copy.stage.waitingNote}
+            </p>
+            <Button
+              className="min-h-12 px-10"
+              variant={room.going ? "secondary" : "primary"}
+              loading={reminding}
+              onClick={() => void toggleGoing(!room.going)}
+            >
+              {room.going ? copy.stage.notGoing : copy.stage.remindMe}
+            </Button>
+          </div>
+        ) : (
           <Button
             className="min-h-12 px-10"
             loading={joining}

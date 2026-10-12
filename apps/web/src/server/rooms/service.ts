@@ -100,7 +100,7 @@ async function log(
   });
 }
 
-async function toDto(room: RoomRow, viewerRole: RoomRole | null): Promise<RoomDto> {
+async function toDto(room: RoomRow, viewerRole: RoomRole | null, going = false): Promise<RoomDto> {
   return {
     id: room.id,
     slug: room.slug,
@@ -128,6 +128,7 @@ async function toDto(room: RoomRow, viewerRole: RoomRole | null): Promise<RoomDt
       unmuteLocked: room.unmuteLocked,
     },
     myRole: viewerRole,
+    going,
   };
 }
 
@@ -233,7 +234,50 @@ export async function startRoom(me: User, slug: string): Promise<RoomDto> {
     include: { host: true, topic: { select: { slug: true, name: true } } },
   });
   void publish({ type: "room", roomId: room.id, change: "started" });
+  // Everyone who said they are coming hears it now. The dedupe key keeps it to one notice each.
+  const waiting = await getDb().roomMember.findMany({
+    where: { roomId: room.id, state: "INVITED", userId: { not: me.id } },
+    select: { userId: true },
+  });
+  for (const w of waiting) {
+    void notify({
+      userId: w.userId,
+      type: "ROOM_STARTING",
+      payload: { roomId: room.id, roomSlug: room.slug, roomTitle: room.title, live: true },
+      dedupeKey: `room-live:${room.id}`,
+    }).catch(() => null);
+  }
   return toDto(updated, "HOST");
+}
+
+/**
+ * "Remind me" on a scheduled room. It puts the person on the list of people who are coming, so they get a notice
+ * when the host starts it. Private rooms already have their list, so only a public room takes new names.
+ */
+export async function setGoing(me: User, slug: string, going: boolean): Promise<RoomDto> {
+  await enforce(policies.roomGoing, me.id);
+  const db = getDb();
+  const room = await db.room.findUnique({
+    where: { slug },
+    include: { host: true, topic: { select: { slug: true, name: true } } },
+  });
+  if (!room || room.status === "ENDED") throw notFound();
+  if (room.hostId === me.id) return toDto(room, "HOST");
+  if (await isBlockedEitherWay(me.id, room.hostId)) throw denied("NOT_INVITED");
+  const member = await memberOf(room.id, me.id);
+  if (going) {
+    if (room.visibility === "PRIVATE" && !member) throw denied("NOT_INVITED");
+    if (member?.state === "BANNED") throw denied("BANNED");
+    if (!member) {
+      await db.roomMember.create({
+        data: { roomId: room.id, userId: me.id, role: "MEMBER", state: "INVITED" },
+      });
+    }
+  } else if (member?.state === "INVITED" && room.visibility === "PUBLIC") {
+    await db.roomMember.delete({ where: { id: member.id } });
+  }
+  const now = await memberOf(room.id, me.id);
+  return toDto(room, now?.role ?? null, now?.state === "INVITED");
 }
 
 // ---------- Viewing ----------
@@ -266,7 +310,11 @@ export async function viewRoom(
     return { state: "NOT_INVITED" };
   }
   if (room.status === "ENDED") return { state: "ENDED" };
-  return { state: "OK", room: await toDto(room, isHost ? "HOST" : (member?.role ?? null)) };
+  const going = !isHost && member?.state === "INVITED";
+  return {
+    state: "OK",
+    room: await toDto(room, isHost ? "HOST" : (member?.role ?? null), going),
+  };
 }
 
 async function linkValid(roomId: string, token: string): Promise<boolean> {

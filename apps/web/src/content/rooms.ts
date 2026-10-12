@@ -58,6 +58,11 @@ export const roomCopy = {
     endBody:
       "Everyone is disconnected and the room closes. Room chat is deleted. A summary stays for the people who were here.",
     start: "Start now",
+    remindMe: "Remind me",
+    goingTitle: "You are on the list",
+    goingBody: "We will tell you the moment the host starts this room.",
+    notGoing: "Take me off the list",
+    waitingNote: "The room opens when the host starts it.",
     startingSoon: (when: string) => `Starts ${when}`,
     people: (n: number) => (n === 1 ? "1 person" : `${n} people`),
     peopleOf: (n: number, max: number) => `${n} of ${max} in the room`,

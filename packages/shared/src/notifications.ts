@@ -343,8 +343,11 @@ export function notificationCopy(
     case "ROOM_STARTING":
       return {
         kind: "ROOM_STARTING",
-        title: pushCopy.roomStartingTitle,
-        body: pushCopy.roomStartingBody(s("roomTitle", "Your room")),
+        title: payload["live"] === true ? pushCopy.roomLiveTitle : pushCopy.roomStartingTitle,
+        body:
+          payload["live"] === true
+            ? pushCopy.roomLiveBody(s("roomTitle", "Your room"))
+            : pushCopy.roomStartingBody(s("roomTitle", "Your room")),
         ref: s("roomId", id),
         url,
       };

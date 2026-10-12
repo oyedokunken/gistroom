@@ -61,6 +61,59 @@ describe.skipIf(!testDbEnabled)("rooms", () => {
     return room;
   }
 
+  it("lets people say they are coming to a scheduled room and tells them when it starts", async () => {
+    const host = await person("g1");
+    const guest = await person("g2");
+    const other = await person("g3");
+    const room = await m.createRoom(host, {
+      title: "Later gist",
+      topicSlug: "football",
+      language: "ENGLISH",
+      visibility: "PUBLIC",
+      media: "AUDIO",
+      description: null,
+      scheduledFor: new Date(Date.now() + 3_600_000).toISOString(),
+    });
+    // Before it starts nobody but the host can enter.
+    await expect(m.joinRoom(guest, room.slug)).rejects.toBeTruthy();
+
+    const going = await m.setGoing(guest, room.slug, true);
+    expect(going.going).toBe(true);
+    expect((await m.viewRoom(guest, room.slug)).state === "OK").toBe(true);
+    expect((await m.setGoing(guest, room.slug, true)).going).toBe(true);
+
+    await m.startRoom(host, room.slug);
+    await new Promise((r) => setTimeout(r, 300));
+    const rows = await m.db.notification.findMany({ where: { type: "ROOM_STARTING" } });
+    expect(rows.map((r) => r.userId)).toEqual([guest.id]);
+    expect(rows[0]?.payload).toMatchObject({ live: true, roomSlug: room.slug });
+    expect(await m.db.notification.count({ where: { userId: other.id } })).toBe(0);
+
+    // Taking yourself off the list works on a public room.
+    const later = await m.createRoom(host, {
+      title: "Even later",
+      topicSlug: null,
+      language: "ENGLISH",
+      visibility: "PUBLIC",
+      media: "AUDIO",
+      description: null,
+      scheduledFor: new Date(Date.now() + 7_200_000).toISOString(),
+    });
+    await m.setGoing(other, later.slug, true);
+    expect((await m.setGoing(other, later.slug, false)).going).toBe(false);
+    // A private room only takes people who are already invited.
+    const secret = await m.createRoom(host, {
+      title: "Secret later",
+      topicSlug: null,
+      language: "ENGLISH",
+      visibility: "PRIVATE",
+      media: "AUDIO",
+      description: null,
+      scheduledFor: new Date(Date.now() + 7_200_000).toISOString(),
+    });
+    await expect(m.setGoing(other, secret.slug, true)).rejects.toBeTruthy();
+  });
+
   it("creates a room with its type and the default settings", async () => {
     const host = await person("h1");
     const room = await liveRoom(host);

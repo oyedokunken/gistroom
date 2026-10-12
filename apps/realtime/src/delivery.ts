@@ -4,6 +4,8 @@ import {
   channelsFor,
   deliveryPlan,
   notificationCopy,
+  plainPushPayload,
+  type PushPayload,
   pushCopy,
   shouldRevoke,
   type InternalEvent,
@@ -11,7 +13,7 @@ import {
 import type { Hub } from "./hub";
 import type { PushSender } from "./push";
 import { emitTo, type Logger } from "./sockets";
-import type { Store } from "./store";
+import type { PushSub, Store } from "./store";
 
 export interface DeliveryDeps {
   io: Server;
@@ -64,19 +66,50 @@ export function createDelivery(deps: DeliveryDeps) {
       data: { notificationId: notification.id },
     });
 
+    await sendToAll(bundle.subscriptions, payload);
+  }
+
+  /** Full text for signed in devices, plain text for devices whose session ended, nothing past the grace period. */
+  async function sendToAll(subs: PushSub[], payload: PushPayload) {
     await Promise.all(
-      bundle.subscriptions.map(async (sub) => {
-        const result = await push.send(sub, payload);
-        if (result.disabled) return;
-        const failures = result.ok ? 0 : sub.failureCount + 1;
-        await store.recordPushResult({
-          subscriptionId: sub.id,
-          ok: result.ok,
-          revoke:
-            !result.ok && shouldRevoke({ statusCode: result.statusCode, failureCount: failures }),
-        });
-      }),
+      subs
+        .filter((s) => !s.skip)
+        .map(async (sub) => {
+          const result = await push.send(sub, sub.plain ? plainPushPayload(payload) : payload);
+          if (result.disabled) return;
+          const failures = result.ok ? 0 : sub.failureCount + 1;
+          await store.recordPushResult({
+            subscriptionId: sub.id,
+            ok: result.ok,
+            revoke:
+              !result.ok && shouldRevoke({ statusCode: result.statusCode, failureCount: failures }),
+          });
+        }),
     );
+  }
+
+  /** The Settings test button: one real push to one device, and the answer in plain fields. */
+  async function sendTest(
+    subscriptionId: string,
+  ): Promise<{ ok: boolean; statusCode: number | null; gone: boolean } | null> {
+    const sub = await store.subscriptionById(subscriptionId);
+    if (!sub) return null;
+    const result = await push.send(sub, {
+      type: "GENERIC",
+      title: pushCopy.testTitle,
+      body: pushCopy.testBody,
+      url: "/app/settings/notifications",
+      tag: "test",
+      badge: 0,
+      data: {},
+    });
+    const failures = result.ok ? 0 : sub.failureCount + 1;
+    const gone =
+      !result.ok && shouldRevoke({ statusCode: result.statusCode, failureCount: failures });
+    if (!result.disabled) {
+      await store.recordPushResult({ subscriptionId: sub.id, ok: result.ok, revoke: gone });
+    }
+    return { ok: result.ok, statusCode: result.statusCode, gone };
   }
 
   /** Called for an immediate hint and by the scheduler. A job is claimed once, so a delivery never repeats. */
@@ -149,19 +182,7 @@ export function createDelivery(deps: DeliveryDeps) {
     loaded: NonNullable<Awaited<ReturnType<Store["callForDelivery"]>>>,
     payload: ReturnType<typeof buildPushPayload>,
   ): Promise<void> {
-    await Promise.all(
-      loaded.calleePush.subscriptions.map(async (sub) => {
-        const result = await push.send(sub, payload);
-        if (result.disabled) return;
-        const failures = result.ok ? 0 : sub.failureCount + 1;
-        await store.recordPushResult({
-          subscriptionId: sub.id,
-          ok: result.ok,
-          revoke:
-            !result.ok && shouldRevoke({ statusCode: result.statusCode, failureCount: failures }),
-        });
-      }),
-    );
+    await sendToAll(loaded.calleePush.subscriptions, payload);
   }
 
   /** Rings, answers and endings of a 1:1 call. Calls always push, even when a tab is open (Section 10.1). */
@@ -308,7 +329,7 @@ export function createDelivery(deps: DeliveryDeps) {
     }
   }
 
-  return { handle, safeHandle, deliverNotification, runNotify };
+  return { handle, safeHandle, deliverNotification, runNotify, sendTest };
 }
 
 export type Delivery = ReturnType<typeof createDelivery>;

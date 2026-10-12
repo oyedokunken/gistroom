@@ -6,6 +6,7 @@ import { useFeedback } from "@/components/feedback/feedback-provider";
 import { appNav } from "@/content/app";
 import { ApiClientError, apiFetch } from "@/lib/api";
 import { clearAuthedHint } from "@/lib/authed-hint";
+import { unsubscribeFromPush } from "@/lib/push-client";
 
 /** Sign out with a confirmation modal. Used by the avatar menu and the Settings button. */
 export function useSignOut() {
@@ -22,6 +23,8 @@ export function useSignOut() {
     if (!ok) return;
     setBusy(true);
     try {
+      // Signing out on purpose also stops alerts here, so a shared computer never shows the next person's gist.
+      await unsubscribeFromPush().catch(() => undefined);
       await apiFetch("/api/auth/logout", { method: "POST", body: {} });
       clearAuthedHint();
       router.replace("/login");

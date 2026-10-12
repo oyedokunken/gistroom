@@ -120,6 +120,32 @@ export function createRealtime(options: RealtimeOptions): Realtime {
     void delivery.safeHandle(parsed.data);
   });
 
+  // The Settings test button asks for one real push and waits for the answer.
+  app.post("/internal/push-test", internalLimiter, async (req, res) => {
+    const header = req.header("authorization") ?? "";
+    const token = header.startsWith("Bearer ") ? header.slice(7) : "";
+    if (!safeEqual(token, options.internalToken)) {
+      res.status(401).json({ error: "unauthorized" });
+      return;
+    }
+    const id = typeof req.body?.subscriptionId === "string" ? req.body.subscriptionId : "";
+    if (!id) {
+      res.status(400).json({ error: "invalid" });
+      return;
+    }
+    try {
+      const outcome = await delivery.sendTest(id);
+      if (!outcome) {
+        res.status(404).json({ error: "not found" });
+        return;
+      }
+      res.json(outcome);
+    } catch (error) {
+      log.error({ err: String(error) }, "push test failed");
+      res.status(500).json({ error: "failed" });
+    }
+  });
+
   return {
     http,
     io,

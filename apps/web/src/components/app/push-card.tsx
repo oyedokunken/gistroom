@@ -5,7 +5,6 @@ import { BellRing } from "lucide-react";
 import { useFeedback } from "@/components/feedback/feedback-provider";
 import { Button } from "@/components/ui/button";
 import { notices } from "@/content/app";
-import { apiFetch } from "@/lib/api";
 import {
   currentSubscription,
   pushSupport,
@@ -19,7 +18,7 @@ import {
  * and only after a tap, never on first visit (Section 10.4).
  */
 export function PushCard() {
-  const { confirm, showError, showInfo } = useFeedback();
+  const { confirm, showError } = useFeedback();
   const [support, setSupport] = useState<PushSupport | "loading">("loading");
   const [subscribed, setSubscribed] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -60,15 +59,6 @@ export function PushCard() {
     await refresh();
   }
 
-  async function test() {
-    try {
-      await apiFetch("/api/notifications/test", { body: {} });
-      showInfo(copy.testSent);
-    } catch {
-      showError(copy.unavailable);
-    }
-  }
-
   if (support === "loading") return null;
 
   return (
@@ -97,9 +87,6 @@ export function PushCard() {
         <>
           <p className="text-text-muted">{copy.enabled}</p>
           <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" onClick={() => void test()}>
-              {copy.test}
-            </Button>
             <Button
               variant="ghost"
               className="border border-border"

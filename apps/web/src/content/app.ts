@@ -298,10 +298,48 @@ export const notices = {
       "Gistroom can tell you about calls, messages and friend requests, even when the app is closed. Your browser will ask for permission next. You can change this any time in Settings.",
     primerConfirm: "Continue",
     primerCancel: "Not now",
-    test: "Send me a test alert",
+    test: "Send a test notification",
     testSent: "Sent. You should see it in a moment.",
+    testNoSub: "This device has no alerts set up. Turn on alerts first.",
+    testGone: "The push service says this device is gone, so it was removed. Turn alerts on again.",
+    testRefused:
+      "The push service refused the alert. Check that notifications are allowed, then try again.",
+    testDown: "We could not reach the alert service. Try again in a minute.",
     unavailable: "Alerts are not set up on this server yet.",
   },
+} as const;
+
+export const alertHealth = {
+  heading: "This device",
+  permission: "Notification permission",
+  permissionGranted: "Allowed",
+  permissionDenied: "Blocked",
+  permissionDefault: "Not asked yet",
+  permissionUnsupported: "Not supported here",
+  subscription: "Alerts set up on this device",
+  yes: "Yes",
+  no: "No",
+  installed: "Installed as an app",
+  installedHelp: "On iPhone, alerts only work for the app on your Home Screen.",
+  lastSuccess: "Last alert delivered",
+  never: "None yet",
+  devices: "Your devices",
+  devicesHelp: "Every browser or phone that gets alerts for you. Removing one stops alerts there.",
+  noDevices: "No devices yet. Turn on alerts to add this one.",
+  thisDevice: "This device",
+  remove: "Remove",
+  removeTitle: "Remove this device?",
+  removeBody: "It stops getting alerts. You can turn them on again from that device.",
+  signedOut: "Signed out here. Alerts show plain text until you sign in again.",
+  needsReauth: "Needs a sign in. Alerts stopped after 30 days signed out.",
+  unhealthy: "Alerts may not be arriving here.",
+  healthy: "Working",
+  deniedTitle: "Alerts are blocked",
+  deniedBody:
+    "Your browser stopped allowing alerts for Gistroom. To get calls and messages when the app is closed:",
+  unhealthyTitle: "Alerts may not be reaching a device",
+  unhealthyBody: "Three alerts in a row did not arrive on this device:",
+  gotIt: "Got it",
 } as const;
 
 export const offline = {
@@ -333,6 +371,7 @@ export const pwa = {
     "Tap the Share button in Safari.",
     "Scroll down and tap Add to Home Screen.",
     "Tap Add, then open Gistroom from your Home Screen.",
+    "Sign in once inside the installed app. It keeps its own sign in, separate from Safari.",
   ],
 } as const;
 

@@ -19,6 +19,10 @@ export interface PushSub {
   p256dh: string;
   auth: string;
   failureCount: number;
+  /** The session on this device ended. Send plain text only, or nothing once the grace period is over. */
+  plain?: boolean;
+  /** Skip this device: it has been signed out for more than 30 days. */
+  skip?: boolean;
 }
 
 export interface NotificationBundle {
@@ -106,6 +110,8 @@ export interface Store {
   }): Promise<RoomDelivery | null>;
   notificationBundle(notificationId: string): Promise<NotificationBundle | null>;
   recordPushResult(input: { subscriptionId: string; ok: boolean; revoke: boolean }): Promise<void>;
+  /** One subscription by id, for the "send a test notification" button. */
+  subscriptionById(id: string): Promise<PushSub | null>;
 
   /** Jobs that are due and not yet claimed. */
   dueJobs(now: Date, limit: number): Promise<{ id: string; kind: string; payload: unknown }[]>;

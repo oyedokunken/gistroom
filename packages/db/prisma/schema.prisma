@@ -544,6 +544,10 @@ model PushSubscription {
   lastSuccessAt   DateTime?
   failureCount    Int       @default(0)
   /// The session on this device ended more than 30 days ago, so alerts stopped until the person signs in again.
+  /**
+   * /** When the session on this device ended (first noticed). Alerts go out as plain text for 30 days after this.
+   */
+  sessionEndedAt  DateTime?
   needsReauth     Boolean   @default(false)
   /// Three failures in a row. The person is told the next time they open the app.
   unhealthyAt     DateTime?

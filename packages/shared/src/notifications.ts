@@ -228,6 +228,34 @@ export function buildPushPayload(input: {
   };
 }
 
+/**
+ * The same push with no names and no previews, for a device whose session has ended. It still opens the right place:
+ * the sign in page sends the person on to the same link afterwards (Section 10.3).
+ */
+export function plainPushPayload(full: PushPayload): PushPayload {
+  const byKind: Record<PushKind, { title: string; body: string }> = {
+    CALL_INCOMING: { title: pushCopy.plainCallTitle, body: pushCopy.plainCall },
+    CALL_CANCEL: { title: pushCopy.plainTitle, body: pushCopy.plainMissedCall },
+    DM_MESSAGE: { title: pushCopy.plainTitle, body: pushCopy.plainMessage },
+    FRIEND_REQUEST: { title: pushCopy.plainTitle, body: pushCopy.plainFriend },
+    ROOM_INVITE: { title: pushCopy.plainTitle, body: pushCopy.plainRoomInvite },
+    ROOM_STARTING: { title: pushCopy.plainTitle, body: pushCopy.plainRoomStarting },
+    SECURITY_NEW_DEVICE: { title: pushCopy.plainTitle, body: pushCopy.plainSecurity },
+    GENERIC: { title: pushCopy.plainTitle, body: pushCopy.plainOther },
+  };
+  const text = byKind[full.type];
+  const keep: Record<string, unknown> = {};
+  for (const k of ["callId", "reason", "notificationId"]) {
+    if (full.data[k] !== undefined) keep[k] = full.data[k];
+  }
+  return { ...full, title: text.title, body: text.body, data: keep };
+}
+
+/** Whether a device whose session ended `endedAt` still gets plain alerts. */
+export function withinPushGrace(endedAt: Date, now: Date, graceDays: number): boolean {
+  return now.getTime() - endedAt.getTime() <= graceDays * 86_400_000;
+}
+
 /** Decide between a socket nudge and a push. Calls always push (Section 10.1). */
 export function deliveryPlan(input: { hasFocusedSocket: boolean; kind: PushKind }): {
   socket: boolean;
@@ -236,6 +264,11 @@ export function deliveryPlan(input: { hasFocusedSocket: boolean; kind: PushKind 
   const isCall = input.kind === "CALL_INCOMING" || input.kind === "CALL_CANCEL";
   if (isCall) return { socket: input.hasFocusedSocket, push: true };
   return { socket: input.hasFocusedSocket, push: !input.hasFocusedSocket };
+}
+
+/** Three failures in a row and the person is told this device may not be getting alerts. */
+export function isUnhealthy(failureCount: number, threshold = 3): boolean {
+  return failureCount >= threshold;
 }
 
 /** Revoke a push subscription after 404 or 410, or after repeated failures. */

@@ -1,4 +1,5 @@
 import type { FaqItem } from "@/components/public/faq";
+import { alertsHelp } from "@/content/alerts-help";
 import type { Section } from "@/components/public/prose-page";
 
 /** Copy for the public pages (R10). Plain, warm, specific. No numbers or logos that are not real. */
@@ -52,6 +53,7 @@ export const troubleshooting: readonly FaqItem[] = [
     answer:
       "Open Settings, then Notifications, and turn alerts on for this device. Check that your browser allows notifications for Gistroom. Some Android phones stop background apps to save battery, so allow Gistroom to run in the background. Missed calls always show in your call log.",
   },
+  ...alertsHelp.items.map((i) => ({ question: i.question, answer: i.answer })),
   {
     question: "Gistroom cannot reach my microphone",
     answer:
@@ -272,7 +274,8 @@ export const install = {
       bullets: [
         "Open Gistroom in Safari",
         "Tap the Share button, then Add to Home Screen",
-        "Open Gistroom from your Home Screen, then turn on alerts in Settings",
+        "Open Gistroom from your Home Screen and sign in once inside the installed app",
+        "Then turn on alerts in Settings",
       ],
     },
     {

@@ -199,6 +199,13 @@ export class FakeStore implements Store {
   async callForDelivery(): Promise<null> {
     return null;
   }
+  async subscriptionById(id: string): Promise<PushSub | null> {
+    for (const b of this.notifications.values()) {
+      const hit = b.subscriptions.find((x) => x.id === id);
+      if (hit) return hit;
+    }
+    return null;
+  }
   async notificationBundle(id: string) {
     return this.notifications.get(id) ?? null;
   }

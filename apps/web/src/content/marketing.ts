@@ -439,7 +439,8 @@ export const installPage = {
       steps: [
         "Open Gistroom in Safari",
         "Tap the Share button, then Add to Home Screen",
-        "Open Gistroom from your Home Screen, then turn on alerts in Settings",
+        "Open Gistroom from your Home Screen and sign in once inside the installed app",
+        "Then turn on alerts in Settings",
       ],
     },
     {

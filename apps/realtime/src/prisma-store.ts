@@ -10,12 +10,16 @@ import {
   unreadChatCount,
 } from "@gistroom/db";
 import {
+  isUnhealthy,
+  LIMITS,
   defaultPrefs,
   notificationPrefsSchema,
   type MessageDto,
   type RoomRole,
 } from "@gistroom/shared";
-import type { Store } from "./store";
+import type { PushSub, Store } from "./store";
+
+const GRACE_DAYS = LIMITS.PUSH_GRACE_DAYS;
 
 const dmKey = (a: string, b: string) => (a < b ? `${a}:${b}` : `${b}:${a}`);
 
@@ -32,7 +36,93 @@ export function createPrismaStore(): Store {
     return members.find((m) => m.userId !== userId)?.userId ?? null;
   }
 
+  const DAY = 86_400_000;
+
+  /**
+   * Alerts follow the device, not the session. A device with a live session gets full text. After the session ends it
+   * keeps getting plain text for 30 days, then it is marked as needing a new sign in and skipped (Section 10.3).
+   */
+  async function withMode(
+    userId: string,
+    rows: {
+      id: string;
+      endpoint: string;
+      p256dh: string;
+      auth: string;
+      failureCount: number;
+      deviceId: string | null;
+      sessionEndedAt: Date | null;
+      needsReauth: boolean;
+    }[],
+  ): Promise<PushSub[]> {
+    if (rows.length === 0) return [];
+    const now = new Date();
+    const live = await db.session.findMany({
+      where: { userId, endedAt: null, revokedAt: null, expiresAt: { gt: now } },
+      select: { deviceId: true },
+    });
+    const liveDevices = new Set(live.map((s) => s.deviceId));
+    const anyLive = live.length > 0;
+    const out: PushSub[] = [];
+    for (const r of rows) {
+      const isLive = r.deviceId ? liveDevices.has(r.deviceId) : anyLive;
+      const base = {
+        id: r.id,
+        endpoint: r.endpoint,
+        p256dh: r.p256dh,
+        auth: r.auth,
+        failureCount: r.failureCount,
+      };
+      if (isLive) {
+        if (r.sessionEndedAt || r.needsReauth) {
+          await db.pushSubscription.update({
+            where: { id: r.id },
+            data: { sessionEndedAt: null, needsReauth: false },
+          });
+        }
+        out.push(base);
+        continue;
+      }
+      let endedAt = r.sessionEndedAt;
+      if (!endedAt) {
+        const last = r.deviceId
+          ? await db.session.findFirst({
+              where: { userId, deviceId: r.deviceId },
+              orderBy: { expiresAt: "desc" },
+              select: { endedAt: true, expiresAt: true },
+            })
+          : null;
+        endedAt = last ? (last.endedAt ?? last.expiresAt) : now;
+        await db.pushSubscription.update({
+          where: { id: r.id },
+          data: { sessionEndedAt: endedAt },
+        });
+      }
+      if (now.getTime() - endedAt.getTime() <= GRACE_DAYS * DAY) {
+        out.push({ ...base, plain: true });
+      } else {
+        if (!r.needsReauth) {
+          await db.pushSubscription.update({ where: { id: r.id }, data: { needsReauth: true } });
+        }
+        out.push({ ...base, skip: true });
+      }
+    }
+    return out;
+  }
+
   return {
+    async subscriptionById(id) {
+      const r = await db.pushSubscription.findUnique({ where: { id } });
+      if (!r) return null;
+      return {
+        id: r.id,
+        endpoint: r.endpoint,
+        p256dh: r.p256dh,
+        auth: r.auth,
+        failureCount: r.failureCount,
+      };
+    },
+
     async sessionValid(userId, sessionId) {
       const s = await db.session.findFirst({
         where: {
@@ -234,13 +324,7 @@ export function createPrismaStore(): Store {
           [call.calleeId, callDto(call, call.calleeId, conv?.id ?? null)],
         ]),
         calleePush: {
-          subscriptions: subscriptions.map((s) => ({
-            id: s.id,
-            endpoint: s.endpoint,
-            p256dh: s.p256dh,
-            auth: s.auth,
-            failureCount: s.failureCount,
-          })),
+          subscriptions: await withMode(call.calleeId, subscriptions),
           previews: prefsRow?.previews ?? true,
           unread,
         },
@@ -274,13 +358,7 @@ export function createPrismaStore(): Store {
         prefs: parsed?.success ? parsed.data : defaultPrefs,
         unread,
         chatsUnread: chats,
-        subscriptions: subscriptions.map((s) => ({
-          id: s.id,
-          endpoint: s.endpoint,
-          p256dh: s.p256dh,
-          auth: s.auth,
-          failureCount: s.failureCount,
-        })),
+        subscriptions: await withMode(n.userId, subscriptions),
       };
     },
 
@@ -288,9 +366,22 @@ export function createPrismaStore(): Store {
       await db.pushSubscription.update({
         where: { id: subscriptionId },
         data: ok
-          ? { lastSuccessAt: new Date(), failureCount: 0 }
+          ? { lastSuccessAt: new Date(), failureCount: 0, unhealthyAt: null, unhealthySeenAt: null }
           : { failureCount: { increment: 1 }, ...(revoke ? { revokedAt: new Date() } : {}) },
       });
+      if (!ok) {
+        // Three failures in a row: remember it, so the person is told the next time they open the app.
+        const row = await db.pushSubscription.findUnique({
+          where: { id: subscriptionId },
+          select: { failureCount: true, unhealthyAt: true },
+        });
+        if (row && row.unhealthyAt === null && isUnhealthy(row.failureCount)) {
+          await db.pushSubscription.update({
+            where: { id: subscriptionId },
+            data: { unhealthyAt: new Date(), unhealthySeenAt: null },
+          });
+        }
+      }
     },
 
     async dueJobs(now, limit) {

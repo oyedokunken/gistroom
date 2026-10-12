@@ -82,6 +82,72 @@ export async function subscribeToPush(
   }
 }
 
+/**
+ * On every signed in load: if the browser still allows alerts, make sure this browser has a subscription and the
+ * server knows about it. A missing subscription is recreated quietly (no prompt, permission is already granted), a
+ * changed endpoint is sent to the server, and a browser that another person used before moves to this person.
+ * Returns what it found, for the health panel and the denied notice.
+ */
+export async function syncPushOnLoad(
+  vapidPublicKey: string | undefined,
+): Promise<"synced" | "denied" | "off" | "unsupported" | "failed"> {
+  const support = pushSupport();
+  if (support === "unsupported" || support === "ios-needs-install") return "unsupported";
+  if (support === "blocked") return "denied";
+  if (support !== "granted" || !vapidPublicKey) return "off";
+  try {
+    const reg = (await registerServiceWorker()) ?? (await navigator.serviceWorker.ready);
+    const sub =
+      (await reg.pushManager.getSubscription()) ??
+      (await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+      }));
+    const json = sub.toJSON();
+    await apiFetch("/api/push/subscribe", { body: { endpoint: json.endpoint, keys: json.keys } });
+    return "synced";
+  } catch {
+    return "failed";
+  }
+}
+
+/** Steps to turn alerts back on, by browser. */
+export function allowAlertsSteps(userAgent: string): string[] {
+  if (isIos(userAgent)) {
+    return [
+      "Open the Settings app on your iPhone.",
+      "Scroll to Gistroom, or to Notifications and then Gistroom.",
+      "Turn on Allow Notifications.",
+    ];
+  }
+  if (/Firefox\//i.test(userAgent)) {
+    return [
+      "Click the lock icon in the address bar.",
+      "Next to Notifications, remove the Blocked setting.",
+      "Reload the page and turn alerts on again.",
+    ];
+  }
+  if (/Edg\//i.test(userAgent)) {
+    return [
+      "Click the lock icon in the address bar and choose Permissions for this site.",
+      "Set Notifications to Allow.",
+      "Reload the page.",
+    ];
+  }
+  if (/Android/i.test(userAgent)) {
+    return [
+      "Tap the lock icon next to the address, then Permissions.",
+      "Set Notifications to Allow.",
+      "Reload the page and turn alerts on again.",
+    ];
+  }
+  return [
+    "Click the lock icon next to the address.",
+    "Open Site settings and set Notifications to Allow.",
+    "Reload the page and turn alerts on again.",
+  ];
+}
+
 export async function unsubscribeFromPush(): Promise<void> {
   const sub = await currentSubscription();
   if (!sub) return;

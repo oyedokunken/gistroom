@@ -6,7 +6,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallStore } from "@/lib/calls/store";
 import { useDrafts } from "@/lib/chat/drafts";
 import { applyUpdate, isApplying, updateBlockers, useUpdate } from "@/lib/update-gate";
-import { registerServiceWorker } from "@/lib/push-client";
+import { useFeedback } from "@/components/feedback/feedback-provider";
+import { alertHealth } from "@/content/app";
+import { apiFetch } from "@/lib/api";
+import { allowAlertsSteps, registerServiceWorker, syncPushOnLoad } from "@/lib/push-client";
+import type { PushDeviceDto } from "@/app/api/push/devices/route";
 import { usePwa, type BeforeInstallPromptEvent } from "@/lib/pwa";
 
 /**
@@ -16,6 +20,7 @@ import { usePwa, type BeforeInstallPromptEvent } from "@/lib/pwa";
  */
 export function PwaRuntime() {
   const queryClient = useQueryClient();
+  const { showInfo } = useFeedback();
   const pathname = usePathname();
   const waiting = useUpdate((s) => s.waiting);
   const ringing = useCallStore((s) => s.incoming !== null);
@@ -28,6 +33,63 @@ export function PwaRuntime() {
     lastPath.current = pathname;
     if (waiting && updateBlockers({ pathname, ringing, drafts }).length === 0) applyUpdate();
   }, [pathname, waiting, ringing, drafts]);
+
+  // Keep alerts healthy: once per load, make sure this browser's subscription exists and the server has it,
+  // tell the person if the browser blocked alerts, and if three alerts in a row did not arrive on a device.
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const outcome = await syncPushOnLoad(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY);
+      if (cancelled) return;
+      const told = (key: string) => {
+        try {
+          return window.sessionStorage.getItem(key) === "1";
+        } catch {
+          return false;
+        }
+      };
+      const remember = (key: string) => {
+        try {
+          window.sessionStorage.setItem(key, "1");
+        } catch {
+          // Without storage the notice can show again on the next load.
+        }
+      };
+      if (outcome === "denied") {
+        const known = await apiFetch<{ devices: PushDeviceDto[] }>("/api/push/devices").catch(
+          () => null,
+        );
+        // Only people who had alerts on here are told, not everyone who never turned them on.
+        if (known?.devices.some((d) => d.current) && !told("gr_denied_told")) {
+          remember("gr_denied_told");
+          showInfo(
+            `${alertHealth.deniedBody}\n\n${allowAlertsSteps(navigator.userAgent)
+              .map((s, i) => `${i + 1}. ${s}`)
+              .join("\n")}`,
+            alertHealth.deniedTitle,
+          );
+        }
+        return;
+      }
+      if (outcome === "synced") {
+        const list = await apiFetch<{ devices: PushDeviceDto[] }>("/api/push/devices").catch(
+          () => null,
+        );
+        const bad = list?.devices.filter((d) => d.notice) ?? [];
+        if (bad.length > 0 && !told("gr_unhealthy_told")) {
+          remember("gr_unhealthy_told");
+          showInfo(
+            `${alertHealth.unhealthyBody} ${bad.map((d) => d.label).join(", ")}.`,
+            alertHealth.unhealthyTitle,
+          );
+          void apiFetch("/api/push/devices", { body: {} }).catch(() => undefined);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [showInfo]);
 
   useEffect(() => {
     usePwa.getState().loadDismissed();

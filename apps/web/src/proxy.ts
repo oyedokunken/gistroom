@@ -55,6 +55,8 @@ export function proxy(request: NextRequest) {
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
+  // So a page that finds no session can send the person to sign in and bring them back to exactly here.
+  requestHeaders.set("x-pathname", `${request.nextUrl.pathname}${request.nextUrl.search}`);
   requestHeaders.set("Content-Security-Policy", csp);
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });

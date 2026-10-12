@@ -125,12 +125,14 @@ self.addEventListener("notificationclick", (event) => {
   event.waitUntil(
     (async () => {
       if (plan.decline) {
-        await fetch(`/api/calls/${plan.decline.callId}/decline`, {
+        const res = await fetch(`/api/calls/${plan.decline.callId}/decline`, {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json", Origin: self.location.origin },
           body: "{}",
-        }).catch(() => undefined);
+        }).catch(() => null);
+        // The session ended. Declining needs a sign in, so open the call link and let the app ask for one.
+        if (res?.status === 401) await self.clients.openWindow(`/app/call/${plan.decline.callId}`);
         return;
       }
       const target = sameOriginPath(plan.url, self.location.origin) ?? "/app/chats";

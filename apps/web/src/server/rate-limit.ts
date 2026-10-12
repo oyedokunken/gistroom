@@ -34,6 +34,7 @@ export const policies = {
   usernameChange: { name: "username-change", limit: 5, windowSec: 86_400 },
   dataExport: { name: "data-export", limit: 3, windowSec: 3600 },
   accountDelete: { name: "account-delete", limit: 5, windowSec: 3600 },
+  pushTest: { name: "push-test", limit: 10, windowSec: 3600 },
   noteWrite: { name: "note-write", limit: 60, windowSec: 60 },
 } as const satisfies Record<string, Policy>;
 

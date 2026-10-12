@@ -905,6 +905,70 @@ export async function seedFriendsWorld(
     });
     scheduledRooms += 1;
   }
+  // Rooms the two real test accounts host, starting soon, with seeded people already on the list.
+  // The livekitRoom prefix marks them so the remove command can find them.
+  const hosted: {
+    host: string;
+    title: string;
+    topic: string;
+    minutes: number;
+    guests: string[];
+  }[] = [
+    {
+      host: felix.id,
+      title: "Felix hosts: Sunday football gist",
+      topic: "football",
+      minutes: 25,
+      guests: ["Adaeze", "Segun", "Tunde", "Chidi", "Dayo"],
+    },
+    {
+      host: felix.id,
+      title: "Felix hosts: building in public from Lagos",
+      topic: "tech-and-startups",
+      minutes: 180,
+      guests: ["Emeka", "Kemi", "Ngozi"],
+    },
+    ...(second
+      ? [
+          {
+            host: second.id,
+            title: "Mastermind hosts: creative hustle night",
+            topic: "business-and-money",
+            minutes: 40,
+            guests: ["Blessing", "Amina", "Bayo", "Yetunde"],
+          },
+        ]
+      : []),
+  ];
+  for (const h of hosted) {
+    if (await db.room.findFirst({ where: { title: h.title, hostId: h.host } })) continue;
+    const others = [felix.id, second?.id].filter((x): x is string => Boolean(x) && x !== h.host);
+    await db.room.create({
+      data: {
+        slug: slugFromBytes(randomBytes(12)),
+        hostId: h.host,
+        title: h.title,
+        topicId: topics.get(h.topic) ?? null,
+        description:
+          "A sample room for testing. Say you are coming and wait for the host to start.",
+        language: "ENGLISH",
+        media: "AUDIO",
+        status: "SCHEDULED",
+        scheduledFor: new Date(now.getTime() + h.minutes * 60_000),
+        livekitRoom: `room_seed_${randomUUID()}`,
+        members: {
+          create: [
+            { userId: h.host, role: "HOST", state: "INVITED" },
+            ...[...h.guests.map(id), ...others].map((userId) => ({
+              userId,
+              state: "INVITED" as const,
+            })),
+          ],
+        },
+      },
+    });
+    scheduledRooms += 1;
+  }
   let endedRooms = 0;
   for (const r of ENDED) {
     const host = id(r.hostFirst);
@@ -1015,7 +1079,10 @@ export async function removeFriendsWorld(db: PrismaClient): Promise<{ people: nu
   const seeded = await db.user.findMany({ where: { isSeed: true }, select: { id: true } });
   const ids = seeded.map((u) => u.id);
   if (ids.length === 0) return { people: 0 };
-  const rooms = await db.room.findMany({ where: { hostId: { in: ids } }, select: { id: true } });
+  const rooms = await db.room.findMany({
+    where: { OR: [{ hostId: { in: ids } }, { livekitRoom: { startsWith: "room_seed_" } }] },
+    select: { id: true },
+  });
   const roomIds = rooms.map((r) => r.id);
   const convs = await db.conversationMember.findMany({
     where: { userId: { in: ids } },

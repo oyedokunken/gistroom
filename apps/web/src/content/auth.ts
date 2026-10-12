@@ -59,11 +59,12 @@ export const auth = {
   forgotPage: {
     title: "Reset your password",
     metaTitle: "Reset your password",
-    subhead: "Enter your email and we will send a code. Then choose a new password.",
+    subhead: "Enter your email or username and we will send a code. Then choose a new password.",
     send: "Send my code",
     sending: "Sending code",
     codeHeading: "Choose a new password",
-    sentTo: (email: string) => `We sent a 6 digit code to ${email}.`,
+    sentTo: () =>
+      "If an account matches, we sent a code to its email. Enter it with your new password.",
     submit: "Save new password",
     submitting: "Saving",
     back: "Back to sign in",

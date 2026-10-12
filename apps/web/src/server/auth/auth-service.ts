@@ -1,5 +1,5 @@
 import { getDb, type User } from "@gistroom/db";
-import { errors, passwordIssue, passwordMessages } from "@gistroom/shared";
+import { errors, identifierKind, passwordIssue, passwordMessages } from "@gistroom/shared";
 import { AppError } from "../http";
 import { enforce, policies } from "../rate-limit";
 import { sendTemplate } from "../mail/send";
@@ -71,7 +71,11 @@ export async function login(email: string, password: string, ip: string): Promis
   const stored = user?.passwordHash ?? (await dummyHash());
   const ok = await verifyPassword(password, stored);
   if (!user || !user.passwordHash || !ok || user.status === "DELETED") {
-    throw new AppError(401, "UNAUTHORIZED", errors.loginFailed);
+    throw new AppError(
+      401,
+      "UNAUTHORIZED",
+      identifierKind(email) === "email" ? errors.loginFailedEmail : errors.loginFailedUsername,
+    );
   }
   if (user.status === "SUSPENDED") throw new AppError(403, "FORBIDDEN", errors.accountSuspended);
 
@@ -84,14 +88,15 @@ export async function login(email: string, password: string, ip: string): Promis
   return user;
 }
 
-/** Start a password reset. An email with no account is told so, an email with one gets a code. */
-export async function startReset(email: string, ip: string): Promise<RequestOtpResult> {
+/**
+ * Start a password reset for an email or a username. The answer is always the same, so nobody can use this to find out
+ * who has an account. A match gets the code at its own email address.
+ */
+export async function startReset(identifier: string, ip: string): Promise<RequestOtpResult> {
   await enforce(policies.otpSendIp, ip);
-  const user = await getDb().user.findUnique({ where: { email }, select: { status: true } });
-  if (!user || user.status !== "ACTIVE") {
-    throw new AppError(404, "NOT_FOUND", errors.noAccount, { fields: { email: errors.noAccount } });
-  }
-  return sendCode({ email, ip, purpose: "RESET_PASSWORD", template: "reset-otp" });
+  const user = await findByIdentifier(identifier);
+  if (!user || user.status !== "ACTIVE") return { resendAfterSec: 60 };
+  return sendCode({ email: user.email, ip, purpose: "RESET_PASSWORD", template: "reset-otp" });
 }
 
 /** What sign in should do next for this email. Rate limited like a sign in attempt. */
@@ -100,7 +105,8 @@ export async function identifyAccount(identifier: string, ip: string): Promise<A
   await enforce(policies.loginEmail, identifier);
   const found = await findByIdentifier(identifier);
   if (found?.status === "SUSPENDED") throw new AppError(403, "FORBIDDEN", errors.accountSuspended);
-  if (!found || found.status === "DELETED") return "NONE";
+  // An unknown account looks exactly like a known one until the password is checked, so nothing leaks.
+  if (!found || found.status === "DELETED") return "PASSWORD";
   const googleLinked = (await getDb().authAccount.count({ where: { userId: found.id } })) > 0;
   const state = accountState({
     passwordHash: found.passwordHash,
@@ -108,16 +114,18 @@ export async function identifyAccount(identifier: string, ip: string): Promise<A
     googleLinked,
   });
   // A half finished sign up has no real username yet, so it can only be continued with the email.
-  return state === "UNFINISHED" && !identifier.includes("@") ? "NONE" : state;
+  return state === "UNFINISHED" && !identifier.includes("@") ? "PASSWORD" : state;
 }
 
 export async function completeReset(
-  email: string,
+  identifier: string,
   code: string,
   password: string,
   ip: string,
 ): Promise<User> {
-  const user = await getDb().user.findUnique({ where: { email } });
+  const user = await findByIdentifier(identifier);
+  // A made up identifier is checked against a made up address, so the answer looks like any other wrong code.
+  const email = user?.email ?? identifier;
   const issue = passwordIssue(password, { email, name: user?.name });
   if (issue)
     throw new AppError(400, "INVALID", passwordMessages[issue], {

@@ -78,7 +78,7 @@ export function ForgotForm({ initialEmail }: { initialEmail: string }) {
         <h1 className="text-[clamp(1.875rem,5vw,2.5rem)] font-bold leading-[1.1] tracking-tight text-text">
           {sentTo ? copy.codeHeading : copy.title}
         </h1>
-        <p className="text-text-muted">{sentTo ? copy.sentTo(sentTo) : copy.subhead}</p>
+        <p className="text-text-muted">{sentTo ? copy.sentTo() : copy.subhead}</p>
       </div>
 
       {sentTo === null ? (
@@ -87,16 +87,16 @@ export function ForgotForm({ initialEmail }: { initialEmail: string }) {
           onSubmit={emailForm.handleSubmit((v) => send(v.email))}
           className="flex flex-col gap-4"
         >
-          <Field label={auth.emailLabel} error={emailForm.formState.errors.email?.message}>
+          <Field label={auth.identifierLabel} error={emailForm.formState.errors.email?.message}>
             {(props) => (
               <Input
                 {...props}
                 type="text"
-                inputMode="email"
-                autoComplete="email"
+                inputMode="text"
+                autoComplete="username"
                 autoCapitalize="none"
                 spellCheck={false}
-                placeholder={auth.emailPlaceholder}
+                placeholder={auth.identifierPlaceholder}
                 {...emailForm.register("email")}
               />
             )}

@@ -110,6 +110,11 @@ const lockups = {
     C.white,
     inner("m", C.white, [C.green, C.yellow, C.green]),
   ),
+  "lockup-horizontal-green": horizontal(C.green, inner("m", C.green, [C.white, C.yellow, C.white])),
+  "lockup-horizontal-green-black": horizontal(
+    C.ink,
+    inner("m", C.green, [C.white, C.yellow, C.white]),
+  ),
   "lockup-stacked": stacked(C.ink, C.ink, [C.green, C.yellow, C.green]),
   "lockup-stacked-mono": stacked(C.ink, C.ink, [C.white, C.white, C.white]),
 };

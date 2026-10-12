@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { emailSchema } from "@gistroom/shared";
+import { identifierSchema } from "@gistroom/shared";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { ForgotForm } from "@/components/auth/forgot-form";
 import { auth, authArt } from "@/content/auth";
@@ -14,7 +14,7 @@ export default async function ForgotPage({
 }: {
   searchParams: Promise<{ email?: string }>;
 }) {
-  const parsed = emailSchema.safeParse((await searchParams).email ?? "");
+  const parsed = identifierSchema.safeParse((await searchParams).email ?? "");
   return (
     <AuthShell artId={authArt.forgot}>
       <ForgotForm initialEmail={parsed.success ? parsed.data : ""} />

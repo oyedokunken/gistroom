@@ -126,7 +126,7 @@ export function LoginForm({ next, error }: AuthFormProps) {
       } else if (res.state === "GOOGLE_ONLY") {
         emailForm.setError("email", { message: auth.identify.googleOnly });
       } else {
-        emailForm.setError("email", { message: auth.identify.none });
+        setEmail(address);
       }
     } catch (e) {
       if (e instanceof ApiClientError && (e.status === 429 || e.status === 400 || e.fields.email)) {

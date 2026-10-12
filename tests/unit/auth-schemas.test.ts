@@ -74,6 +74,20 @@ describe("peopleSearchSchema", () => {
 });
 
 describe("interests and the sign in identifier", () => {
+  it("words the error for what was typed", () => {
+    const msg = (v: string) => {
+      const r = identifierSchema.safeParse(v);
+      return r.success ? "ok" : r.error.issues[0]?.message;
+    };
+    expect(msg("ada@")).toBe("Enter a valid email address.");
+    expect(msg("ab")).toBe("Usernames use letters, numbers and underscores, 3 to 20 characters.");
+    expect(msg("has space")).toBe(
+      "Usernames use letters, numbers and underscores, 3 to 20 characters.",
+    );
+    expect(msg("ada_eze")).toBe("ok");
+    expect(msg("ada@example.com")).toBe("ok");
+    expect(msg("")).toBe("Enter your email or username.");
+  });
   it("accepts known topics and refuses unknown or too many", () => {
     expect(interestsSchema.safeParse({ topics: ["football", "comedy"] }).success).toBe(true);
     expect(interestsSchema.safeParse({ topics: ["not-a-topic"] }).success).toBe(false);

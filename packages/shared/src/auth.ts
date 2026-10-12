@@ -13,13 +13,31 @@ export const emailSchema = z
   .max(254, validation.emailTooLong)
   .email(validation.emailInvalid);
 
-/** Sign in takes an email or a username. Both are lowercase, so the check is case blind. */
+export type IdentifierKind = "email" | "username";
+
+/** An email always has an @ and a username never does, so the two are told apart by that alone. */
+export const identifierKind = (value: string): IdentifierKind =>
+  value.includes("@") ? "email" : "username";
+
+/**
+ * Sign in takes an email or a username. Both are lowercase, so the check is case blind.
+ * The error says which of the two was expected, based on what the person typed.
+ */
 export const identifierSchema = z
   .string({ required_error: validation.identifierRequired })
   .trim()
   .toLowerCase()
   .min(1, validation.identifierRequired)
-  .max(254, validation.emailTooLong);
+  .max(254, validation.emailTooLong)
+  .superRefine((value, ctx) => {
+    if (identifierKind(value) === "email") {
+      if (!z.string().email().safeParse(value).success) {
+        ctx.addIssue({ code: "custom", message: validation.emailInvalid });
+      }
+    } else if (!LIMITS.USERNAME_REGEX.test(value)) {
+      ctx.addIssue({ code: "custom", message: validation.usernameFormat });
+    }
+  });
 
 export const otpCodeSchema = z
   .string({ required_error: validation.codeInvalid })
@@ -52,9 +70,10 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export const identifySchema = z.object({ email: identifierSchema });
 export const setPasswordSchema = z.object({ password: newPasswordSchema });
 
-export const resetStartSchema = z.object({ email: emailSchema });
+/** The `email` field carries an email or a username. */
+export const resetStartSchema = z.object({ email: identifierSchema });
 export const resetCompleteSchema = z.object({
-  email: emailSchema,
+  email: identifierSchema,
   code: otpCodeSchema,
   password: newPasswordSchema,
 });

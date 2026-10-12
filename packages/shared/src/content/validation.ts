@@ -3,6 +3,7 @@ export const validation = {
   emailRequired: "Enter your email address.",
   emailInvalid: "Enter a valid email address.",
   identifierRequired: "Enter your email or username.",
+  usernameFormat: "Usernames use letters, numbers and underscores, 3 to 20 characters.",
   emailTooLong: "That email address is too long.",
   codeInvalid: "Enter the 6 digit code from your email.",
   nameRequired: "Enter your name.",

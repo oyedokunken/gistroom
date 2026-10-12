@@ -46,7 +46,7 @@ describe.skipIf(!testDbEnabled)("sign up and password sign in", () => {
   async function signUpAndSetPassword(email: string, ip: string) {
     await m.startSignup(email, ip);
     const { user } = await m.completeSignup(email, lastCode(m.captured, email), ip);
-    await m.db.user.update({
+    return m.db.user.update({
       where: { id: user.id },
       data: {
         passwordHash: await m.hashPassword(PASSWORD),
@@ -55,7 +55,6 @@ describe.skipIf(!testDbEnabled)("sign up and password sign in", () => {
         username: `test_${user.id.slice(-8)}`,
       },
     });
-    return user;
   }
 
   it("sends one code at sign up and creates an unfinished account", async () => {
@@ -128,11 +127,44 @@ describe.skipIf(!testDbEnabled)("sign up and password sign in", () => {
     });
   });
 
-  it("tells a reset for an unknown email that there is no account, and sends nothing", async () => {
-    await expect(m.startReset(testEmail("ghost"), "10.0.0.8")).rejects.toMatchObject({
-      status: 404,
+  it("answers a reset for an unknown email like any other, and sends nothing", async () => {
+    await expect(m.startReset(testEmail("ghost"), "10.0.0.8")).resolves.toMatchObject({
+      resendAfterSec: 60,
+    });
+    await expect(m.startReset("no_such_person", "10.0.0.8")).resolves.toMatchObject({
+      resendAfterSec: 60,
     });
     expect(m.captured).toHaveLength(0);
+  });
+
+  it("resets by username and sends the code to that account's email", async () => {
+    const email = testEmail("u");
+    const user = await signUpAndSetPassword(email, "10.0.0.11");
+    await m.startReset(user.username, "10.0.0.11");
+    expect(m.captured.some((x) => x.to === email && /Your code:/.test(x.text))).toBe(true);
+    const updated = await m.completeReset(
+      user.username,
+      lastCode(m.captured, email),
+      "another long passphrase",
+      "10.0.0.11",
+    );
+    expect(updated.id).toBe(user.id);
+  });
+
+  it("says email or username in the wrong password message, matching what was typed", async () => {
+    const email = testEmail("w");
+    const user = await signUpAndSetPassword(email, "10.0.0.12");
+    await expect(m.login(email, "nope nope nope", "10.0.0.12")).rejects.toMatchObject({
+      status: 401,
+      message: "Email or password is incorrect.",
+    });
+    await expect(m.login(user.username, "nope nope nope", "10.0.0.13")).rejects.toMatchObject({
+      status: 401,
+      message: "Username or password is incorrect.",
+    });
+    await expect(m.login(user.username, PASSWORD, "10.0.0.14")).resolves.toMatchObject({
+      id: user.id,
+    });
   });
 
   it("tells a sign up with a finished email to sign in instead", async () => {

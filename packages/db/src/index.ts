@@ -31,7 +31,11 @@ export function getDb(): PrismaClient {
       { connectionString: url, ...(Number.isInteger(max) && max > 0 ? { max } : {}) },
       schema ? { schema } : undefined,
     );
-    globalForPrisma.prisma = new PrismaClient({ adapter });
+    // Many statements over a hosted connection can pass the 5 second default, for example when deleting an account.
+    globalForPrisma.prisma = new PrismaClient({
+      adapter,
+      transactionOptions: { timeout: 30_000, maxWait: 10_000 },
+    });
   }
   return globalForPrisma.prisma;
 }

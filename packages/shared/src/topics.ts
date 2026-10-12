@@ -288,3 +288,76 @@ export const LANGUAGE_LABELS: Record<Language, string> = {
 /** Interests: pick at least this many and at most MAX_INTERESTS. */
 export const MIN_INTERESTS = 3;
 export const MAX_INTERESTS = 8;
+
+/** What Nigerians say when they mean a topic. The picker search matches these as well as the topic name. */
+export const TOPIC_KEYWORDS: Record<string, string> = {
+  "politics-and-governance":
+    "naija politics election inec tinubu atiku obi buhari senate governor lga tax subsidy fuel price",
+  "news-and-current-affairs": "news trending headlines breaking lagos abuja gist today",
+  "law-and-justice": "police court lawyer rights bail efcc tenancy land title cybercrimes",
+  "history-and-heritage": "history biafra civil war nigeria independence kingdoms benin oyo sokoto",
+  "culture-and-tradition":
+    "culture tradition festival owambe wedding igbo yoruba hausa tiv efik ijaw language",
+  "diaspora-and-japa":
+    "japa abroad uk canada usa visa relocation ielts nurses students diaspora naija in london",
+  "religion-and-spirituality":
+    "church mosque faith prayer pastor imam bible quran devotion fellowship",
+  relationships: "dating love marriage break up situationship toxic ex wahala heart",
+  "marriage-and-family": "wife husband in-laws family bride price traditional wedding children",
+  parenting: "kids school fees children baby mother father upbringing",
+  "health-and-wellness": "health hospital nhis fitness gym mental health diet malaria nutrition",
+  "business-and-money":
+    "business money side hustle naira dollar rate forex savings ajo esusu investment sme market",
+  "careers-and-jobs": "job interview cv remote work salary nysc career hustle linkedin",
+  "tech-and-startups": "tech startup developer code ai fintech lagos yaba founders product",
+  "crypto-and-fintech": "crypto bitcoin usdt p2p binance bybit opay palmpay moniepoint kuda cbn",
+  "real-estate-and-housing": "house rent landlord land lagos lekki mortgage building estate",
+  agriculture: "farming farm agric cassava poultry fish yam cocoa rice",
+  "music-and-gbedu":
+    "music gbedu afrobeats amapiano burna wizkid davido rema asake tems fela highlife fuji",
+  "nollywood-and-movies": "nollywood movie film cinema actor actress netflix",
+  "series-and-tv": "series tv show big brother naija bbnaija reality show episode",
+  "books-and-reading": "books reading novel writer poetry chimamanda adichie",
+  comedy: "comedy skit stand up funny broda shaggi mark angel",
+  gaming: "gaming game ps5 fifa efootball cod mobile games esports",
+  "art-and-photography": "art photography painting design creative photographer",
+  "fashion-and-owambe": "fashion owambe aso ebi ankara agbada gele style tailor",
+  "food-and-chop": "food chop jollof suya amala egusi pounded yam rice recipe",
+  "entertainment-and-pop-culture": "celebrity gossip pop culture trends memes tiktok instagram",
+  football:
+    "football soccer super eagles npfl premier league arsenal chelsea man united liverpool barca madrid afcon",
+  "other-sports": "sports basketball boxing athletics tennis olympics",
+  education: "school waec jamb university polytechnic scholarship exam study",
+  "campus-life": "campus unilag ui oau unn lasu hostel matriculation lecturers strike asuu",
+  "science-and-innovation": "science innovation space research energy solar invention",
+  "travel-and-tourism": "travel tourism trip vacation visa flight hotel cross river calabar",
+  "open-gist": "gist anything random chat vibes",
+};
+
+/** The topics most people look for first. Shown above the grouped list. */
+export const POPULAR_TOPIC_SLUGS: readonly string[] = [
+  "football",
+  "music-and-gbedu",
+  "politics-and-governance",
+  "tech-and-startups",
+  "campus-life",
+  "diaspora-and-japa",
+  "food-and-chop",
+  "nollywood-and-movies",
+  "comedy",
+  "business-and-money",
+  "relationships",
+  "religion-and-spirituality",
+];
+
+/** Topics that match what someone typed, by name, description, group or Nigerian keywords. */
+export function searchTopics(query: string): TopicInfo[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  const words = q.split(/\s+/);
+  return TOPICS.filter((topic) => {
+    const hay =
+      `${topic.name} ${topic.description} ${TOPIC_KEYWORDS[topic.slug] ?? ""} ${topic.slug}`.toLowerCase();
+    return words.every((w) => hay.includes(w));
+  });
+}

@@ -72,11 +72,23 @@ test.describe("settings, one by one", () => {
     const save = page.getByRole("button", { name: "Save interests" });
     await expect(save).toBeEnabled();
     // Down to two: the button turns off and the counter says why.
-    await page.getByRole("button", { name: "Gaming", exact: true }).click();
+    await page.getByRole("button", { name: "Remove Gaming" }).click();
     await expect(save).toBeDisabled();
     await expect(page.getByText("2 of 3 picked")).toBeVisible();
+    // Topics are found by search, including the words Nigerians use (amapiano is a music word).
+    const search = page.getByLabel("Search topics");
+    await search.fill("amapiano");
     await page.getByRole("button", { name: "Music and Gbedu" }).click();
+    await search.fill("parenting");
     await page.getByRole("button", { name: "Parenting" }).click();
+    await search.fill("xyzzy");
+    await expect(page.getByText("No topic matches that.")).toBeVisible();
+    await search.fill("");
+    // Popular topics show first, and the full list sits behind a button.
+    await expect(page.getByText("Popular with Nigerians")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Society" })).toHaveCount(0);
+    await page.getByRole("button", { name: "Browse all topics" }).click();
+    await expect(page.getByRole("heading", { name: "Society" })).toBeVisible();
     await expect(save).toBeEnabled();
     await save.click();
     await expect(page.getByText("Your interests are saved.")).toBeVisible();

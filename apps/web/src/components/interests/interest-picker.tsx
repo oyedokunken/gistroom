@@ -2,17 +2,34 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Check } from "lucide-react";
-import { MAX_INTERESTS, MIN_INTERESTS, canonicalTopicSlug, topicsByGroup } from "@gistroom/shared";
+import { Check, ChevronDown, Search, X } from "lucide-react";
+import {
+  MAX_INTERESTS,
+  MIN_INTERESTS,
+  POPULAR_TOPIC_SLUGS,
+  TOPICS,
+  canonicalTopicSlug,
+  searchTopics,
+  topicBySlug,
+  topicsByGroup,
+  type TopicInfo,
+} from "@gistroom/shared";
 import { useFeedback } from "@/components/feedback/feedback-provider";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/field";
 import { interests as copy } from "@/content/interests";
 import { ApiClientError, apiFetch } from "@/lib/api";
 import { cn } from "@/lib/cn";
 
 const groups = topicsByGroup();
+const popular = POPULAR_TOPIC_SLUGS.map((slug) => TOPICS.find((t) => t.slug === slug)).filter(
+  (t): t is TopicInfo => Boolean(t),
+);
 
-/** Pick between 3 and 8 topics, grouped. Used at the end of onboarding and again in Settings. */
+/**
+ * Pick between 3 and 8 topics. A search box and the popular topics come first, and the full grouped list sits
+ * behind "Browse all topics" so the page is not a wall of chips. Used after onboarding and again in Settings.
+ */
 export function InterestPicker({
   initial,
   to,
@@ -29,6 +46,9 @@ export function InterestPicker({
   const { showError, showInfo } = useFeedback();
   const [picked, setPicked] = useState<string[]>([...new Set(initial.map(canonicalTopicSlug))]);
   const [busy, setBusy] = useState(false);
+  const [query, setQuery] = useState("");
+  const [showAll, setShowAll] = useState(false);
+  const found = searchTopics(query);
   const enough = picked.length >= MIN_INTERESTS;
 
   function toggle(slug: string) {
@@ -60,38 +80,125 @@ export function InterestPicker({
     }
   }
 
+  const chip = (t: TopicInfo) => {
+    const on = picked.includes(t.slug);
+    return (
+      <li key={t.slug}>
+        <button
+          type="button"
+          aria-pressed={on}
+          onClick={() => toggle(t.slug)}
+          className={cn(
+            "inline-flex min-h-11 items-center gap-1.5 rounded-full border px-4 text-[0.9375rem] font-semibold transition-colors",
+            on
+              ? "border-green-600 bg-green-600 text-white"
+              : "border-border bg-surface text-text hover:bg-green-100",
+          )}
+        >
+          {on ? <Check aria-hidden className="size-4" /> : null}
+          {t.name}
+        </button>
+      </li>
+    );
+  };
+
   return (
     <div className="flex flex-col gap-6">
-      {groups.map((g) => (
-        <section key={g.id} aria-labelledby={`interest-${g.id}`} className="flex flex-col gap-2">
-          <h2 id={`interest-${g.id}`} className="text-sm font-bold text-text-muted">
-            {g.label}
-          </h2>
+      <div className="relative">
+        <Search
+          aria-hidden
+          className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-text-muted"
+        />
+        <Input
+          type="text"
+          aria-label={copy.searchLabel}
+          placeholder={copy.searchPlaceholder}
+          value={query}
+          autoComplete="off"
+          onChange={(e) => setQuery(e.target.value)}
+          className="pl-11 pr-12"
+        />
+        {query ? (
+          <button
+            type="button"
+            aria-label={copy.clearSearch}
+            onClick={() => setQuery("")}
+            className="absolute right-1 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-full text-text-muted hover:bg-surface-2"
+          >
+            <X aria-hidden className="size-4" />
+          </button>
+        ) : null}
+      </div>
+
+      {picked.length > 0 ? (
+        <section aria-label={copy.picked} className="flex flex-col gap-2">
+          <h2 className="text-sm font-bold text-text-muted">{copy.picked}</h2>
           <ul className="flex flex-wrap gap-2">
-            {g.topics.map((t) => {
-              const on = picked.includes(t.slug);
+            {picked.map((slug) => {
+              const name = topicBySlug(slug)?.name ?? slug;
               return (
-                <li key={t.slug}>
+                <li key={slug}>
                   <button
                     type="button"
-                    aria-pressed={on}
-                    onClick={() => toggle(t.slug)}
-                    className={cn(
-                      "inline-flex min-h-11 items-center gap-1.5 rounded-full border px-4 text-[0.9375rem] font-semibold transition-colors",
-                      on
-                        ? "border-green-600 bg-green-600 text-white"
-                        : "border-border bg-surface text-text hover:bg-green-100",
-                    )}
+                    aria-label={copy.remove(name)}
+                    onClick={() => toggle(slug)}
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-green-600 px-4 text-[0.9375rem] font-semibold text-white"
                   >
-                    {on ? <Check aria-hidden className="size-4" /> : null}
-                    {t.name}
+                    {name}
+                    <X aria-hidden className="size-4" />
                   </button>
                 </li>
               );
             })}
           </ul>
         </section>
-      ))}
+      ) : null}
+
+      {query.trim() ? (
+        <section aria-label={copy.groupLabel} className="flex flex-col gap-2">
+          {found.length === 0 ? (
+            <p className="text-text-muted">{copy.noMatch}</p>
+          ) : (
+            <ul className="flex flex-wrap gap-2">{found.map(chip)}</ul>
+          )}
+        </section>
+      ) : (
+        <>
+          <section aria-labelledby="interest-popular" className="flex flex-col gap-2">
+            <h2 id="interest-popular" className="text-sm font-bold text-text-muted">
+              {copy.popular}
+            </h2>
+            <ul className="flex flex-wrap gap-2">{popular.map(chip)}</ul>
+          </section>
+          <button
+            type="button"
+            aria-expanded={showAll}
+            onClick={() => setShowAll((v) => !v)}
+            className="inline-flex min-h-11 w-fit items-center gap-2 rounded-full border border-border px-4 text-sm font-semibold text-text hover:bg-surface-2"
+          >
+            {showAll ? copy.hideAll : copy.browse}
+            <ChevronDown
+              aria-hidden
+              className={cn("size-4 transition-transform", showAll && "rotate-180")}
+            />
+          </button>
+          {showAll
+            ? groups.map((g) => (
+                <section
+                  key={g.id}
+                  aria-labelledby={`interest-${g.id}`}
+                  className="flex flex-col gap-2"
+                >
+                  <h2 id={`interest-${g.id}`} className="text-sm font-bold text-text-muted">
+                    {g.label}
+                  </h2>
+                  <ul className="flex flex-wrap gap-2">{g.topics.map(chip)}</ul>
+                </section>
+              ))
+            : null}
+        </>
+      )}
+
       <div className="sticky bottom-0 -mx-1 flex flex-col gap-3 bg-surface/95 px-1 py-3 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
         <p aria-live="polite" className="tabular text-sm font-semibold text-text">
           {enough ? copy.countDone(picked.length) : copy.count(picked.length)}

@@ -66,11 +66,16 @@ test.describe("discover", () => {
     await expect(invited).toContainText("You are invited");
     await expect(page.getByText(`Secret ${tag}`)).toHaveCount(0);
 
-    // No decorative pictures on this page: no scenes and no custom icons.
+    // No decorative pictures in the cards and filters. Only the topic marquee at the very end has icons.
     const sources = await page
-      .locator("img")
-      .evaluateAll((els) => els.map((e) => (e as HTMLImageElement).src));
+      .locator("main img")
+      .evaluateAll((els) =>
+        els
+          .filter((e) => !e.closest("#discover-topics, [aria-labelledby=discover-topics]"))
+          .map((e) => (e as HTMLImageElement).src),
+      );
     expect(sources.filter((s) => /\/images\/(scenes|icons)\//.test(s))).toEqual([]);
+    await expect(page.getByRole("heading", { name: "Browse by topic" })).toBeVisible();
   });
 
   test("filters by topic, language and title, and sorts", async ({ page, context }) => {

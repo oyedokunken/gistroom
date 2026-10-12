@@ -164,7 +164,8 @@ export function useUploads(args: {
     (voice: RecordedVoice) => {
       const clientId = newId();
       const name = `voice-note.${extensionForMime(voice.mime)}`;
-      start(clientId, name, async (_signal, onProgress) => ({
+      // The tray says "Voice note", never the file name. Sending happens in the background.
+      start(clientId, chat.media.voiceNoteLabel, async (_signal, onProgress) => ({
         conversationId: args.conversationId,
         clientId,
         file: voice.blob,

@@ -24,7 +24,12 @@ export function EmojiButton({ onPick }: { onPick: (emoji: string) => void }) {
           <Smile aria-hidden className="size-5" />
         </IconButton>
       </PopoverTrigger>
-      <PopoverContent side="top" align="start" className="overflow-hidden p-0">
+      <PopoverContent
+        side="top"
+        align="start"
+        keepOpenOnFocusOutside
+        className="overflow-hidden p-0"
+      >
         <Picker onPick={onPick} />
       </PopoverContent>
     </Popover>

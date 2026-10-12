@@ -1,5 +1,9 @@
 /** Copy for the Discover page (R10). */
 export const discover = {
+  browseTopics: {
+    title: "Browse by topic",
+    lead: "Tap a topic to see its rooms. Fresh ones come in all the time.",
+  },
   title: "Discover",
   metaTitle: "Discover",
   filters: {

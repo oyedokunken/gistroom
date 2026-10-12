@@ -13,6 +13,7 @@ import {
   type DiscoverSort,
 } from "@gistroom/shared";
 import { PersonActions } from "@/components/friends/person-actions";
+import { TopicCardsMarquee } from "@/components/landing/home-sections";
 import { Avatar } from "@/components/ui/avatar";
 import { Button, buttonStyles } from "@/components/ui/button";
 import { Input } from "@/components/ui/field";
@@ -335,6 +336,15 @@ export function DiscoverView({ initial }: { initial: DiscoverFeed }) {
               </ul>
             </Section>
           ) : null}
+          <Section
+            id="discover-topics"
+            title={copy.browseTopics.title}
+            lead={copy.browseTopics.lead}
+          >
+            <div className="-mx-4 overflow-hidden md:-mx-6">
+              <TopicCardsMarquee />
+            </div>
+          </Section>
         </>
       )}
     </div>

@@ -15,5 +15,7 @@ export const GET = api(async (request) => {
     cursor: params.get("cursor") ?? undefined,
     limit: params.get("limit") ? Number(params.get("limit")) : undefined,
   });
-  return json(await searchPeople(user.id, input.q, input.limit, input.cursor ?? null));
+  return json(
+    await searchPeople(user.id, input.q, input.limit, input.cursor ?? null, user.isInternal),
+  );
 });

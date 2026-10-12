@@ -4,12 +4,35 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ## [Unreleased]
 
+### Production migrations to run
+
+These are applied to the dev and test schemas already. Run them on production with `npm run db:migrate:deploy`, in this order. Nothing was run against production by the build.
+
+- `20261012100000_topics_expand`: the wider topic list.
+- `20261012085415_user_cookie_consent`: the saved cookie choice on the account.
+- `20261012095014_settings_email_change_internal`: email change fields and the internal account flag.
+- `20261012102631_room_settings_reactions_activity`: room settings, room reactions and activity expiry.
+- `20261012140000_room_invite_link_token`: the link token that lets active links show in full.
+
+### Environment
+
+- `DATABASE_POOL_MAX` caps the database pool per process. `QA_PASSWORD` is read only by `npm run seed:qa` and is never stored.
+
 ### Removed
+
+- Room chat is deleted the moment a room ends. The 24 hour keep time is gone, and reports keep their own evidence snapshot.
 
 - The pattern tile placeholder images, their generator and the two unused auth scenes.
 
 ### Added
 
+- Rooms: a searchable topic list, an Audio or Video type, Public or Private wording, room settings that change live (cameras, join muted, who can chat, slow mode, reactions, link sharing, lock), mute audio or turn off video for one person, mute everyone with an optional moderator only unmute, a leave modal for hosts, floating reactions, reactions on chat messages, chat with avatars and role badges, and a summary page for ended rooms with Past rooms for every person.
+- Invite friends by name with a Room invite card in each chat, and invite links that last 1 hour, 12 hours, 1 day or 7 days, show in full with a Copy button and revoke at once. Revoked or expired links say so plainly.
+- Chat: ten quick reactions with a full picker, the edit time on edited messages, a 15 minute window to edit or delete for everyone, and a confirm modal before archiving.
+- Notifications: a detail modal for each item, select and bulk read, unread or delete, an Activity tab with Undo, grouping by day and a Room ended notice.
+- Email: personalised room invite, room starting soon, welcome, room summary and friend request digest messages with a manage preferences link, and a reminder 15 minutes before a scheduled room.
+- Realtime: `/health` reports uptime and socket counts, and socket tests cover every room event.
+- QA: `npm run seed:qa` for six internal accounts, a larger demo world with `npm run seed:demo`, `wiki/QA-Runbook.md` and live tests for moderation and the camera switch.
 - Private notes for every chat and every room, kept by the person who wrote them, with add, edit, delete and search.
 - One search for people by name or username, your chats, public rooms and your notes, opened with Ctrl K, a slash or the search button.
 - The Gistroom floating button on every main screen with Start a room, Find a friend, New chat, Starred and Take the tour, plus a Welcome back message after sign in.
@@ -33,6 +56,10 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 - An axe accessibility check on every public page (`npm run test:a11y`) and `@responsive` tags on the viewport tests (`npm run test:responsive`).
 
 ### Changed
+
+- Modals, menus and popovers now sit above the room screen, so confirmations inside a room are visible.
+- Invite links open the app, where they are checked. A signed out visitor signs in first and returns to the link.
+- Internal QA accounts and their rooms are hidden from search, suggestions, Discover, counts and public pages for everyone else.
 
 - FAQ accordions keep one question open at a time through native named details, highlight yellow on hover and when open, and sit in two columns on desktop.
 - The landing process accordion shows collapsed steps as yellow strips, the open step as a white card, and a transparent wash on hover.

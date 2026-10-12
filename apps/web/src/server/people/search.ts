@@ -35,6 +35,7 @@ export async function searchPeople(
   query: string,
   limit: number,
   cursor: string | null,
+  viewerInternal = false,
 ): Promise<SearchPage> {
   const db = getDb();
   const q = query.trim().toLowerCase();
@@ -58,6 +59,7 @@ export async function searchPeople(
       WHERE u."status" = 'ACTIVE'
         AND u."discoverable" = true
         AND u."onboardedAt" IS NOT NULL
+        AND (u."isInternal" = false OR ${viewerInternal})
         AND u."id" <> ${viewerId}
         AND (u."username" LIKE ${like} OR lower(u."name") LIKE ${like}
              OR similarity(lower(u."name"), ${q}) > 0.3 OR similarity(u."username", ${q}) > 0.3)

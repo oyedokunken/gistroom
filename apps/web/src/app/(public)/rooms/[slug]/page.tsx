@@ -63,6 +63,8 @@ export default async function PublicRoomPage({
   if (!room || room.status === "ENDED") notFound();
 
   const ctx = await getSessionContext().catch(() => null);
+  // Rooms of internal QA accounts do not exist for anyone else.
+  if (room.host.isInternal && !ctx?.user.isInternal) notFound();
   const joinPath = `/app/rooms/${room.slug}`;
 
   // The same screen for a private room and for one that does not exist for you: no title, host or member leaks.

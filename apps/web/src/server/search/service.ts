@@ -15,7 +15,7 @@ export async function searchEverything(me: User, raw: string): Promise<SearchRes
   const db = getDb();
 
   const [people, rooms, chatRows, noteRows] = await Promise.all([
-    searchPeople(me.id, q, PER_GROUP, null),
+    searchPeople(me.id, q, PER_GROUP, null, me.isInternal),
     listPublicRooms({ q }),
     db.conversationMember.findMany({
       where: {

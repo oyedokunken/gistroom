@@ -16,6 +16,7 @@ async function query(filters: RoomFilters): Promise<PublicRoomCard[]> {
   const rooms = await getDb().room.findMany({
     where: {
       visibility: "PUBLIC",
+      host: { isInternal: false },
       status: { in: ["LIVE", "SCHEDULED"] },
       ...(filters.topic ? { topic: { slug: filters.topic } } : {}),
       ...(filters.language ? { language: filters.language } : {}),
@@ -33,7 +34,7 @@ async function query(filters: RoomFilters): Promise<PublicRoomCard[]> {
       host: true,
       topic: true,
       members: {
-        where: { state: "JOINED" },
+        where: { state: "JOINED", user: { isInternal: false } },
         include: { user: true },
         orderBy: { joinedAt: "asc" },
         take: 4,

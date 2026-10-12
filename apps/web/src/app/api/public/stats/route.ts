@@ -6,7 +6,9 @@ export const revalidate = 30;
 export async function GET() {
   let liveRooms = 0;
   try {
-    liveRooms = await getDb().room.count({ where: { visibility: "PUBLIC", status: "LIVE" } });
+    liveRooms = await getDb().room.count({
+      where: { visibility: "PUBLIC", status: "LIVE", host: { isInternal: false } },
+    });
   } catch {
     liveRooms = 0;
   }

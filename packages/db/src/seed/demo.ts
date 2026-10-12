@@ -1,5 +1,5 @@
 import { randomBytes, randomUUID } from "node:crypto";
-import { slugFromBytes } from "@gistroom/shared";
+import { TOPICS, slugFromBytes } from "@gistroom/shared";
 import type { Message, PrismaClient } from "../generated/client";
 
 /** Everything here is labelled as a demo. Emails use example.com and the bios say so (CLAUDE.md Section 22). */
@@ -47,6 +47,37 @@ const PEOPLE: DemoPerson[] = [
   },
   { key: "seun", name: "Seun Ogunleye", interests: ["comedy", "gaming", "campus-life"] },
 ];
+
+const MORE_NAMES = [
+  "Funmi Adebayo",
+  "Ibrahim Sani",
+  "Ifeoma Chukwu",
+  "Segun Fashola",
+  "Amina Yusuf",
+  "Obinna Eze",
+  "Titi Balogun",
+  "Musa Danjuma",
+  "Blessing Etim",
+  "Femi Ojo",
+  "Halima Garba",
+  "Kelechi Nnadi",
+  "Yetunde Coker",
+  "Dayo Salami",
+];
+const topicSlugs = TOPICS.map((t) => t.slug);
+MORE_NAMES.forEach((name, i) => {
+  // Three topics each, walking round the whole list, so every topic ends up with several people.
+  const pick = [0, 1, 2].map((k) => topicSlugs[(i * 3 + k * 5) % topicSlugs.length] ?? "open-gist");
+  PEOPLE.push({ key: name.split(" ")[0]?.toLowerCase() ?? `p${i}`, name, interests: pick });
+});
+// The hand written ten only cover some topics, so make sure each remaining one has someone.
+topicSlugs.forEach((slug, i) => {
+  const taken = PEOPLE.some((p) => p.interests.includes(slug));
+  const person = PEOPLE[10 + (i % MORE_NAMES.length)];
+  if (!taken && person && !person.interests.includes(slug) && person.interests.length < 8) {
+    person.interests.push(slug);
+  }
+});
 
 const emailFor = (key: string) => `demo.${key}@example.com`;
 const orderedPair = (a: string, b: string) => (a < b ? { low: a, high: b } : { low: b, high: a });
@@ -195,7 +226,7 @@ export async function seedDemo(
       title: "Match day gist",
       topic: "football",
       visibility: "PUBLIC" as const,
-      status: "LIVE" as const,
+      status: "SCHEDULED" as const,
       members: ["ada", "chidi", "seun"],
     },
     {
@@ -204,7 +235,7 @@ export async function seedDemo(
       title: "Jollof or no jollof",
       topic: "food-and-chop",
       visibility: "PUBLIC" as const,
-      status: "LIVE" as const,
+      status: "SCHEDULED" as const,
       members: ["kemi", "hauwa"],
     },
     {
@@ -222,7 +253,7 @@ export async function seedDemo(
       title: "Friends only: weekend plans",
       topic: "relationships",
       visibility: "PRIVATE" as const,
-      status: "LIVE" as const,
+      status: "SCHEDULED" as const,
       members: ["tunde", "zainab"],
     },
   ];
@@ -239,16 +270,16 @@ export async function seedDemo(
         description: "Demo room for development only.",
         visibility: r.visibility,
         status: r.status,
-        scheduledFor: r.status === "SCHEDULED" ? new Date(now.getTime() + 2 * 86_400_000) : null,
-        startedAt: r.status === "LIVE" ? now : null,
+        scheduledFor: new Date(now.getTime() + (1 + roomCount) * 86_400_000),
+        startedAt: null,
         livekitRoom: `room_${randomUUID()}`,
         members: {
           create: [
-            { userId: id(r.host), role: "HOST", state: "JOINED", joinedAt: now },
+            { userId: id(r.host), role: "HOST", state: "INVITED" },
             ...r.members.map((m) => ({
               userId: id(m),
-              state: r.status === "LIVE" ? ("JOINED" as const) : ("INVITED" as const),
-              joinedAt: r.status === "LIVE" ? now : null,
+              state: "INVITED" as const,
+              joinedAt: null,
             })),
           ],
         },
@@ -323,6 +354,10 @@ export async function seedDemo(
     });
   }
 
+  roomCount += await seedMoreRooms(db, id, now);
+  messageCount += await seedMoreChats(db, id, now);
+  await seedNotifications(db, id, now);
+
   await db.notification.upsert({
     where: { userId_dedupeKey: { userId: id("ada"), dedupeKey: "seed:welcome" } },
     create: {
@@ -340,4 +375,254 @@ export async function seedDemo(
     messages: messageCount,
     rooms: roomCount,
   };
+}
+
+type IdOf = (key: string) => string;
+
+/** Scheduled public rooms across the topics, and ended rooms with summary numbers. None of them is live. */
+async function seedMoreRooms(db: PrismaClient, id: IdOf, now: Date): Promise<number> {
+  const topics = new Map((await db.topic.findMany()).map((t) => [t.slug, t.id]));
+  const hosts = PEOPLE.map((p) => p.key);
+  let made = 0;
+  for (const [i, topic] of topicSlugs.slice(0, 14).entries()) {
+    const host = hosts[i % hosts.length] ?? "ada";
+    const title = `${TOPICS.find((t) => t.slug === topic)?.name ?? topic}: open gist`;
+    if (await db.room.findFirst({ where: { title, hostId: id(host) } })) continue;
+    await db.room.create({
+      data: {
+        slug: slugFromBytes(randomBytes(12)),
+        hostId: id(host),
+        title,
+        topicId: topics.get(topic) ?? null,
+        description: "Demo room for development only.",
+        language: (["ENGLISH", "PIDGIN", "YORUBA", "IGBO", "HAUSA"] as const)[i % 5] ?? "ENGLISH",
+        media: i % 3 === 0 ? "VIDEO" : "AUDIO",
+        status: "SCHEDULED",
+        scheduledFor: new Date(now.getTime() + (3 + i * 5) * 3_600_000),
+        livekitRoom: `room_${randomUUID()}`,
+        members: { create: { userId: id(host), role: "HOST", state: "INVITED" } },
+      },
+    });
+    made += 1;
+  }
+
+  const ended = [
+    {
+      host: "ada",
+      title: "Last night's match, the full gist",
+      topic: "football",
+      guests: ["tunde", "chidi", "seun", "emeka"],
+      peak: 4,
+      messages: 38,
+      reactions: 21,
+    },
+    {
+      host: "zainab",
+      title: "Owambe season planning",
+      topic: "fashion-and-owambe",
+      guests: ["kemi", "hauwa"],
+      peak: 3,
+      messages: 17,
+      reactions: 9,
+    },
+    {
+      host: "emeka",
+      title: "Getting your first tech job",
+      topic: "careers-and-jobs",
+      guests: ["ngozi", "kemi", "ada"],
+      peak: 4,
+      messages: 52,
+      reactions: 30,
+    },
+    {
+      host: "tunde",
+      title: "Gbedu hour: what is on repeat",
+      topic: "music-and-gbedu",
+      guests: ["bayo", "ada"],
+      peak: 3,
+      messages: 24,
+      reactions: 14,
+    },
+  ];
+  for (const [i, r] of ended.entries()) {
+    if (await db.room.findFirst({ where: { title: r.title, hostId: id(r.host) } })) continue;
+    const started = new Date(now.getTime() - (i + 1) * 2 * 86_400_000);
+    const stopped = new Date(started.getTime() + (45 + i * 20) * 60_000);
+    await db.room.create({
+      data: {
+        slug: slugFromBytes(randomBytes(12)),
+        hostId: id(r.host),
+        title: r.title,
+        topicId: topics.get(r.topic) ?? null,
+        description: "Demo room for development only.",
+        status: "ENDED",
+        startedAt: started,
+        endedAt: stopped,
+        peakParticipants: r.peak,
+        messageCount: r.messages,
+        reactionCount: r.reactions,
+        livekitRoom: `room_${randomUUID()}`,
+        members: {
+          create: [
+            { userId: id(r.host), role: "HOST", state: "LEFT", joinedAt: started, leftAt: stopped },
+            ...r.guests.map((g) => ({
+              userId: id(g),
+              state: "LEFT" as const,
+              joinedAt: started,
+              leftAt: stopped,
+            })),
+          ],
+        },
+      },
+    });
+    made += 1;
+  }
+  return made;
+}
+
+/** A second chat with edits, a deleted message, an image and a voice note, kept archived, plus a starred message. */
+async function seedMoreChats(db: PrismaClient, id: IdOf, now: Date): Promise<number> {
+  const a = id("ada");
+  const b = id("emeka");
+  const { low, high } = orderedPair(a, b);
+  const dmKey = `${low}:${high}`;
+  if (await db.conversation.findUnique({ where: { dmKey } })) return 0;
+  const convo = await db.conversation.create({
+    data: {
+      dmKey,
+      members: { create: [{ userId: a, archivedAt: now }, { userId: b }] },
+    },
+  });
+  const t = (min: number) => new Date(now.getTime() - min * 60_000);
+  const mk = (who: string, body: string | null, min: number, extra: Record<string, unknown> = {}) =>
+    db.message.create({
+      data: {
+        conversationId: convo.id,
+        senderId: id(who),
+        clientId: `seed_${randomUUID()}`,
+        body,
+        createdAt: t(min),
+        ...extra,
+      },
+    });
+  const first = await mk("emeka", "Did you see the new job post?", 120);
+  const edited = await mk("ada", "Yes, I will apply tonight.", 110, { editedAt: t(108) });
+  await mk("emeka", "Sent this by mistake", 100, { deletedForEveryoneAt: t(99) });
+  await mk("emeka", "Here is the screenshot.", 90, { type: "IMAGE" }).then((m) =>
+    db.messageAttachment.create({
+      data: {
+        messageId: m.id,
+        storagePath: "demo/placeholder-image",
+        mime: "image/jpeg",
+        sizeBytes: 120_000,
+        width: 1200,
+        height: 800,
+      },
+    }),
+  );
+  await mk("ada", null, 80, { type: "VOICE" }).then((m) =>
+    db.messageAttachment.create({
+      data: {
+        messageId: m.id,
+        storagePath: "demo/placeholder-voice",
+        mime: "audio/webm",
+        sizeBytes: 40_000,
+        durationMs: 12_000,
+        waveform: Array.from({ length: 64 }, (_, i) => 10 + ((i * 37) % 80)),
+      },
+    }),
+  );
+  const last = await mk("emeka", "Perfect, call me tomorrow.", 70);
+  await db.messageReaction.create({
+    data: { userId: b, messageId: edited.id, emoji: "\u{1F44F}" },
+  });
+  await db.messageStar.create({ data: { userId: a, messageId: first.id } });
+  await db.conversation.update({
+    where: { id: convo.id },
+    data: { lastMessageAt: last.createdAt },
+  });
+  return 6;
+}
+
+/** One notification of every type for Ada, so the Notifications page has something of each kind. */
+async function seedNotifications(db: PrismaClient, id: IdOf, now: Date): Promise<void> {
+  const ada = id("ada");
+  const room = await db.room.findFirst({ where: { hostId: id("tunde") } });
+  const rows: { key: string; type: string; payload: Record<string, unknown>; read?: boolean }[] = [
+    {
+      key: "friend-request",
+      type: "FRIEND_REQUEST_RECEIVED",
+      payload: { fromName: "Chidi Okafor", fromUsername: "demo_chidi" },
+    },
+    {
+      key: "friend-accepted",
+      type: "FRIEND_REQUEST_ACCEPTED",
+      payload: { name: "Zainab Musa" },
+      read: true,
+    },
+    {
+      key: "dm",
+      type: "DM_MESSAGE",
+      payload: { fromName: "Tunde Bakare", preview: "You coming tonight?", count: 2 },
+    },
+    { key: "missed", type: "CALL_MISSED", payload: { fromName: "Emeka Obi" } },
+    {
+      key: "invite",
+      type: "ROOM_INVITE",
+      payload: {
+        fromName: "Tunde Bakare",
+        roomTitle: "Match day gist",
+        roomSlug: room?.slug ?? "",
+      },
+    },
+    {
+      key: "starting",
+      type: "ROOM_STARTING",
+      payload: { roomTitle: "Match day gist", roomSlug: room?.slug ?? "" },
+    },
+    {
+      key: "role",
+      type: "ROOM_ROLE_CHANGED",
+      payload: { role: "moderator", roomTitle: "Match day gist", roomSlug: room?.slug ?? "" },
+      read: true,
+    },
+    {
+      key: "ended",
+      type: "ROOM_ENDED",
+      payload: { roomTitle: "Last night's match, the full gist", roomSlug: room?.slug ?? "" },
+      read: true,
+    },
+    {
+      key: "device",
+      type: "SECURITY_NEW_DEVICE",
+      payload: { device: "Chrome on Windows" },
+      read: true,
+    },
+    { key: "report", type: "REPORT_UPDATE", payload: {}, read: true },
+  ];
+  for (const r of rows) {
+    await db.notification.upsert({
+      where: { userId_dedupeKey: { userId: ada, dedupeKey: `seed:${r.key}` } },
+      create: {
+        userId: ada,
+        type: r.type,
+        dedupeKey: `seed:${r.key}`,
+        payload: r.payload as never,
+        readAt: r.read ? now : null,
+      },
+      update: {},
+    });
+  }
+  await db.notification.upsert({
+    where: { userId_dedupeKey: { userId: ada, dedupeKey: "seed:activity" } },
+    create: {
+      userId: ada,
+      type: "ACTIVITY",
+      dedupeKey: "seed:activity",
+      readAt: now,
+      expiresAt: new Date(now.getTime() + 7 * 86_400_000),
+      payload: { kind: "room-started", text: 'You scheduled "Match day gist".' },
+    },
+    update: {},
+  });
 }

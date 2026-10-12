@@ -41,6 +41,8 @@
     "storage:setup": "node scripts/setup-storage.mjs",
     "e2e:build": "npm run build:e2e -w apps/web",
     "db:seed:reference": "tsx scripts/seed.ts --reference",
+    "seed:demo": "node scripts/assert-safe-db.mjs tsx ../../scripts/seed.ts",
+    "seed:qa": "tsx scripts/seed-qa.ts",
     "db:migrate:deploy": "npm run migrate:deploy -w @gistroom/db"
   },
   "lint-staged": {

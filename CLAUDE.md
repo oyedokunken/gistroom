@@ -276,9 +276,9 @@ Calls and Rooms
 - `Call`: `kind` (DIRECT), `callerId`, `calleeId`, `initialMedia` (AUDIO, VIDEO), `status` (RINGING, ACTIVE, ENDED, MISSED, DECLINED, CANCELLED, BUSY, FAILED), `livekitRoom`, `ringExpiresAt`, `answeredAt`, `endedAt`, `endReason`.
 - `Room`: `slug` (unguessable, public identifier), `hostId`, `title`, `topicId`, `language` (ENGLISH, PIDGIN, YORUBA, IGBO, HAUSA, OTHER), `description`, `visibility` (PUBLIC, PRIVATE), `status` (SCHEDULED, LIVE, ENDED), `scheduledFor`, `startedAt`, `endedAt`, `locked` bool, `maxParticipants` (default 32), `livekitRoom`.
 - `RoomMember`: `roomId`, `userId`, `role` (HOST, MODERATOR, MEMBER), `state` (INVITED, JOINED, LEFT, REMOVED, BANNED), `invitedById`, `joinedAt`, `leftAt`, `graceUntil`.
-- `RoomInviteLink`: `roomId`, `tokenHash`, `createdById`, `expiresAt`, `maxUses`, `usedCount`, `revokedAt`.
+- `RoomInviteLink`: `roomId`, `tokenHash`, `token` (kept so active links show in full to people who may share them), `createdById`, `expiresAt`, `maxUses`, `usedCount`, `revokedAt`.
 - `RoomModLog`: `roomId`, `actorId`, `action` (MUTE, MUTE_ALL, REMOVE, BAN, LOCK, UNLOCK, PROMOTE, DEMOTE, INVITE, LINK_CREATED, LINK_REVOKED, MESSAGE_DELETED, END), `targetId`, `meta`.
-- `RoomMessage`: ephemeral room chat, `roomId`, `senderId`, `clientId`, `body`, `expiresAt` (24 hours after the Room ends, kept only for reports).
+- `RoomMessage`: ephemeral room chat, `roomId`, `senderId`, `clientId`, `body`. Deleted when the Room ends. The Room keeps `messageCount`, `reactionCount` and `peakParticipants` for the summary. `RoomReaction` holds reactions on chat messages.
 - `Topic`: `slug`, `name`, `description` (drives topic pages and the discover filter).
 - `CallLogEntry`: denormalized per user for the Call logs tab: `userId`, `kind` (DIRECT, ROOM), `direction` (INCOMING, OUTGOING, NONE), `outcome` (ANSWERED, MISSED, DECLINED, CANCELLED, BUSY), `mediaType` (AUDIO, VIDEO, MIXED), `peerUserId`, `roomId`, `titleSnapshot`, `searchText`, `startedAt`, `durationSec`. Index `(userId, startedAt desc, id)` and a trigram index on `searchText`.
 
@@ -310,7 +310,10 @@ All event names and payload schemas live in `packages/shared/src/events.ts` as Z
 | `call:incoming`, `call:cancelled`, `call:answered_elsewhere`, `call:ended` | 1:1 call signaling                                           |
 | `room:invite`, `room:started`, `room:ended`                                | Room lifecycle                                               |
 | `room:member_updated`                                                      | role or state change (moderator promoted, removed, banned)   |
-| `room:chat:new`                                                            | ephemeral Room chat message                                  |
+| `room:chat:new`, `room:chat:deleted`                                       | ephemeral Room chat message, live delete                     |
+| `room:settings`, `room:locked`                                             | Room settings or lock changed, clients refetch               |
+| `room:reaction`                                                            | a floating reaction, throttled per person                    |
+| `room:muted`                                                               | a moderator muted your audio or video, or muted everyone     |
 | `session:revoked`                                                          | force sign out of this socket                                |
 
 Rules:
@@ -389,11 +392,12 @@ Rules:
 - **Private Room:** only invited people can enter. Invited means a `RoomMember` row in INVITED or JOINED state. Anyone else who opens the URL sees the "not invited" screen with no title, host or member leak. A valid, unexpired invite link adds the opener to the invite list when they open it signed in (D6). Expired or revoked links show the same "not invited" screen.
 - Roles: HOST, MODERATOR, MEMBER. Moderators can mute, mute all, remove, ban from the Room, lock the Room, delete Room chat messages, copy and forward the Room link, and invite other moderators. Only the host can demote a moderator, transfer host and end the Room for everyone.
 - **Copy and forward link:** moderators and the host can copy the link or forward it to recent chats, or enter a name and search people (name search rules from 9.1). Forwarding a private Room link to a friend also invites them. A forwarded link arrives in the DM as a Room invite card.
-- Invite links expire. Default 24 hours, options 1 hour, 24 hours, 7 days, optional max uses. Revoke any time.
+- Invite links expire. Default 24 hours, options 1 hour, 12 hours, 1 day, 7 days, optional max uses. Active links show in full with Copy, uses and expiry in 12 hour time. Revoke works at once. Members of a public room share the plain room link unless the host turns that off. Only the host and moderators make expiring links.
 - Host leaves: host transfers to the longest-serving moderator, else the longest-present member. If the Room empties it ends after 60 seconds.
 - Rejoin grace: if you drop, you can reclaim your seat and role for 120 seconds.
-- Room end: LiveKit room closed, status ENDED, group dissolves, `CallLogEntry` written per participant, Room chat kept only 24 hours for reports. An ended Room URL shows a "this Room has ended" page with suggestions.
-- Room chat: ephemeral text with emoji, rate limited, report and moderator delete.
+- Room end: LiveKit room closed, status ENDED, group dissolves, `CallLogEntry` written per participant, Room chat deleted at once (reports keep their own evidence snapshot). The Room stays as a record: attendees see a summary (duration, peak, people, messages, reactions, who came, their own notes), the host also sees the moderator action count, everyone else sees "This room has ended". Past rooms lists every Room you hosted or attended.
+- Room chat: ephemeral text with emoji, avatars and role badges, rate limited, senders delete their own and moderators delete any, chat mode (everyone, moderators, off), slow mode, reactions. Floating reactions use the ten fixed reactions in `packages/shared/src/reactions.ts`.
+- Room settings (host and moderators, live, logged): name, description, topic, language, visibility, cameras allowed, join muted, chat mode, reactions, slow mode, members can share the link, only moderators can unmute, lock. Moderators can also turn off one person's video.
 - Same person in two tabs or devices: one seat. The newer connection replaces the older, with a modal on the older.
 - Moderator action log: every moderator action is written to `RoomModLog` and shown to the host in a panel inside the Room.
 - Discover (`/rooms` public, `/app/rooms` authed): live public Rooms sorted by activity, scheduled Rooms, filters for topic and language, search by title. Public page revalidates every 30 seconds.
@@ -469,7 +473,7 @@ A short TTL on calls stops a ring arriving twenty minutes late. After TTL the ca
 
 ### 10.6 In-app notification types
 
-FRIEND_REQUEST_RECEIVED, FRIEND_REQUEST_ACCEPTED, DM_MESSAGE (aggregated per conversation, one row, count updates), CALL_MISSED, ROOM_INVITE, ROOM_STARTING, ROOM_ROLE_CHANGED, SECURITY_NEW_DEVICE, REPORT_UPDATE, SYSTEM. Notices never block the action that caused them, links stay inside the app, one-time events use `dedupeKey`.
+FRIEND_REQUEST_RECEIVED, FRIEND_REQUEST_ACCEPTED, DM_MESSAGE (aggregated per conversation, one row, count updates), CALL_MISSED, ROOM_INVITE, ROOM_STARTING, ROOM_ROLE_CHANGED (also removed and banned), ROOM_ENDED, SECURITY_NEW_DEVICE, REPORT_UPDATE, SYSTEM, and ACTIVITY (a receipt for what the person did, created already read, in the Activity tab only, never pushed or emailed, expires after 7 days). Notices never block the action that caused them, links stay inside the app, one-time events use `dedupeKey`.
 
 ---
 
@@ -728,7 +732,7 @@ Sent only from the web app through Nodemailer. Realtime requests sends through t
 - Transport modes: `console` (default in dev), `capture` (tests, writes to a file, no network), `smtp` (needs `MAIL_ENABLE_REAL=true`). A mailer guard blocks any recipient outside `MAIL_ALLOWED_DOMAINS` in non-production environments. Tests never send real email.
 - Gmail SMTP caps daily volume. The `EmailOutbox` retries failed non-sensitive emails. OTP and security emails are never queued for later (an expired code is useless), they fail loudly and the UI says so.
 - Layout: single column table-based HTML, inline CSS, 600px, brand header with the PNG logo, big readable code block for OTP, preheader text, footer with support address and legal links, dark mode friendly, plain-text alternative for every template, system font fallback stack.
-- Templates (registry with ID, Zod props schema, defaults): `verify-otp`, `reset-otp`, `delete-account-otp`, `account-exists`, `welcome`, `new-device-sign-in`, `missed-call`, `friend-request` (throttled), `room-invite`, `room-starting-soon`, `data-export-ready`, `account-deleted`, `report-received`, `report-resolved`, `contact-received`, `contact-inbox`.
+- Templates (registry with ID, Zod props schema, defaults): `verify-otp`, `reset-otp`, `delete-account-otp`, `account-exists`, `welcome`, `new-device-sign-in`, `missed-call`, `friend-request` (throttled), `room-invite`, `room-starting-soon`, `data-export-ready`, `account-deleted`, `report-received`, `report-resolved`, `contact-received`, `contact-inbox`, `room-ended-summary`, `activity-digest`. Every email that is not a security notice greets by first name, has a specific subject and a manage preferences link, and shows times in the recipient's zone in 12 hour format.
 - `npm run mail:preview` renders every template to `.mail-preview/` (git-ignored). A unit test renders every template with sample props and runs the copy linter over the output.
 
 ---
@@ -900,9 +904,8 @@ export const LIMITS = {
   ROOM_TITLE_MAX: 80,
   ROOM_REJOIN_GRACE_SEC: 120,
   ROOM_EMPTY_END_GRACE_SEC: 60,
-  ROOM_CHAT_RETENTION_HOURS: 24,
   INVITE_LINK_DEFAULT_TTL_HOURS: 24,
-  INVITE_LINK_TTL_OPTIONS_HOURS: [1, 24, 168],
+  INVITE_LINK_TTL_OPTIONS_HOURS: [1, 12, 24, 168],
   // Calls
   CALL_RING_TIMEOUT_SEC: 45,
   // Auth
@@ -920,6 +923,7 @@ export const LIMITS = {
   // Chat
   MESSAGE_MAX_CHARS: 4000,
   DELETE_FOR_EVERYONE_WINDOW_MIN: 15,
+  EDIT_WINDOW_MIN: 15,
   VOICE_NOTE_MAX_SEC: 300,
   IMAGE_MAX_RAW_MB: 15,
   IMAGE_TARGET_KB: 1500,

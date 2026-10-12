@@ -24,9 +24,11 @@ type Row = Prisma.RoomGetPayload<{
  * Rooms the viewer is allowed to see on Discover: every public room that is live or coming up, plus private rooms
  * they are invited to or already in. Anything else is invisible, so a private room never leaks its title.
  */
-function visibleTo(viewerId: string): Prisma.RoomWhereInput {
+function visibleTo(viewerId: string, viewerInternal = false): Prisma.RoomWhereInput {
   return {
     status: { in: ["LIVE", "SCHEDULED"] },
+    // Rooms run by internal QA accounts are only seen by other internal accounts.
+    ...(viewerInternal ? {} : { host: { isInternal: false } }),
     OR: [
       { visibility: "PUBLIC" },
       {
@@ -98,14 +100,14 @@ export async function discoverFeed(viewer: User, query: DiscoverQuery): Promise<
 
   const [rows, topicRows, people] = await Promise.all([
     db.room.findMany({
-      where: { AND: [visibleTo(viewer.id), ...filters] },
+      where: { AND: [visibleTo(viewer.id, viewer.isInternal), ...filters] },
       include,
       orderBy: [{ startedAt: "desc" }, { scheduledFor: "asc" }],
       take: ROOM_LIMIT,
     }),
     db.room.groupBy({
       by: ["topicId"],
-      where: visibleTo(viewer.id),
+      where: visibleTo(viewer.id, viewer.isInternal),
       _count: { _all: true },
     }),
     suggestedPeople(viewer.id, interests, viewer.isInternal),

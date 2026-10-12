@@ -25,11 +25,13 @@ export const validation = {
 export const passwordMessages = {
   required: "Enter a password.",
   loginRequired: "Enter your password.",
-  TOO_SHORT: "Use at least 8 characters.",
+  TOO_SHORT: "Use at least 10 characters.",
+  NEEDS_MIX: "Use upper and lower case letters and a number, or make it 16 characters or longer.",
   TOO_LONG: "Use 128 characters or fewer.",
   COMMON: "That password is too easy to guess. Try a longer one.",
   SAME_AS_EMAIL: "Do not use your email address as your password.",
   SAME_AS_NAME: "Do not use your name as your password.",
   ONE_CHARACTER: "Use more than one kind of character.",
   mismatch: "The two passwords do not match.",
+  tooWeak: "That password is too easy to guess. Make it longer or less predictable.",
 } as const;

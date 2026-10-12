@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { levelFor } from "../../apps/web/src/lib/password-strength";
+import { safeNext } from "../../apps/web/src/server/auth/google";
 import {
   PASSWORD_MAX,
   PASSWORD_MIN,
@@ -7,6 +9,7 @@ import {
   onboardingSchema,
   passwordIssue,
   passwordMessages,
+  passwordChecks,
   resetCompleteSchema,
 } from "../../packages/shared/src";
 import {
@@ -71,7 +74,9 @@ describe("password rules", () => {
     expect(passwordIssue("kenny@example.com", { email: "kenny@example.com" })).toBe(
       "SAME_AS_EMAIL",
     );
-    expect(passwordIssue("kennyoye", { email: "kennyoye@example.com" })).toBe("SAME_AS_EMAIL");
+    expect(passwordIssue("kennyoyedokun", { email: "kennyoyedokun@example.com" })).toBe(
+      "SAME_AS_EMAIL",
+    );
     expect(passwordIssue("Tunde Bakare", { name: "tunde bakare" })).toBe("SAME_AS_NAME");
   });
   it("gives the form the same messages", () => {
@@ -149,5 +154,38 @@ describe("account state and the next sign up step", () => {
     expect(nextAuthStep({ ...base, passwordHash: "x" })).toBe("onboarding");
     expect(nextAuthStep({ ...base, googleLinked: true })).toBe("onboarding");
     expect(nextAuthStep({ ...base, passwordHash: "x", onboardedAt: new Date() })).toBe("done");
+  });
+});
+
+describe("password checks and levels", () => {
+  it("asks for a mix of letters and a number unless the passphrase is long", () => {
+    expect(passwordIssue("alllowercaseonly")).toBeNull();
+    expect(passwordIssue("alllower12")).toBe("NEEDS_MIX");
+    expect(passwordIssue("Mixed12345")).toBeNull();
+    expect(passwordChecks("Mixed1234!").symbol).toBe(true);
+    expect(passwordChecks("mixed1234").mixedCase).toBe(false);
+  });
+  it("rates a password weak, okay or strong from the estimator and the rules", () => {
+    const strong = passwordChecks("Tr0ub4dor&3xyz!");
+    expect(levelFor(null, true, strong)).toBe("weak");
+    expect(levelFor(1, true, strong)).toBe("weak");
+    expect(levelFor(4, false, strong)).toBe("weak");
+    expect(levelFor(2, true, strong)).toBe("okay");
+    expect(levelFor(4, true, strong)).toBe("strong");
+    expect(levelFor(3, true, passwordChecks("alllowercaseonlyok"))).toBe("okay");
+    expect(levelFor(4, true, passwordChecks("alllowercaseonlyok"))).toBe("strong");
+  });
+});
+
+describe("the next path after sign in", () => {
+  it("only ever keeps a single slash path on this site", () => {
+    expect(safeNext("/app/chats")).toBe("/app/chats");
+    expect(safeNext("/password?next=%2Fapp%2Fchats")).toBe("/password?next=%2Fapp%2Fchats");
+    expect(safeNext("https://evil.example")).toBe("/app/chats");
+    expect(safeNext("//evil.example")).toBe("/app/chats");
+    expect(safeNext("/\\evil.example")).toBe("/app/chats");
+    expect(safeNext("javascript:alert(1)")).toBe("/app/chats");
+    expect(safeNext(undefined)).toBe("/app/chats");
+    expect(safeNext("")).toBe("/app/chats");
   });
 });

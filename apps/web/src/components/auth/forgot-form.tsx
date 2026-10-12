@@ -5,13 +5,20 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { newPasswordSchema, resetStartSchema, otpCodeSchema } from "@gistroom/shared";
+import {
+  newPasswordSchema,
+  otpCodeSchema,
+  passwordMessages,
+  resetStartSchema,
+} from "@gistroom/shared";
 import { z } from "zod";
 import { useFeedback } from "@/components/feedback/feedback-provider";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import { OtpInput } from "@/components/ui/otp-input";
 import { PasswordInput } from "@/components/ui/password-input";
+import { PasswordStrength } from "@/components/ui/password-strength";
+import { usePasswordStrength } from "@/lib/password-strength";
 import { auth } from "@/content/auth";
 import { ApiClientError, apiFetch } from "@/lib/api";
 
@@ -35,6 +42,9 @@ export function ForgotForm({ initialEmail }: { initialEmail: string }) {
     defaultValues: { code: "", password: "" },
   });
 
+  const newPassword = form.watch("password");
+  const strength = usePasswordStrength(newPassword);
+
   useEffect(() => {
     if (wait <= 0) return;
     const id = window.setTimeout(() => setWait((w) => w - 1), 1000);
@@ -56,6 +66,10 @@ export function ForgotForm({ initialEmail }: { initialEmail: string }) {
 
   async function save(values: NewPasswordValues) {
     if (!sentTo) return;
+    if (!strength.acceptable) {
+      form.setError("password", { message: passwordMessages.tooWeak });
+      return;
+    }
     try {
       const res = await apiFetch<{ needsOnboarding: boolean }>("/api/auth/reset/verify", {
         body: { email: sentTo, ...values },
@@ -134,6 +148,7 @@ export function ForgotForm({ initialEmail }: { initialEmail: string }) {
               />
             )}
           </Field>
+          <PasswordStrength strength={strength} />
           <Button type="submit" loading={form.formState.isSubmitting} className="min-h-12">
             {form.formState.isSubmitting ? copy.submitting : copy.submit}
           </Button>

@@ -22,9 +22,10 @@ export default async function PasswordPage({
   if (ctx.user.passwordHash) {
     redirect(ctx.user.onboardedAt ? next : `/onboarding?next=${encodeURIComponent(next)}`);
   }
+  const intro = ctx.user.onboardedAt ? "existing" : "signup";
   return (
     <AuthShell artId={authArt.onboarding}>
-      <PasswordForm next={next} />
+      <PasswordForm next={next} intro={intro} />
     </AuthShell>
   );
 }

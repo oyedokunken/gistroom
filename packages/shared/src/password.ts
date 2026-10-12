@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { passwordMessages } from "./content/validation";
 
-export const PASSWORD_MIN = 8;
+export const PASSWORD_MIN = 10;
+/** From this length a passphrase needs no mix of letter cases and digits. Length does the work. */
+export const PASSPHRASE_LENGTH = 16;
 export const PASSWORD_MAX = 128;
 
 /** A short list of passwords that people really pick. Anything on it is refused. */
@@ -35,7 +37,32 @@ const COMMON = new Set([
 ]);
 
 export type PasswordIssue =
-  "TOO_SHORT" | "TOO_LONG" | "COMMON" | "SAME_AS_EMAIL" | "ONE_CHARACTER" | "SAME_AS_NAME";
+  | "TOO_SHORT"
+  | "TOO_LONG"
+  | "COMMON"
+  | "SAME_AS_EMAIL"
+  | "ONE_CHARACTER"
+  | "SAME_AS_NAME"
+  | "NEEDS_MIX";
+
+export interface PasswordChecks {
+  length: boolean;
+  mixedCase: boolean;
+  number: boolean;
+  symbol: boolean;
+  notCommon: boolean;
+}
+
+/** The checklist the form shows. Symbol is encouraged, never required. */
+export function passwordChecks(password: string): PasswordChecks {
+  return {
+    length: password.length >= PASSWORD_MIN,
+    mixedCase: /[a-z]/.test(password) && /[A-Z]/.test(password),
+    number: /[0-9]/.test(password),
+    symbol: /[^A-Za-z0-9]/.test(password),
+    notCommon: !COMMON.has(password.toLowerCase()),
+  };
+}
 
 /** Rules a new password must meet. Pure, so the form and the server agree. */
 export function passwordIssue(
@@ -60,6 +87,9 @@ export function passwordIssue(
     lower === context.name.trim().toLowerCase()
   )
     return "SAME_AS_NAME";
+  const checks = passwordChecks(password);
+  if (password.length < PASSPHRASE_LENGTH && !(checks.mixedCase && checks.number))
+    return "NEEDS_MIX";
   return null;
 }
 

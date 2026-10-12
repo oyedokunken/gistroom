@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Lock, Mic, Plus } from "lucide-react";
 import { LANGUAGE_LABELS, type PublicRoomCard, type RoomDto } from "@gistroom/shared";
 import { PageShell } from "@/components/app/page-shell";
+import { FabRegister } from "@/components/fab/fab-register";
 import { CreateRoomModal } from "@/components/room/create-room-modal";
 import { RoomsExplorer } from "@/components/public/rooms-explorer";
 import { Badge } from "@/components/ui/badge";
@@ -100,6 +101,7 @@ export function RoomsHome({
         initialQuery=""
         initialFailed={initialFailed}
       />
+      <FabRegister place="rooms" />
       <CreateRoomModal open={creating} onOpenChange={setCreating} />
     </PageShell>
   );

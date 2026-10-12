@@ -28,7 +28,7 @@ export function PageShell({
       <div
         data-page-shell={variant}
         className={cn(
-          "mx-auto w-full px-4 py-6 md:px-6",
+          "mx-auto w-full px-4 pb-28 pt-6 md:px-6",
           variant === "full" ? "max-w-[1400px]" : "max-w-[720px]",
           className,
         )}

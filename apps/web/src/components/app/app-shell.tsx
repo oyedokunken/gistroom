@@ -21,7 +21,7 @@ import { LogoMark } from "@/components/brand/logo-mark";
 import { AvatarMenu } from "@/components/app/avatar-menu";
 import { TourHost, startTour } from "@/components/app/tour";
 import { WelcomeBack } from "@/components/app/welcome-back";
-import { ChatFab } from "@/components/chat/chat-fab";
+import { FabHost } from "@/components/fab/fab-host";
 import { SearchDialog, openSearch } from "@/components/search/search-dialog";
 import { appNav } from "@/content/app";
 import { nav } from "@/content/landing";
@@ -218,7 +218,7 @@ export function AppShell({ user, children }: { user: MeUser; children: ReactNode
           </ul>
         </nav>
 
-        <ChatFab />
+        <FabHost />
         <SearchDialog />
         <TourHost autoStart={false} />
         <Suspense fallback={null}>

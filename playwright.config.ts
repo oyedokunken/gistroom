@@ -20,7 +20,11 @@ const dbEnv: Record<string, string> = testUrl
       CRON_SECRET: "c".repeat(24),
       MAIL_TRANSPORT: "capture",
       MAIL_ALLOWED_DOMAINS: "example.com",
-      GOOGLE_MODE: "mock",
+      GOOGLE_MODE: "real",
+      LIVEKIT_URL: "wss://livekit.invalid",
+      LIVEKIT_API_KEY: "e2ekey",
+      LIVEKIT_API_SECRET: "e2esecret-e2esecret-e2esecret-1234",
+      NEXT_PUBLIC_LIVEKIT_URL: "wss://livekit.invalid",
       APP_URL: `http://localhost:${PORT}`,
       NEXT_PUBLIC_APP_URL: `http://localhost:${PORT}`,
     }

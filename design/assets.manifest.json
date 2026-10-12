@@ -2164,6 +2164,91 @@
       "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
       "status": "DRAFT",
       "createdAt": "2026-10-12T08:50:49.507Z"
+    },
+    {
+      "id": "fab-chat",
+      "placement": "Floating button glyph: chat",
+      "master": "design/masters/fab/chat.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "fab/chat.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/fab-icons.mjs: white and yellow glyph for the green floating button, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-12T09:42:33.331Z"
+    },
+    {
+      "id": "fab-call",
+      "placement": "Floating button glyph: call",
+      "master": "design/masters/fab/call.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "fab/call.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/fab-icons.mjs: white and yellow glyph for the green floating button, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-12T09:42:33.331Z"
+    },
+    {
+      "id": "fab-friends",
+      "placement": "Floating button glyph: friends",
+      "master": "design/masters/fab/friends.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "fab/friends.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/fab-icons.mjs: white and yellow glyph for the green floating button, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-12T09:42:33.331Z"
+    },
+    {
+      "id": "fab-room",
+      "placement": "Floating button glyph: room",
+      "master": "design/masters/fab/room.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "fab/room.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/fab-icons.mjs: white and yellow glyph for the green floating button, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-12T09:42:33.331Z"
+    },
+    {
+      "id": "fab-discover",
+      "placement": "Floating button glyph: discover",
+      "master": "design/masters/fab/discover.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "fab/discover.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/fab-icons.mjs: white and yellow glyph for the green floating button, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-12T09:42:33.331Z"
     }
   ]
 }

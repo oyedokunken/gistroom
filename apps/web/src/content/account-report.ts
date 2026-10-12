@@ -1,7 +1,7 @@
 /** Words in the PDF a person downloads from Settings. Plain English, no slang (Section 18). */
 export const dataReport = {
   title: "Your Gistroom data report",
-  madeOn: (when: string) => `Made on ${when}.`,
+  madeOn: (when: string) => `Made on ${when}`,
   note: "This is a copy of what you gave Gistroom. It does not include other people's messages.",
   profile: "Profile",
   name: "Name",
@@ -27,8 +27,31 @@ export const dataReport = {
     `Showing the latest ${shown} of ${total}. Your account still holds the rest.`,
   since: (when: string) => `since ${when}`,
   lastSeen: (when: string) => `last seen ${when}`,
-  signedOut: "signed out",
+  signedOut: "Signed out",
+  active: "Signed in",
   unknownDevice: "Unknown device",
+  tileFriends: "Friends",
+  tileCalls: "Calls",
+  tileHosted: "Rooms hosted",
+  tileJoined: "Rooms joined",
+  tileMessages: "Messages",
+  footerBrand: "gistroom.ng",
+  footerMade: (when: string) => `Made ${when}`,
+  footerPage: (n: number, total: number) => `Page ${n} of ${total}`,
+  mediaLabel: (m: string) => (m === "VIDEO" ? "Video" : m === "AUDIO" ? "Audio" : "Mixed"),
+  outcomeLabel: (o: string) =>
+    ({
+      ANSWERED: "Answered",
+      MISSED: "Missed",
+      DECLINED: "Declined",
+      CANCELLED: "Cancelled",
+      BUSY: "Busy",
+    })[o] ?? o.toLowerCase(),
+  statusLabel: (s: string) =>
+    ({ LIVE: "Live", ENDED: "Ended", SCHEDULED: "Scheduled" })[s] ?? s.toLowerCase(),
+  visibilityLabel: (v: string) => (v === "PRIVATE" ? "Private" : "Public"),
+  roleLabel: (r: string) =>
+    ({ HOST: "Host", MODERATOR: "Moderator", MEMBER: "Member" })[r] ?? r.toLowerCase(),
   fileName: (username: string) => `gistroom-${username}.pdf`,
   notifyTitle: "Data report downloaded",
   notifyBody:

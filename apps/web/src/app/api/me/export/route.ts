@@ -1,6 +1,7 @@
 import { api } from "@/server/http";
 import { buildExport } from "@/server/account/service";
-import { buildReportPdf } from "@/server/account/report";
+import { buildReportPdf, loadAvatarJpeg } from "@/server/account/report";
+import { avatarUrl } from "@gistroom/db";
 import { requireRecentAuth, requireUser } from "@/server/auth/session";
 import { notify } from "@/server/notifications/service";
 import { dataReport } from "@/content/account-report";
@@ -14,7 +15,8 @@ export const GET = api(async () => {
   // A copy of everything someone gave Gistroom is a sensitive download. Accounts with a password prove it again first.
   if (user.passwordHash) requireRecentAuth(ctx);
   const data = await buildExport(user);
-  const pdf = buildReportPdf(data, user.timezone ?? "Africa/Lagos");
+  const avatar = await loadAvatarJpeg(avatarUrl(user.avatarPath));
+  const pdf = buildReportPdf(data, user.timezone ?? "Africa/Lagos", avatar);
   void notify({
     userId: user.id,
     type: "SYSTEM",

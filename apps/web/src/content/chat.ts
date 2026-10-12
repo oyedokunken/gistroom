@@ -226,6 +226,7 @@ export const chat = {
     removeUpload: "Remove",
     heic: "This photo format is not supported yet. Take a screenshot of it, or save it as a JPEG, then try again.",
     voiceNoteLabel: "Voice note",
+    sending: "Sending...",
     voiceStart: "Record a voice note",
     voiceStop: "Send voice note",
     voiceCancel: "Cancel recording",

@@ -23,6 +23,11 @@ These are applied to the dev and test schemas already. Run them on production wi
 
 ### Test data and polish
 
+- What you send in a chat (photo, video, voice note, file) now shows in the thread as a dulled bubble that says Sending until it is done, instead of a loading tray. A failed one offers Retry and Remove.
+- The data report PDF has the Gistroom logo on a green cover band, your picture or initials, a numbers strip, tidy lists, 12 hour times and a footer with the time and page numbers.
+- The call log filters People and Rooms, and search matches room titles. Settings, Devices says Active now for this device. Settings, Install shows Installed or Not installed. Past rooms use two columns on desktop. Global search has All, People, Chats, Rooms and Notes filters. FAQ items are white, yellow on hover and green when open. Voice notes no longer overflow their bubble.
+- On phones, sections with an icon and a picture hide the icon and put the picture first, left aligned.
+
 - Calls have reactions: the smile button opens the ten reactions, and they float up on both screens, sent over the call itself with no server in between.
 - A deleted message reads You deleted a message to the person who deleted it and This message was deleted to everyone else, in chats and in room chat. Room chat messages can be edited for 15 minutes and show Edited, like chats.
 - Every chat in the list has an options menu with View profile, Mute and Archive, so you can reach a profile without opening the chat.

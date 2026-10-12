@@ -31,6 +31,7 @@ import { ChatBubble } from "./chat-bubble";
 import { ChatSettings, ReportDialog, StarredDialog } from "./chat-dialogs";
 import { Composer } from "./composer";
 import { MessageList } from "./message-list";
+import { PendingUploads } from "./uploads";
 import { TypingBubble } from "./typing-bubble";
 
 const DELETE_WINDOW_MS = LIMITS.DELETE_FOR_EVERYONE_WINDOW_MIN * 60_000;
@@ -495,7 +496,12 @@ export function ThreadView({
               </p>
             ) : null
           }
-          footer={peerTyping && live && peer ? <TypingBubble name={peer.name} /> : null}
+          footer={
+            <>
+              <PendingUploads conversationId={conversationId} />
+              {peerTyping && live && peer ? <TypingBubble name={peer.name} /> : null}
+            </>
+          }
         />
       )}
 

@@ -9,7 +9,7 @@ import { useDrafts } from "@/lib/chat/drafts";
 import { useRealtime } from "@/lib/realtime/provider";
 import { cn } from "@/lib/cn";
 import { EmojiButton } from "./emoji-button";
-import { AttachButton, UploadTray, useUploads } from "./uploads";
+import { AttachButton, useUploads } from "./uploads";
 import { VoiceRecorderBar, useVoiceRecorder } from "./voice-recorder";
 
 export interface ComposerProps {
@@ -171,7 +171,6 @@ export function Composer({
           </IconButton>
         </div>
       ) : null}
-      <UploadTray items={uploads.items} onRetry={uploads.retry} onCancel={uploads.cancel} />
       {voice.recording ? (
         <VoiceRecorderBar elapsed={voice.elapsed} onStop={voice.stop} onCancel={voice.cancel} />
       ) : (

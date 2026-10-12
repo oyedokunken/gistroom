@@ -20,6 +20,8 @@ test.describe("settings, one by one", () => {
     await signIn(context, me);
     await page.goto("/app/settings/profile");
 
+    // Wait for the form to be filled in by the page before typing, so typing cannot race hydration.
+    await expect(page.getByLabel("Name", { exact: true })).toHaveValue("Profile Person");
     await page.getByLabel("Name", { exact: true }).fill("Profile Renamed");
     await page.getByLabel("Bio").fill("I talk about football.");
 
@@ -196,7 +198,7 @@ test.describe("settings, one by one", () => {
     await page.goto("/app/settings/account");
 
     const download = page.waitForEvent("download");
-    await page.getByRole("link", { name: "Download my data" }).click();
+    await page.getByRole("button", { name: "Download my data" }).click();
     const file = await download;
     expect(file.suggestedFilename()).toBe(`gistroom-${me.user.username}.json`);
     const path = await file.path();

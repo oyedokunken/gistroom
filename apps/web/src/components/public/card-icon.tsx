@@ -59,7 +59,21 @@ export type CardIconName =
   | "interests"
   | "notes"
   | "search"
-  | "welcome-back";
+  | "welcome-back"
+  | "news"
+  | "history"
+  | "culture"
+  | "marriage"
+  | "parenting"
+  | "crypto"
+  | "real-estate"
+  | "agriculture"
+  | "series"
+  | "art"
+  | "pop-culture"
+  | "other-sports"
+  | "science"
+  | "travel";
 
 /**
  * The custom Gistroom icon for a card. Every icon sits in the same square area, so cards line up. It lifts and

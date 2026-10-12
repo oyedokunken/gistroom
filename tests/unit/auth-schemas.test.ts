@@ -89,9 +89,12 @@ describe("interests and the sign in identifier", () => {
     expect(msg("")).toBe("Enter your email or username.");
   });
   it("accepts known topics and refuses unknown or too many", () => {
-    expect(interestsSchema.safeParse({ topics: ["football", "comedy"] }).success).toBe(true);
+    expect(interestsSchema.safeParse({ topics: ["football", "comedy", "gaming"] }).success).toBe(
+      true,
+    );
+    expect(interestsSchema.safeParse({ topics: ["football", "comedy"] }).success).toBe(false);
     expect(interestsSchema.safeParse({ topics: ["not-a-topic"] }).success).toBe(false);
-    expect(interestsSchema.safeParse({ topics: [] }).success).toBe(true);
+    expect(interestsSchema.safeParse({ topics: [] }).success).toBe(false);
     const many = TOPICS.slice(0, MAX_INTERESTS + 1).map((t) => t.slug);
     expect(interestsSchema.safeParse({ topics: many }).success).toBe(false);
   });

@@ -3,7 +3,7 @@ import { LIMITS } from "./limits";
 import { validation } from "./content/validation";
 import { RESERVED_USERNAMES } from "./reserved-usernames";
 import { loginPasswordSchema, newPasswordSchema } from "./password";
-import { MAX_INTERESTS, TOPICS } from "./topics";
+import { MAX_INTERESTS, MIN_INTERESTS, TOPICS, canonicalTopicSlug } from "./topics";
 
 export const emailSchema = z
   .string({ required_error: validation.emailRequired })
@@ -119,8 +119,17 @@ export type PeopleSearchInput = z.infer<typeof peopleSearchSchema>;
 export const interestsSchema = z.object({
   topics: z
     .array(
-      z.string().refine((slug) => TOPICS.some((t) => t.slug === slug), validation.topicUnknown),
+      z
+        .string()
+        .transform(canonicalTopicSlug)
+        .refine((slug) => TOPICS.some((t) => t.slug === slug), validation.topicUnknown),
     )
-    .max(MAX_INTERESTS, validation.interestsTooMany(MAX_INTERESTS)),
+    .transform((slugs) => [...new Set(slugs)])
+    .pipe(
+      z
+        .array(z.string())
+        .min(MIN_INTERESTS, validation.interestsTooFew(MIN_INTERESTS))
+        .max(MAX_INTERESTS, validation.interestsTooMany(MAX_INTERESTS)),
+    ),
 });
 export type InterestsInput = z.infer<typeof interestsSchema>;

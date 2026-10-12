@@ -147,7 +147,7 @@ export function TopicsStrip() {
 
 /** A fresh custom icon for every topic, drawn by scripts/graphics/icons.mjs. */
 const TOPIC_CARD_ICONS: Record<string, CardIconName> = Object.fromEntries(
-  TOPICS.map((t) => [t.slug, t.slug as CardIconName]),
+  TOPICS.map((t) => [t.slug, t.icon as CardIconName]),
 );
 
 /**

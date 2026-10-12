@@ -107,6 +107,20 @@ const ICONS = {
   notes: `<rect x="20" y="14" width="44" height="62" rx="6" fill="${YT}" ${stroke(K, 3.5)}/><path d="M28 30 H56 M28 40 H56 M28 50 H46" ${stroke(G, 3.5)}/><path d="M60 52 L80 32 L88 40 L68 60 L58 62 Z" fill="${Y}" ${stroke(K, 3.5)}/><path d="M74 38 L82 46" ${stroke(K, 3)}/>`,
   search: `<circle cx="42" cy="42" r="24" fill="${W}" ${stroke(G, 6)}/><path d="M60 60 L80 80" ${stroke(K, 7)}/>${star(66, 24, 10, Y)}<path d="M30 40 C32 34 38 32 42 33" ${stroke(G, 3.5)}/>`,
   "welcome-back": `<path d="M22 46 L48 22 L74 46 V76 H22 Z" fill="${G}" ${stroke(K, 3.5)}/><rect x="40" y="52" width="16" height="24" rx="3" fill="${Y}"/><circle cx="52" cy="64" r="1.8" fill="${K}"/><path d="M16 48 L48 18 L80 48" ${stroke(K, 4.5)}/><path d="M72 18 C76 14 82 16 82 22 M78 12 C84 8 90 12 90 18" ${stroke(Y, 3.5)}/>`,
+  news: `<rect x="16" y="20" width="64" height="56" rx="6" fill="${W}" ${stroke(K, 3.5)}/><rect x="24" y="28" width="22" height="16" rx="2" fill="${G}"/><path d="M52 31 H72 M52 39 H72 M52 47 H66 M24 55 H72 M24 63 H72" ${stroke(K, 3)}/><circle cx="72" cy="20" r="8" fill="${Y}"/>`,
+  history: `<path d="M30 16 H66 M30 80 H66" ${stroke(K, 4.5)}/><path d="M34 16 C34 40 62 40 62 16 M34 80 C34 56 62 56 62 80" ${stroke(K, 4.5)}/><path d="M40 24 H56 L48 36 Z" fill="${Y}"/><path d="M40 74 H56 L48 60 Z" fill="${G}"/>`,
+  culture: `<path d="M28 22 C40 36 56 36 68 22 V28 C58 44 58 52 68 68 V74 C56 60 40 60 28 74 V68 C38 52 38 44 28 28 Z" fill="${G}" ${stroke(K, 3.5)}/><path d="M32 32 L64 66 M64 32 L32 66" ${stroke(Y, 3.5)}/><path d="M74 26 L84 14" ${stroke(K, 4)}/><circle cx="85" cy="13" r="4.5" fill="${Y}"/>`,
+  marriage: `<circle cx="38" cy="54" r="18" ${stroke(Y, 7)}/><circle cx="58" cy="54" r="18" ${stroke(G, 7)}/><polygon points="48,24 56,14 64,24 56,34" fill="${W}" ${stroke(K, 3)}/>`,
+  parenting: `${person(34, 34, "#8C5B3A", G)}${person(66, 52, "#A47049", Y)}<path d="M46 62 H56" ${stroke(K, 3.5)}/>`,
+  crypto: `<circle cx="48" cy="48" r="30" fill="${Y}" ${stroke(K, 4)}/><circle cx="48" cy="48" r="22" ${stroke(K, 3)}/><path d="M38 62 V34 L58 62 V34 M32 44 H64 M32 52 H64" ${stroke(K, 4.5)}/>`,
+  "real-estate": `<path d="M16 46 L48 20 L80 46 V76 H16 Z" fill="${G}" ${stroke(K, 3.5)}/><rect x="40" y="52" width="16" height="24" rx="3" fill="${Y}"/><circle cx="72" cy="66" r="7" ${stroke(Y, 4.5)}/><path d="M78 72 L88 82 M84 78 L88 74" ${stroke(Y, 4.5)}/>`,
+  agriculture: `<path d="M48 82 V42" ${stroke(G, 5)}/><path d="M48 58 C34 58 28 46 30 36 C42 36 48 46 48 58 Z M48 50 C62 50 68 38 66 28 C54 28 48 38 48 50 Z" fill="${G}"/><circle cx="48" cy="26" r="9" fill="${Y}"/><path d="M28 82 H68" ${stroke(K, 4)}/>`,
+  series: `<rect x="14" y="26" width="68" height="46" rx="7" fill="${K}"/><rect x="20" y="32" width="56" height="34" rx="3" fill="${GT}"/><path d="M42 40 L58 49 L42 58 Z" fill="${G}"/><path d="M34 78 H62 M36 26 L28 14 M60 26 L68 14" ${stroke(K, 4)}/>`,
+  art: `<path d="M48 16 C26 16 14 32 14 46 C14 62 28 76 44 76 C52 76 54 70 50 64 C46 58 52 54 58 54 H70 C80 54 84 46 82 40 C78 26 64 16 48 16 Z" fill="${W}" ${stroke(K, 3.5)}/><circle cx="32" cy="42" r="5" fill="${G}"/><circle cx="46" cy="30" r="5" fill="${Y}"/><circle cx="62" cy="34" r="5" fill="${R}"/><circle cx="36" cy="58" r="5" fill="${K}"/>`,
+  "pop-culture": `${star(48, 50, 28, Y)}${star(20, 24, 9, G)}${star(76, 26, 8, G)}${star(72, 76, 9, K)}`,
+  "other-sports": `<circle cx="48" cy="48" r="30" fill="${Y}" ${stroke(K, 4)}/><path d="M18 48 H78 M48 18 V78 M26 28 C38 38 38 58 26 68 M70 28 C58 38 58 58 70 68" ${stroke(K, 3.5)}/>`,
+  science: `<path d="M38 16 H58 M42 16 V38 L24 68 C20 76 26 82 32 82 H64 C70 82 76 76 72 68 L54 38 V16" fill="${W}" ${stroke(K, 4)}/><path d="M29 64 H67 L72 72 C74 78 70 80 64 80 H32 C26 80 22 78 25 72 Z" fill="${G}"/><circle cx="46" cy="52" r="3" fill="${Y}"/><circle cx="56" cy="44" r="2.5" fill="${Y}"/>`,
+  travel: `<path d="M48 14 C34 14 26 24 26 36 C26 52 48 78 48 78 C48 78 70 52 70 36 C70 24 62 14 48 14 Z" fill="${G}" ${stroke(K, 3.5)}/><circle cx="48" cy="36" r="9" fill="${W}"/><path d="M20 86 H76" ${stroke(Y, 5)}/>`,
 };
 
 const manifestFile = path.join(root, "design", "assets.manifest.json");

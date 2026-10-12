@@ -1,14 +1,14 @@
-import { MAX_INTERESTS } from "@gistroom/shared";
+import { MAX_INTERESTS, MIN_INTERESTS } from "@gistroom/shared";
 
 export const interests = {
   metaTitle: "Pick your interests",
   heading: "What do you like to gist about?",
-  subhead: `Pick up to ${MAX_INTERESTS} topics. We use them to suggest rooms and people.`,
+  subhead: `Pick at least ${MIN_INTERESTS} and up to ${MAX_INTERESTS}. We use them to suggest rooms and people.`,
   groupLabel: "Topics",
-  count: (n: number) => `${n} of ${MAX_INTERESTS} picked`,
+  count: (n: number) => `${n} of ${MIN_INTERESTS} picked`,
+  countDone: (n: number) => `${n} picked, up to ${MAX_INTERESTS}`,
   save: "Save and continue",
   saving: "Saving",
-  skip: "Skip for now",
   tooMany: `You can pick up to ${MAX_INTERESTS} topics. Remove one to add another.`,
   edit: "Change interests",
   discoverTitle: "For you",

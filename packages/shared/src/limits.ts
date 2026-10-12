@@ -44,24 +44,3 @@ export const LIMITS = {
 
 export const LANGUAGES = ["ENGLISH", "PIDGIN", "YORUBA", "IGBO", "HAUSA", "OTHER"] as const;
 export type Language = (typeof LANGUAGES)[number];
-
-export const SEED_TOPICS = [
-  "Football",
-  "Music and Gbedu",
-  "Politics and Governance",
-  "Tech and Startups",
-  "Business and Money",
-  "Relationships",
-  "Faith and Life",
-  "Campus Life",
-  "Nollywood and Entertainment",
-  "Food and Chop",
-  "Health and Wellness",
-  "Careers and Jobs",
-  "Education",
-  "Comedy",
-  "Diaspora and Japa",
-  "Fashion and Owambe",
-  "Gaming",
-  "Open Gist",
-] as const;

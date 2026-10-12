@@ -17,6 +17,7 @@ export const validation = {
   contactMessageShort: "Tell us a little more, at least 10 characters.",
   contactMessageLong: (max: number) => `Keep it to ${max} characters or fewer.`,
   topicUnknown: "Pick topics from the list.",
+  interestsTooFew: (min: number) => `Pick at least ${min} topics.`,
   interestsTooMany: (max: number) => `Pick up to ${max} topics.`,
   searchTooShort: (min: number) => `Type at least ${min} characters to search.`,
 } as const;

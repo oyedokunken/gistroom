@@ -1926,6 +1926,244 @@
       "animated": true,
       "static": "status/spinner.png",
       "loopCount": 0
+    },
+    {
+      "id": "icon-news",
+      "placement": "Card icon: news",
+      "master": "design/masters/icons/news.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/news.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-12T08:50:49.507Z"
+    },
+    {
+      "id": "icon-history",
+      "placement": "Card icon: history",
+      "master": "design/masters/icons/history.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/history.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-12T08:50:49.507Z"
+    },
+    {
+      "id": "icon-culture",
+      "placement": "Card icon: culture",
+      "master": "design/masters/icons/culture.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/culture.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-12T08:50:49.507Z"
+    },
+    {
+      "id": "icon-marriage",
+      "placement": "Card icon: marriage",
+      "master": "design/masters/icons/marriage.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/marriage.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-12T08:50:49.507Z"
+    },
+    {
+      "id": "icon-parenting",
+      "placement": "Card icon: parenting",
+      "master": "design/masters/icons/parenting.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/parenting.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-12T08:50:49.507Z"
+    },
+    {
+      "id": "icon-crypto",
+      "placement": "Card icon: crypto",
+      "master": "design/masters/icons/crypto.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/crypto.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-12T08:50:49.507Z"
+    },
+    {
+      "id": "icon-real-estate",
+      "placement": "Card icon: real estate",
+      "master": "design/masters/icons/real-estate.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/real-estate.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-12T08:50:49.507Z"
+    },
+    {
+      "id": "icon-agriculture",
+      "placement": "Card icon: agriculture",
+      "master": "design/masters/icons/agriculture.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/agriculture.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-12T08:50:49.507Z"
+    },
+    {
+      "id": "icon-series",
+      "placement": "Card icon: series",
+      "master": "design/masters/icons/series.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/series.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-12T08:50:49.507Z"
+    },
+    {
+      "id": "icon-art",
+      "placement": "Card icon: art",
+      "master": "design/masters/icons/art.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/art.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-12T08:50:49.507Z"
+    },
+    {
+      "id": "icon-pop-culture",
+      "placement": "Card icon: pop culture",
+      "master": "design/masters/icons/pop-culture.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/pop-culture.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-12T08:50:49.507Z"
+    },
+    {
+      "id": "icon-other-sports",
+      "placement": "Card icon: other sports",
+      "master": "design/masters/icons/other-sports.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/other-sports.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-12T08:50:49.507Z"
+    },
+    {
+      "id": "icon-science",
+      "placement": "Card icon: science",
+      "master": "design/masters/icons/science.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/science.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-12T08:50:49.507Z"
+    },
+    {
+      "id": "icon-travel",
+      "placement": "Card icon: travel",
+      "master": "design/masters/icons/travel.svg",
+      "sizes": [
+        {
+          "width": 192,
+          "height": 192,
+          "file": "icons/travel.png"
+        }
+      ],
+      "alt": "",
+      "decorative": true,
+      "prompt": "Drawn in code by scripts/graphics/icons.mjs: flat brand palette icon on a soft round tile, no text.",
+      "status": "DRAFT",
+      "createdAt": "2026-10-12T08:50:49.507Z"
     }
   ]
 }

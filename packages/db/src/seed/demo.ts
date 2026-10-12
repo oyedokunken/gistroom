@@ -35,7 +35,11 @@ const PEOPLE: DemoPerson[] = [
     name: "Bayo Adeyemi",
     interests: ["music-and-gbedu", "nollywood-and-entertainment"],
   },
-  { key: "hauwa", name: "Hauwa Bello", interests: ["health-and-wellness", "faith-and-life"] },
+  {
+    key: "hauwa",
+    name: "Hauwa Bello",
+    interests: ["health-and-wellness", "religion-and-spirituality"],
+  },
   {
     key: "kemi",
     name: "Kemi Alabi",

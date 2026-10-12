@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { TOPICS, topicBySlug } from "@gistroom/shared";
+import { notFound, permanentRedirect } from "next/navigation";
+import { TOPICS, TOPIC_ALIASES, topicBySlug } from "@gistroom/shared";
 import { ProsePage } from "@/components/public/prose-page";
 import { PublicPage } from "@/components/public/public-page";
 import { CtaBand } from "@/components/public/sections";
@@ -33,7 +33,11 @@ export async function generateMetadata({
 }
 
 export default async function TopicPage({ params }: { params: Promise<{ slug: string }> }) {
-  const topic = topicBySlug((await params).slug);
+  const slug = (await params).slug;
+  // A topic that was renamed keeps its old address working.
+  const moved = TOPIC_ALIASES[slug];
+  if (moved) permanentRedirect(`/topics/${moved}`);
+  const topic = topicBySlug(slug);
   if (!topic) notFound();
   const { rooms } = await listPublicRooms({ topic: topic.slug });
   const live = rooms.filter((r) => r.status === "LIVE");

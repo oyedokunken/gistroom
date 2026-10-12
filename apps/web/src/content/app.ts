@@ -346,8 +346,8 @@ export const alertHealth = {
 
 export const offline = {
   title: "Offline",
-  heading: "You are offline",
-  body: "Your messages will send when the network returns. Chats you opened before are still here.",
+  heading: "You're offline",
+  body: "Check your connection, then try again. Chats you opened before are still here.",
   retry: "Try again",
 } as const;
 

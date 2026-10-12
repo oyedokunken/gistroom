@@ -18,8 +18,11 @@ import {
   DropdownTrigger,
 } from "@/components/ui/dropdown-menu";
 import { IconButton } from "@/components/ui/icon-button";
+import { session } from "@/content/session";
+import { useOffline } from "@/lib/session/use-offline";
 import { cn } from "@/lib/cn";
 import { useUploadStore, type UploadItem, type UploadKind } from "@/lib/chat/upload-store";
+import { useConnectionStore } from "@/lib/session/connection";
 import { chat } from "@/content/chat";
 import { ApiClientError } from "@/lib/api";
 import { prepareImage, videoPoster } from "@/lib/chat/image";
@@ -38,6 +41,22 @@ const newId = () => crypto.randomUUID();
 const jobs = new Map<string, { run: () => Promise<void>; abort: AbortController }>();
 
 export const retryUpload = (id: string) => void jobs.get(id)?.run();
+
+const offlineNow = () =>
+  useConnectionStore.getState().state === "OFFLINE" ||
+  (typeof navigator !== "undefined" && !navigator.onLine);
+
+/** When the line comes back, everything that was waiting goes out in the order it was chosen. */
+let watching = false;
+function watchConnection() {
+  if (watching) return;
+  watching = true;
+  useConnectionStore.subscribe((now, before) => {
+    if (before.state !== "OFFLINE" || now.state === "OFFLINE") return;
+    const waiting = useUploadStore.getState().items.filter((i) => i.status === "waiting");
+    waiting.forEach((item, n) => window.setTimeout(() => void jobs.get(item.id)?.run(), n * 400));
+  });
+}
 export function cancelUpload(id: string) {
   jobs.get(id)?.abort.abort();
   jobs.delete(id);
@@ -78,6 +97,10 @@ export function useUploads(args: {
       const id = item.id;
       const abort = new AbortController();
       const run = async () => {
+        if (offlineNow()) {
+          patch(id, { status: "waiting", progress: 0, error: undefined });
+          return;
+        }
         patch(id, { status: "uploading", progress: 0, error: undefined });
         try {
           const input = await build(abort.signal, (f) => patch(id, { progress: f }));
@@ -91,12 +114,18 @@ export function useUploads(args: {
             jobs.delete(id);
             return drop(id);
           }
+          // The line dropped mid way: wait for it and start again from the beginning.
+          if (e instanceof ApiClientError && e.status === 0 && offlineNow()) {
+            patch(id, { status: "waiting", progress: 0 });
+            return;
+          }
           patch(id, {
             status: "failed",
             error: e instanceof ApiClientError ? e.message : chat.media.uploadFailed,
           });
         }
       };
+      watchConnection();
       jobs.set(id, { run, abort });
       add({ ...item, progress: 0, status: "uploading" });
       void run();
@@ -208,6 +237,7 @@ export function useUploads(args: {
 }
 
 export function AttachButton({ onFiles }: { onFiles: (files: FileList) => void }) {
+  const offline = useOffline();
   const media = useRef<HTMLInputElement>(null);
   const files = useRef<HTMLInputElement>(null);
   const change = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -218,7 +248,11 @@ export function AttachButton({ onFiles }: { onFiles: (files: FileList) => void }
     <>
       <DropdownMenu>
         <DropdownTrigger asChild>
-          <IconButton label={chat.media.attach}>
+          <IconButton
+            label={chat.media.attach}
+            disabled={offline}
+            title={offline ? session.needsConnection : undefined}
+          >
             <Paperclip aria-hidden className="size-5" />
           </IconButton>
         </DropdownTrigger>
@@ -270,22 +304,30 @@ export function PendingUploads({ conversationId }: { conversationId: string }) {
           <div
             className={cn(
               "relative max-w-[min(78%,34rem)] rounded-bubble rounded-br-[4px] bg-green-600 px-3.5 py-2 text-white",
-              i.status === "uploading" ? "opacity-60" : "ring-2 ring-danger-600",
+              i.status !== "failed" ? "opacity-60" : "ring-2 ring-danger-600",
             )}
           >
             <PendingBody item={i} />
             <span className="mt-1 flex items-center justify-end gap-1.5 text-[0.6875rem] leading-none">
-              {i.status === "uploading" ? (
+              {i.status !== "failed" ? (
                 <>
                   <Clock aria-hidden className="size-3" />
-                  {chat.media.sending}
+                  {i.status === "waiting" ? chat.media.waiting : chat.media.sending}
                 </>
               ) : (
                 <span role="alert">{i.error ?? chat.media.uploadFailed}</span>
               )}
             </span>
           </div>
-          {i.status === "failed" ? (
+          {i.status !== "failed" ? (
+            <button
+              type="button"
+              onClick={() => cancelUpload(i.id)}
+              className="min-h-11 rounded-full px-3 text-sm font-semibold text-text-muted"
+            >
+              {chat.media.cancelUpload}
+            </button>
+          ) : (
             <span className="mt-1 flex gap-2">
               <button
                 type="button"
@@ -302,7 +344,7 @@ export function PendingUploads({ conversationId }: { conversationId: string }) {
                 {chat.media.removeUpload}
               </button>
             </span>
-          ) : null}
+          )}
         </li>
       ))}
     </ul>

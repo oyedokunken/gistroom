@@ -104,6 +104,7 @@ export function ChatPreview() {
                 onEdit: noop,
                 onDeleteMe: noop,
                 onDeleteEveryone: noop,
+                onDiscard: noop,
                 onRetry: noop,
               }}
             />

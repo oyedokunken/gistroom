@@ -6,6 +6,8 @@ import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { History, Lock, Mic, Plus } from "lucide-react";
 import { LANGUAGE_LABELS, type PublicRoomCard, type RoomDto } from "@gistroom/shared";
+import { session } from "@/content/session";
+import { useOffline } from "@/lib/session/use-offline";
 import { PageShell } from "@/components/app/page-shell";
 import { FabRegister } from "@/components/fab/fab-register";
 import { CreateRoomModal } from "@/components/room/create-room-modal";
@@ -62,6 +64,7 @@ export function RoomsHome({
   const params = useSearchParams();
   const [creating, setCreating] = useState(false);
   const mine = useQuery({ queryKey: ["my-rooms"], queryFn: roomApi.mine });
+  const offline = useOffline();
 
   useEffect(() => {
     if (params.get("new") === "1") setCreating(true);
@@ -83,6 +86,8 @@ export function RoomsHome({
           </Link>
           <Button
             aria-label={copy.start}
+            disabled={offline}
+            title={offline ? session.needsConnection : undefined}
             className="min-w-11 px-3 sm:px-5"
             icon={<Plus aria-hidden className="size-4" />}
             onClick={() => setCreating(true)}

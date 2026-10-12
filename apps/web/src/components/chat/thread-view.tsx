@@ -30,6 +30,8 @@ import { AnniversaryCard } from "./anniversary-card";
 import { ChatBubble } from "./chat-bubble";
 import { ChatSettings, ReportDialog, StarredDialog } from "./chat-dialogs";
 import { Composer } from "./composer";
+import { session } from "@/content/session";
+import { useOffline } from "@/lib/session/use-offline";
 import { MessageList } from "./message-list";
 import { PendingUploads } from "./uploads";
 import { TypingBubble } from "./typing-bubble";
@@ -52,6 +54,7 @@ export function ThreadView({
   viewerId: string;
 }) {
   const router = useRouter();
+  const offline = useOffline();
   const queryClient = useQueryClient();
   const realtime = useRealtime();
   const { confirm, showError, showInfo } = useFeedback();
@@ -376,6 +379,7 @@ export function ThreadView({
           onDeleteMe: () => void deleteMe(m),
           onDeleteEveryone: () => void deleteEveryone(m),
           onRetry: () => useOutbox.getState().retry(conversationId),
+          onDiscard: () => useOutbox.getState().drop(m.clientId),
         }}
       />
     );
@@ -440,10 +444,20 @@ export function ThreadView({
         )}
         {live ? (
           <>
-            <IconButton label={chat.calls.audio} onClick={() => void startCall("audio")}>
+            <IconButton
+              label={chat.calls.audio}
+              disabled={offline}
+              title={offline ? session.needsConnection : undefined}
+              onClick={() => void startCall("audio")}
+            >
               <Phone aria-hidden className="size-5" />
             </IconButton>
-            <IconButton label={chat.calls.video} onClick={() => void startCall("video")}>
+            <IconButton
+              label={chat.calls.video}
+              disabled={offline}
+              title={offline ? session.needsConnection : undefined}
+              onClick={() => void startCall("video")}
+            >
               <Video aria-hidden className="size-5" />
             </IconButton>
           </>

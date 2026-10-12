@@ -6,6 +6,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { MessageCircle, UserCheck, UserPlus } from "lucide-react";
 import type { Relationship, PublicUser } from "@gistroom/shared";
 import { useFeedback } from "@/components/feedback/feedback-provider";
+import { session } from "@/content/session";
+import { useOffline } from "@/lib/session/use-offline";
 import { Button } from "@/components/ui/button";
 import { friends } from "@/content/friends";
 import { ApiClientError, apiFetch } from "@/lib/api";
@@ -27,6 +29,7 @@ export function PersonActions({
   conversationId,
   onChanged,
 }: PersonActionsProps) {
+  const offline = useOffline();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { showError, showInfo, showSuccess } = useFeedback();
@@ -110,6 +113,8 @@ export function PersonActions({
   return (
     <Button
       loading={busy}
+      disabled={offline}
+      title={offline ? session.needsConnection : undefined}
       icon={<UserPlus aria-hidden className="size-4" />}
       onClick={() =>
         void run(async () => {

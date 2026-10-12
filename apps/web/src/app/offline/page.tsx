@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { buttonStyles } from "@/components/ui/button";
+import { OfflineRetry } from "@/components/app/offline-retry";
 import { EmptyState } from "@/components/ui/empty-state";
 import { offline } from "@/content/app";
 
@@ -11,9 +10,7 @@ export default function OfflinePage() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-4 px-6 text-center">
       <EmptyState icon="offline" title={offline.heading} body={offline.body} />
-      <Link href="/app/chats" className={buttonStyles("primary")}>
-        {offline.retry}
-      </Link>
+      <OfflineRetry />
     </main>
   );
 }

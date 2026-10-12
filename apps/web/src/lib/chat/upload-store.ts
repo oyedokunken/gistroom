@@ -8,7 +8,8 @@ export interface UploadItem {
   kind: UploadKind;
   name: string;
   progress: number;
-  status: "uploading" | "failed";
+  /** waiting: there is no connection, so it goes out by itself when the line is back. */
+  status: "uploading" | "waiting" | "failed";
   error?: string;
   /** A local picture or clip, so the bubble shows what is being sent while it uploads. */
   previewUrl?: string;

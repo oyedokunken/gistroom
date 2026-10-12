@@ -22,6 +22,8 @@ import { Input } from "@/components/ui/field";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import { Select } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { session } from "@/content/session";
+import { useOffline } from "@/lib/session/use-offline";
 import { pages } from "@/content/app";
 import { callCopy as copy } from "@/content/calls";
 import { ApiClientError, apiFetch } from "@/lib/api";
@@ -55,6 +57,8 @@ function Row({ entry }: { entry: CallLogDto }) {
       ? PhoneIncoming
       : PhoneOutgoing;
   const date = new Date(entry.startedAt);
+
+  const offline = useOffline();
 
   async function callBack() {
     if (!entry.conversationId) return;
@@ -106,7 +110,8 @@ function Row({ entry }: { entry: CallLogDto }) {
           <button
             type="button"
             aria-label={`${copy.callBack}: ${entry.title}`}
-            disabled={busy}
+            disabled={busy || offline}
+            title={offline ? session.needsConnection : undefined}
             onClick={() => void callBack()}
             className="flex size-11 items-center justify-center rounded-full text-green-700 hover:bg-green-100 disabled:opacity-50"
           >

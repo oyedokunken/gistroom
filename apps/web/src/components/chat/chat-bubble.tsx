@@ -43,6 +43,8 @@ export interface BubbleActions {
   onDeleteMe: () => void;
   onDeleteEveryone: () => void;
   onRetry: () => void;
+  /** Throw away a message that never went out. */
+  onDiscard: () => void;
 }
 
 export interface ChatBubbleProps {
@@ -154,17 +156,26 @@ export function ChatBubble({
         )}
       >
         {failed ? (
-          <button
-            type="button"
-            onClick={actions.onRetry}
-            aria-label={chat.retryAria}
-            className={bubbleClass}
-          >
-            {content}
-            <span className="mt-1 block text-xs font-semibold">
-              {chat.failedSend}. {chat.retrySend}
-            </span>
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={actions.onRetry}
+              aria-label={chat.retryAria}
+              className={bubbleClass}
+            >
+              {content}
+              <span className="mt-1 block text-xs font-semibold">
+                {chat.failedSend}. {chat.retrySend}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={actions.onDiscard}
+              className="min-h-11 rounded-full px-3 text-sm font-semibold text-danger-600"
+            >
+              {chat.discardUnsent}
+            </button>
+          </>
         ) : local || message.deletedForEveryone ? (
           <div className={bubbleClass}>{content}</div>
         ) : (

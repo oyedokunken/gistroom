@@ -20,6 +20,8 @@ import { Modal } from "@/components/ui/modal";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import { Combobox } from "@/components/ui/combobox";
 import { Select } from "@/components/ui/select";
+import { session } from "@/content/session";
+import { useOffline } from "@/lib/session/use-offline";
 import { roomCopy } from "@/content/rooms";
 import { ApiClientError } from "@/lib/api";
 import { roomApi } from "@/lib/rooms/api";
@@ -50,6 +52,7 @@ export function CreateRoomModal({
   initialTopic?: string;
 }) {
   const copy = roomCopy.create;
+  const offline = useOffline();
   const router = useRouter();
   const { showError } = useFeedback();
   const form = useForm<Values>({
@@ -198,7 +201,12 @@ export function CreateRoomModal({
         >
           {(props) => <Input {...props} type="datetime-local" {...form.register("scheduledFor")} />}
         </Field>
-        <Button type="submit" loading={form.formState.isSubmitting}>
+        <Button
+          type="submit"
+          loading={form.formState.isSubmitting}
+          disabled={offline}
+          title={offline ? session.needsConnection : undefined}
+        >
           {form.formState.isSubmitting
             ? copy.submitting
             : scheduled

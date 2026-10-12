@@ -116,6 +116,7 @@ export function ConversationList({ viewerId }: { viewerId: string }) {
   }, [active.data, query]);
 
   const archivedDot = (main.data?.archivedUnread ?? 0) > 0;
+  const archivedCount = archived.data?.conversations.length ?? 0;
 
   return (
     <div className="relative flex h-full min-h-0 flex-col">
@@ -162,16 +163,23 @@ export function ConversationList({ viewerId }: { viewerId: string }) {
         {!showArchived ? (
           <button
             type="button"
+            data-archived-bar
             onClick={() => setShowArchived(true)}
-            className="flex min-h-12 w-full items-center gap-3 px-4 text-left text-sm font-semibold text-text hover:bg-surface-2"
+            className="group flex min-h-12 w-full items-center gap-3 border-b border-border bg-surface-2 px-4 text-left text-sm font-semibold text-text transition-colors hover:bg-yellow-400 hover:text-ink-950 focus-visible:bg-yellow-400 focus-visible:text-ink-950"
           >
-            <Archive aria-hidden className="size-4 text-text-muted" />
-            {chat.archivedRow}
+            <Archive
+              aria-hidden
+              className="size-5 text-text-muted group-hover:text-ink-950 group-focus-visible:text-ink-950"
+            />
+            <span className="flex-1">{chat.archivedRow}</span>
             {archivedDot ? (
               <span className="size-2 rounded-full bg-green-600">
                 <span className="sr-only">New activity</span>
               </span>
             ) : null}
+            <span className="tabular rounded-full bg-surface px-2 py-0.5 text-xs font-bold text-text group-hover:bg-ink-950 group-hover:text-yellow-400 group-focus-visible:bg-ink-950 group-focus-visible:text-yellow-400">
+              {archivedCount}
+            </span>
           </button>
         ) : null}
 
@@ -208,16 +216,7 @@ export function ConversationList({ viewerId }: { viewerId: string }) {
               body={chat.archivedEmptyBody}
             />
           ) : (
-            <EmptyState
-              icon="mascot-gist"
-              title={chat.emptyListTitle}
-              body={chat.emptyListBody}
-              action={
-                <Link href="/app/friends" className={buttonStyles("primary")}>
-                  {chat.emptyListAction}
-                </Link>
-              }
-            />
+            <EmptyState icon="mascot-gist" title={chat.emptyListTitle} body={chat.emptyListBody} />
           )
         ) : (
           <ul className="divide-y divide-border">

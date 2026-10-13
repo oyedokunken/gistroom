@@ -1,10 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { Room } from "livekit-client";
-import { isReactionEmoji } from "@gistroom/shared";
-
-const REACTION_TOPIC = "reaction";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { live, useLive } from "@/lib/live/live-session";
 
 export interface LiveKitState {
   connected: boolean;
@@ -18,215 +15,91 @@ export interface LiveKitState {
   failed: boolean;
 }
 
-const initial: LiveKitState = {
-  connected: false,
-  reconnecting: false,
-  micOn: false,
-  camOn: false,
-  remoteCam: false,
-  poorFor10s: false,
-  micBlocked: false,
-  failed: false,
-};
-
 export type CameraResult = "ok" | "blocked";
 
 /**
- * Joins one LiveKit room for a 1:1 call. Audio always goes first. Video is switched on and off with
- * setCameraEnabled on the same room, so switching never reconnects (Section 9.4).
+ * The call screen's view of the live session. The connection itself belongs to the tab, not to this screen, so leaving
+ * the screen never hangs up. Audio goes first. Video is switched on and off on the same room, so switching never
+ * reconnects (Section 9.4).
  */
 export function useLiveKit(args: {
+  callId: string;
+  title: string;
   url: string | null;
   token: string | null;
   /** Start with the camera on. Data saver turns this off. */
   startWithVideo: boolean;
   /** Hold video at 360p when data saver is on. */
   lowData: boolean;
-  /** Called when the other person sends a reaction over the call. */
-  onReaction?: (emoji: string) => void;
+  /** Ends the call on the server, for the in-call bar. */
+  hangUp: () => Promise<void>;
+  heartbeat: () => void;
+  beacon: () => void;
 }) {
-  const { url, token, startWithVideo, lowData } = args;
-  const onReactionRef = useRef(args.onReaction);
-  onReactionRef.current = args.onReaction;
-  const [state, setState] = useState<LiveKitState>(initial);
-  const roomRef = useRef<Room | null>(null);
-  const remoteVideo = useRef<HTMLVideoElement | null>(null);
-  const localVideo = useRef<HTMLVideoElement | null>(null);
-  const audioHost = useRef<HTMLDivElement | null>(null);
-  const poorTimer = useRef<number | undefined>(undefined);
-
-  const sync = useCallback(() => {
-    const room = roomRef.current;
-    if (!room) return;
-    const lp = room.localParticipant;
-    setState((s) => ({
-      ...s,
-      micOn: lp.isMicrophoneEnabled,
-      camOn: lp.isCameraEnabled,
-      remoteCam: [...room.remoteParticipants.values()].some((p) => p.isCameraEnabled),
-    }));
-  }, []);
+  const { callId, title, url, token, startWithVideo, lowData } = args;
+  const latest = useRef(args);
+  latest.current = args;
+  const store = useLive();
+  const mine = store.refId === callId;
 
   useEffect(() => {
     if (!url || !token) return;
-    let cancelled = false;
-    let room: Room | null = null;
+    void live().join({
+      kind: "call",
+      refId: callId,
+      title,
+      url,
+      token,
+      startWithVideo,
+      lowData,
+      hangUp: () => latest.current.hangUp(),
+      heartbeat: () => latest.current.heartbeat(),
+      beacon: () => latest.current.beacon(),
+    });
+    // The call is joined once. Later changes (a fresh token, a changed name) must not reconnect.
+  }, [callId, url, token]);
 
-    (async () => {
-      const lk = await import("livekit-client");
-      if (cancelled) return;
-      room = new lk.Room({
-        adaptiveStream: true,
-        dynacast: true,
-        videoCaptureDefaults: {
-          resolution: lowData ? lk.VideoPresets.h360.resolution : lk.VideoPresets.h720.resolution,
-        },
-        publishDefaults: { simulcast: true },
-      });
-      roomRef.current = room;
-
-      room.on(lk.RoomEvent.TrackSubscribed, (track) => {
-        if (track.kind === lk.Track.Kind.Video) {
-          if (remoteVideo.current) track.attach(remoteVideo.current);
-        } else if (track.kind === lk.Track.Kind.Audio) {
-          const el = track.attach();
-          audioHost.current?.appendChild(el);
-        }
-        sync();
-      });
-      room.on(lk.RoomEvent.TrackUnsubscribed, (track) => {
-        track.detach().forEach((el) => el.remove());
-        sync();
-      });
-      for (const ev of [
-        lk.RoomEvent.TrackMuted,
-        lk.RoomEvent.TrackUnmuted,
-        lk.RoomEvent.LocalTrackPublished,
-        lk.RoomEvent.LocalTrackUnpublished,
-        lk.RoomEvent.TrackPublished,
-        lk.RoomEvent.TrackUnpublished,
-        lk.RoomEvent.ParticipantConnected,
-        lk.RoomEvent.ParticipantDisconnected,
-      ]) {
-        room.on(ev, sync);
-      }
-      room.on(lk.RoomEvent.LocalTrackPublished, (pub) => {
-        if (pub.source === lk.Track.Source.Camera && pub.track && localVideo.current) {
-          pub.track.attach(localVideo.current);
-        }
-      });
-      room.on(lk.RoomEvent.ConnectionQualityChanged, (quality, participant) => {
-        if (!participant.isLocal) return;
-        const poor = quality === lk.ConnectionQuality.Poor || quality === lk.ConnectionQuality.Lost;
-        window.clearTimeout(poorTimer.current);
-        if (!poor) {
-          setState((s) => (s.poorFor10s ? { ...s, poorFor10s: false } : s));
-          return;
-        }
-        poorTimer.current = window.setTimeout(
-          () => setState((s) => ({ ...s, poorFor10s: true })),
-          10_000,
-        );
-      });
-      room.on(lk.RoomEvent.DataReceived, (payload, _from, _kind, topic) => {
-        if (topic !== REACTION_TOPIC) return;
-        const emoji = new TextDecoder().decode(payload);
-        if (isReactionEmoji(emoji)) onReactionRef.current?.(emoji);
-      });
-      room.on(lk.RoomEvent.Reconnecting, () => setState((s) => ({ ...s, reconnecting: true })));
-      room.on(lk.RoomEvent.Reconnected, () => setState((s) => ({ ...s, reconnecting: false })));
-      room.on(lk.RoomEvent.Disconnected, () =>
-        setState((s) => ({ ...s, connected: false, reconnecting: false })),
-      );
-
-      try {
-        await room.connect(url, token);
-        if (cancelled) return;
-        setState((s) => ({ ...s, connected: true, failed: false }));
-        try {
-          await room.localParticipant.setMicrophoneEnabled(true);
-        } catch {
-          setState((s) => ({ ...s, micBlocked: true }));
-        }
-        if (startWithVideo) {
-          try {
-            await room.localParticipant.setCameraEnabled(true);
-          } catch {
-            // Camera refused: stay in audio. The screen explains how to allow it.
-          }
-        }
-        sync();
-      } catch {
-        if (!cancelled) setState((s) => ({ ...s, failed: true }));
-      }
-    })();
-
-    const host = audioHost.current;
-    return () => {
-      cancelled = true;
-      window.clearTimeout(poorTimer.current);
-      room?.disconnect();
-      roomRef.current = null;
-      host?.replaceChildren();
-      setState(initial);
-    };
-    // The call is joined once per token. Later prop changes must not reconnect.
-  }, [url, token]);
-
-  const toggleMic = useCallback(async () => {
-    const room = roomRef.current;
-    if (!room) return;
-    await room.localParticipant.setMicrophoneEnabled(!room.localParticipant.isMicrophoneEnabled);
-    sync();
-  }, [sync]);
-
-  const setCamera = useCallback(
-    async (on: boolean): Promise<CameraResult> => {
-      const room = roomRef.current;
-      if (!room) return "blocked";
-      try {
-        await room.localParticipant.setCameraEnabled(on);
-        sync();
-        return "ok";
-      } catch {
-        sync();
-        return "blocked";
-      }
-    },
-    [sync],
+  const state: LiveKitState = useMemo(
+    () => ({
+      connected: mine && store.status === "connected",
+      reconnecting: mine && store.status === "reconnecting",
+      micOn: mine && store.micOn,
+      camOn: mine && store.camOn,
+      remoteCam: mine && store.remoteCam,
+      poorFor10s: mine && store.poorFor10s,
+      micBlocked: mine && store.micIssue !== null,
+      failed: mine && store.status === "failed",
+    }),
+    [
+      mine,
+      store.status,
+      store.micOn,
+      store.camOn,
+      store.remoteCam,
+      store.poorFor10s,
+      store.micIssue,
+    ],
   );
 
-  const flipCamera = useCallback(async () => {
-    const room = roomRef.current;
-    if (!room) return;
-    const lk = await import("livekit-client");
-    const cams = await lk.Room.getLocalDevices("videoinput");
-    if (cams.length < 2) return;
-    const current = room.getActiveDevice("videoinput");
-    const next = cams.find((c) => c.deviceId !== current) ?? cams[0];
-    if (next) await room.switchActiveDevice("videoinput", next.deviceId);
-  }, []);
-
-  /** Floats a reaction for the other person. Lossy delivery is fine, so a burst never queues up. */
-  const sendReaction = useCallback(async (emoji: string) => {
-    const room = roomRef.current;
-    if (!room) return;
-    await room.localParticipant
-      .publishData(new TextEncoder().encode(emoji), { reliable: false, topic: REACTION_TOPIC })
-      .catch(() => undefined);
-  }, []);
-
-  const leave = useCallback(() => {
-    roomRef.current?.disconnect();
-  }, []);
+  const remoteVideo = useCallback(
+    (el: HTMLVideoElement | null) => live().attachVideo("remote", el),
+    [],
+  );
+  const localVideo = useCallback(
+    (el: HTMLVideoElement | null) => live().attachVideo("local", el),
+    [],
+  );
+  const audioHost = useRef<HTMLDivElement | null>(null);
 
   return {
     state,
-    toggleMic,
-    setCamera,
-    flipCamera,
-    sendReaction,
-    leave,
+    toggleMic: () => live().toggleMic(),
+    setCamera: (on: boolean): Promise<CameraResult> => live().setCamera(on),
+    flipCamera: () => live().flipCamera(),
+    sendReaction: (emoji: string) => live().sendReaction(emoji),
+    leave: () => {
+      if (live().isFor(callId)) live().leave();
+    },
     remoteVideo,
     localVideo,
     audioHost,

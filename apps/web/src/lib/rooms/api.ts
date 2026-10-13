@@ -45,6 +45,9 @@ export const roomApi = {
     apiFetch<{ room: RoomDto }>(`${base(slug)}/settings`, { method: "PATCH", body: input }),
   react: (slug: string, emoji: string, messageId?: string) =>
     apiFetch<{ ok: true }>(`${base(slug)}/reactions`, { body: { emoji, messageId } }),
+  /** A quiet "still here" while you are in the room. A tab that stops saying so for 20 seconds counts as gone. */
+  heartbeat: (slug: string) =>
+    apiFetch<{ ok: true }>(`${base(slug)}/heartbeat`, { body: {} }).catch(() => undefined),
   summary: (slug: string) => apiFetch<{ summary: RoomSummaryDto }>(`${base(slug)}/summary`),
   past: () => apiFetch<{ rooms: RoomSummaryDto[] }>("/api/rooms/past"),
   moderate: (

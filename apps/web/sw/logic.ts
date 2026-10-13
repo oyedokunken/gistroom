@@ -6,6 +6,7 @@ export type PushKind =
   | "DM_MESSAGE"
   | "FRIEND_REQUEST"
   | "ROOM_INVITE"
+  | "ROOM_RING"
   | "ROOM_STARTING"
   | "SECURITY_NEW_DEVICE"
   | "GENERIC";
@@ -127,6 +128,27 @@ export function decidePush(push: PushData, clients: readonly ClientInfo[]): Push
         actions: [
           { action: "answer", title: "Answer" },
           { action: "decline", title: "Decline" },
+        ],
+        data: { url: push.url, ...push.data },
+      },
+    };
+  }
+  if (push.type === "ROOM_RING") {
+    return {
+      kind: "SHOW",
+      title: push.title,
+      options: {
+        body: push.body,
+        tag: push.tag,
+        icon: ICON,
+        badge: BADGE,
+        requireInteraction: true,
+        renotify: true,
+        silent: false,
+        vibrate: CALL_VIBRATION,
+        actions: [
+          { action: "join", title: "Join" },
+          { action: "later", title: "Not now" },
         ],
         data: { url: push.url, ...push.data },
       },

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { RoomMemberState } from "@gistroom/shared";
+import type { RoomJoin, RoomMemberState } from "@gistroom/shared";
 
 export interface FloatingReaction {
   id: string;
@@ -18,6 +18,9 @@ interface RoomState {
   floating: Record<string, FloatingReaction[]>;
   /** A moderator muted me or turned my camera off. Shown once, then dismissed. */
   notice: Record<string, ModeratorNotice | undefined>;
+  /** The join details of the rooms I am in, kept so leaving the screen does not lose them. */
+  joins: Record<string, RoomJoin | undefined>;
+  setJoin: (slug: string, join: RoomJoin | null) => void;
   addReaction: (slug: string, userId: string, emoji: string) => void;
   dropReaction: (slug: string, id: string) => void;
   setNotice: (slug: string, notice: ModeratorNotice | undefined) => void;
@@ -31,6 +34,8 @@ export const useRoomStore = create<RoomState>((set) => ({
   kicked: {},
   floating: {},
   notice: {},
+  joins: {},
+  setJoin: (slug, join) => set((s) => ({ joins: { ...s.joins, [slug]: join ?? undefined } })),
   addReaction: (slug, userId, emoji) =>
     set((s) => ({
       floating: {

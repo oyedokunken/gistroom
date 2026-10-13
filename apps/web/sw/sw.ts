@@ -120,6 +120,8 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   const data = (event.notification.data ?? {}) as { url?: string; callId?: string };
   event.notification.close();
+  // "Not now" on a room ring just dismisses it.
+  if (event.action === "later") return;
   const plan = planClick(event.action, data);
 
   event.waitUntil(

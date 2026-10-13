@@ -4,6 +4,7 @@ import {
   applyCallAction,
   durationSec,
   errors,
+  LIMITS,
   liveKitIdentity,
   logOutcomeFor,
   roomAvatarSrc,
@@ -51,9 +52,18 @@ async function dto(row: CallRow, me: User) {
   return callDto(row, me.id, await conversationOf(row.callerId, row.calleeId));
 }
 
+async function markSeen(row: CallRow, userId: string): Promise<void> {
+  await getDb().call.updateMany({
+    where: { id: row.id, status: "ACTIVE" },
+    data: row.callerId === userId ? { callerSeenAt: new Date() } : { calleeSeenAt: new Date() },
+  });
+}
+
 /** A token is only given while the call can still be joined. */
 async function join(row: CallRow, me: User): Promise<CallJoin> {
   const call = await dto(row, me);
+  // Opening an active call counts as being on it, so a reload or a second device is never mistaken for gone.
+  if (row.status === "ACTIVE") await markSeen(row, me.id);
   if (row.status !== "RINGING" && row.status !== "ACTIVE") return { call, token: null, url: null };
   // The callee only gets a token once they answer. Until then the call is just ringing.
   if (row.status === "RINGING" && row.calleeId === me.id) return { call, token: null, url: null };
@@ -425,4 +435,64 @@ export async function listCallLogs(
         ? encodeCursor({ t: last.startedAt.toISOString(), id: last.id })
         : null,
   };
+}
+
+/** "Still here" from one side of an active call. A side silent for a minute counts as gone. */
+export async function heartbeatCall(me: User, id: string): Promise<void> {
+  const row = await load(id);
+  participant(row, me);
+  if (row.status === "ACTIVE") await markSeen(row, me.id);
+}
+
+/**
+ * Ends active calls where one side stopped saying it was there for a minute, so a crashed tab cannot leave a call
+ * stuck. It runs with every sweep and is safe to run often.
+ */
+export async function reconcileStuckCalls(now = new Date()): Promise<number> {
+  const db = getDb();
+  const cutoff = new Date(now.getTime() - LIMITS.CALL_PEER_GONE_SEC * 1000);
+  const active = await db.call.findMany({
+    where: { status: "ACTIVE" },
+    include,
+    take: 200,
+  });
+  let ended = 0;
+  for (const row of active) {
+    const base = row.answeredAt ?? row.createdAt;
+    // A little extra room after answering, for a tab that has not sent its first heartbeat yet.
+    if (now.getTime() - base.getTime() < LIMITS.CALL_PEER_GONE_SEC * 1000 + 30_000) continue;
+    const callerSeen = row.callerSeenAt ?? base;
+    const calleeSeen = row.calleeSeenAt ?? base;
+    if (callerSeen < cutoff || calleeSeen < cutoff) {
+      await finish(row, "ENDED", "peer-gone");
+      ended += 1;
+    }
+  }
+  return ended;
+}
+
+/** LiveKit closed the room of an active call because nobody was left in it. The call ends too. */
+export async function endCallByLiveKitRoom(name: string): Promise<void> {
+  const row = await getDb().call.findFirst({
+    where: { livekitRoom: name, status: "ACTIVE" },
+    include,
+  });
+  if (row) await finish(row, "ENDED", "peer-gone");
+}
+
+/** A block or an unfriend ends a call between the two of them. Neither side is told why. */
+export async function endCallsBetween(a: string, b: string, reason: string): Promise<void> {
+  const rows = await getDb().call.findMany({
+    where: {
+      status: { in: ["RINGING", "ACTIVE"] },
+      OR: [
+        { callerId: a, calleeId: b },
+        { callerId: b, calleeId: a },
+      ],
+    },
+    include,
+  });
+  for (const row of rows) {
+    await finish(row, row.status === "RINGING" ? "CANCELLED" : "ENDED", reason);
+  }
 }

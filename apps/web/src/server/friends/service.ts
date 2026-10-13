@@ -213,6 +213,9 @@ export async function cancelRequest(me: User, requestId: string): Promise<void> 
 export async function unfriend(me: User, otherId: string): Promise<void> {
   const { low, high } = orderedPair(me.id, otherId);
   await getDb().friendship.deleteMany({ where: { userLowId: low, userHighId: high } });
+  // A call between two people who are no longer friends ends, with no reason given to either.
+  const { endCallsBetween } = await import("../calls/service");
+  await endCallsBetween(me.id, otherId, "blocked");
 }
 
 /** A block ends the friendship, cancels pending requests either way and hides both people from search. */
@@ -243,6 +246,8 @@ export async function blockUser(me: User, otherId: string): Promise<void> {
       data: { status: "CANCELLED", respondedAt: new Date() },
     }),
   ]);
+  const { endCallsBetween } = await import("../calls/service");
+  await endCallsBetween(me.id, otherId, "blocked");
   await recordActivity({
     userId: me.id,
     kind: "blocked",

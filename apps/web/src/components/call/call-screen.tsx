@@ -21,10 +21,11 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button, buttonStyles } from "@/components/ui/button";
 import { callCopy as copy } from "@/content/calls";
 import { ApiClientError } from "@/lib/api";
-import { callAction, fetchCall } from "@/lib/calls/api";
+import { callAction, callHeartbeat, fetchCall } from "@/lib/calls/api";
 import { startRingtone, stopRingtone } from "@/lib/calls/ringtone";
 import { useCallStore } from "@/lib/calls/store";
 import { useLiveKit } from "@/lib/calls/use-livekit";
+import { onLiveEvent } from "@/lib/live/live-session";
 import { formatDuration } from "@/lib/chat/voice";
 import { cn } from "@/lib/cn";
 
@@ -90,12 +91,27 @@ export function CallScreen({
       { id: crypto.randomUUID(), emoji, left: 12 + Math.round(Math.random() * 70) },
     ]);
   const lk = useLiveKit({
-    onReaction: float,
+    callId,
+    title: call?.peer.name ?? copy.connecting,
+    hangUp: async () => {
+      await callAction(callId, "end").catch(() => undefined);
+    },
+    heartbeat: () => void callHeartbeat(callId),
+    beacon: () => undefined,
     url: finished ? null : (join?.url ?? null),
     token: finished ? null : (join?.token ?? null),
     startWithVideo,
     lowData: dataSaver,
   });
+  // The other person's reactions arrive over the call itself.
+  useEffect(
+    () =>
+      onLiveEvent((e) => {
+        if (e.type === "reaction" && e.identity !== null) float(e.emoji);
+      }),
+    // float only uses state setters
+    [],
+  );
   const elapsed = useElapsed(call?.answeredAt ?? null, status === "ACTIVE");
   useWakeLock(status === "ACTIVE");
 

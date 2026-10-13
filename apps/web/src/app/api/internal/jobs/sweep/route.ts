@@ -1,11 +1,17 @@
 import { timingSafeEqual } from "node:crypto";
 import { api, json } from "@/server/http";
 import { getEnv } from "@/server/env";
-import { expireDueCalls } from "@/server/calls/service";
+import { expireDueCalls, reconcileStuckCalls } from "@/server/calls/service";
 import { sendFriendDigests, sendRoomReminders } from "@/server/mail/notify-email";
 import { sweepSessions, sweepSubscriptions } from "@/server/auth/sweep";
 import { purgeExpiredActivity } from "@/server/notifications/activity";
-import { endEmptyRooms, purgeEndedRoomChat } from "@/server/rooms/service";
+import {
+  cancelNoShowRooms,
+  endEmptyRooms,
+  expireRings,
+  purgeEndedRoomChat,
+  reconcileLiveRooms,
+} from "@/server/rooms/service";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +35,10 @@ async function run(request: Request): Promise<Response> {
   return json({
     expiredCalls: await expireDueCalls(),
     endedRooms: await endEmptyRooms(),
+    stuckCalls: await reconcileStuckCalls(),
+    reconciledRooms: await reconcileLiveRooms(),
+    cancelledRooms: await cancelNoShowRooms(),
+    expiredRings: await expireRings(),
     purgedRoomChat: await purgeEndedRoomChat(),
     purgedActivity: await purgeExpiredActivity(),
     sessions: await sweepSessions(),

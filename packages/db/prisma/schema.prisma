@@ -551,6 +551,7 @@ model PushSubscription {
   /**
    * /**
    * /**
+   * /**
    * /** When the session on this device ended (first noticed). Alerts go out as plain text for 30 days after this.
    */
   sessionEndedAt  DateTime?
@@ -592,6 +593,9 @@ model Call {
   answeredAt    DateTime?
   endedAt       DateTime?
   endReason     String?
+  /// The last time each side said it was still on the call. A side silent for a minute counts as gone.
+  callerSeenAt  DateTime?
+  calleeSeenAt  DateTime?
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
   caller        User       @relation("Caller", fields: [callerId], references: [id])
@@ -642,6 +646,10 @@ model Room {
   peakParticipants Int              @default(0)
   messageCount     Int              @default(0)
   reactionCount    Int              @default(0)
+  /// When the long room warning was sent, so it goes out once.
+  longWarnedAt     DateTime?
+  /// Since when nobody has been connected to this live room. Set and cleared by the reconcile sweep.
+  emptySince       DateTime?
   livekitRoom      String           @unique
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
@@ -668,6 +676,13 @@ model RoomMember {
   joinedAt    DateTime?
   leftAt      DateTime?
   graceUntil  DateTime?
+  /// The last "still here" from this person's tab. Silent for 20 seconds counts as left.
+  heartbeatAt DateTime?
+  /// Ringing an invited person: RINGING, DECLINED or NO_ANSWER. Null when they were never rung.
+  ringStatus  String?
+  ringedAt    DateTime?
+  /// The person asked not to be rung for this room.
+  noRing      Boolean         @default(false)
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
   room        Room            @relation(fields: [roomId], references: [id], onDelete: Cascade)
@@ -822,4 +837,12 @@ model EmailOutbox {
   updatedAt DateTime  @updatedAt
 
   @@index([sentAt, attempts])
+}
+
+/// LiveKit webhook events already handled, so a repeated delivery changes nothing.
+model LiveKitEvent {
+  id        String   @id
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
 }

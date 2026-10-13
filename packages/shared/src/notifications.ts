@@ -149,6 +149,7 @@ export type PushKind =
   | "DM_MESSAGE"
   | "FRIEND_REQUEST"
   | "ROOM_INVITE"
+  | "ROOM_RING"
   | "ROOM_STARTING"
   | "SECURITY_NEW_DEVICE"
   | "GENERIC";
@@ -165,6 +166,7 @@ export const PUSH_POLICY: Record<PushKind, PushPolicy> = {
   DM_MESSAGE: { ttlSec: 86_400, urgency: "normal", requireInteraction: false },
   FRIEND_REQUEST: { ttlSec: 604_800, urgency: "normal", requireInteraction: false },
   ROOM_INVITE: { ttlSec: 3_600, urgency: "normal", requireInteraction: false },
+  ROOM_RING: { ttlSec: 45, urgency: "high", requireInteraction: true },
   ROOM_STARTING: { ttlSec: 900, urgency: "high", requireInteraction: false },
   SECURITY_NEW_DEVICE: { ttlSec: 86_400, urgency: "high", requireInteraction: false },
   GENERIC: { ttlSec: 86_400, urgency: "normal", requireInteraction: false },
@@ -195,6 +197,8 @@ export function pushTag(kind: PushKind, ref: string): string {
       return `fr:${ref}`;
     case "ROOM_INVITE":
       return `room:${ref}`;
+    case "ROOM_RING":
+      return `roomring:${ref}`;
     case "ROOM_STARTING":
       return `roomstart:${ref}`;
     case "SECURITY_NEW_DEVICE":
@@ -239,6 +243,7 @@ export function plainPushPayload(full: PushPayload): PushPayload {
     DM_MESSAGE: { title: pushCopy.plainTitle, body: pushCopy.plainMessage },
     FRIEND_REQUEST: { title: pushCopy.plainTitle, body: pushCopy.plainFriend },
     ROOM_INVITE: { title: pushCopy.plainTitle, body: pushCopy.plainRoomInvite },
+    ROOM_RING: { title: pushCopy.plainTitle, body: pushCopy.plainRoomRing },
     ROOM_STARTING: { title: pushCopy.plainTitle, body: pushCopy.plainRoomStarting },
     SECURITY_NEW_DEVICE: { title: pushCopy.plainTitle, body: pushCopy.plainSecurity },
     GENERIC: { title: pushCopy.plainTitle, body: pushCopy.plainOther },
@@ -333,6 +338,15 @@ export function notificationCopy(
         url,
       };
     case "ROOM_INVITE":
+      if (payload["ring"] === true) {
+        return {
+          kind: "ROOM_RING",
+          title: pushCopy.roomRingTitle(s("fromName", "A host")),
+          body: pushCopy.roomRingBody(s("roomTitle", "a room")),
+          ref: s("roomId", id),
+          url,
+        };
+      }
       return {
         kind: "ROOM_INVITE",
         title: pushCopy.roomInviteTitle,

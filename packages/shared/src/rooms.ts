@@ -105,14 +105,21 @@ export function slugFromBytes(bytes: Uint8Array, length = 10): string {
 
 // ---------- Joining ----------
 
-export type JoinDenied = "ENDED" | "NOT_STARTED" | "NOT_INVITED" | "BANNED" | "FULL" | "LOCKED";
+export type JoinDenied =
+  "ENDED" | "NOT_STARTED" | "NOT_INVITED" | "BANNED" | "REMOVED" | "FULL" | "LOCKED";
 
 export interface JoinInput {
   status: RoomStatus;
   visibility: RoomVisibility;
   locked: boolean;
   isHost: boolean;
-  member: { state: RoomMemberState; role: RoomRole; graceUntil: Date | null } | null;
+  member: {
+    state: RoomMemberState;
+    role: RoomRole;
+    graceUntil: Date | null;
+    /** When the person left or was removed. */
+    leftAt?: Date | null;
+  } | null;
   /** Opened with a link that is valid right now. */
   linkValid: boolean;
   joinedCount: number;
@@ -130,6 +137,11 @@ export function joinVerdict(i: JoinInput): JoinVerdict {
   if (i.status === "ENDED") return { ok: false, reason: "ENDED" };
   if (i.member?.state === "BANNED") return { ok: false, reason: "BANNED" };
   if (i.status === "SCHEDULED" && !i.isHost) return { ok: false, reason: "NOT_STARTED" };
+  // A removed person waits before coming back, on every way in, links included. A ban never ends.
+  if (i.member?.state === "REMOVED" && !i.isHost) {
+    const since = i.member.leftAt ? i.now.getTime() - i.member.leftAt.getTime() : Infinity;
+    if (since < LIMITS.ROOM_REMOVE_COOLDOWN_MIN * 60_000) return { ok: false, reason: "REMOVED" };
+  }
 
   const inGrace =
     i.member !== null &&
@@ -238,10 +250,16 @@ export function linkExpiry(hours: number, from: Date): Date {
 
 // ---------- Shapes ----------
 
+export type RoomRingStatus = "RINGING" | "DECLINED" | "NO_ANSWER";
+
 export interface RoomMemberDto {
   user: PublicUser;
   role: RoomRole;
   state: RoomMemberState;
+  /** When they came in, for "Joined 2:14 PM". */
+  joinedAt: string | null;
+  /** For invited people who are not inside yet: rung, declined or no answer. */
+  ringStatus: RoomRingStatus | null;
 }
 
 export interface RoomDto {
@@ -266,6 +284,8 @@ export interface RoomDto {
   myRole: RoomRole | null;
   /** True when the viewer asked to be told when this scheduled room starts. */
   going: boolean;
+  /** The viewer was in this live room and still holds their seat, so the screen joins again by itself. */
+  rejoin: boolean;
 }
 
 export interface RoomSettingsDto {

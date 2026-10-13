@@ -15,6 +15,7 @@ import {
   joinVerdict,
   linkExpiry,
   linkState,
+  inQuietHours,
   liveKitIdentity,
   nextHost,
   slugFromBytes,
@@ -38,6 +39,7 @@ import { AppError, forbidden, notFound } from "../http";
 import { areFriends, isBlockedEitherWay } from "../friends/relations";
 import {
   closeLiveKitRoom,
+  listIdentities,
   mintJoin,
   muteInLiveKit,
   removeFromLiveKit,
@@ -62,6 +64,7 @@ const DENIED: Record<JoinDenied, { status: number; message: string }> = {
   NOT_STARTED: { status: 409, message: errors.roomNotStarted },
   NOT_INVITED: { status: 403, message: errors.roomNotInvited },
   BANNED: { status: 403, message: errors.roomBanned },
+  REMOVED: { status: 403, message: errors.roomRemoved },
   FULL: { status: 409, message: errors.roomFull },
   LOCKED: { status: 409, message: errors.roomLocked },
 };
@@ -100,7 +103,12 @@ async function log(
   });
 }
 
-async function toDto(room: RoomRow, viewerRole: RoomRole | null, going = false): Promise<RoomDto> {
+async function toDto(
+  room: RoomRow,
+  viewerRole: RoomRole | null,
+  going = false,
+  rejoin = false,
+): Promise<RoomDto> {
   return {
     id: room.id,
     slug: room.slug,
@@ -129,6 +137,7 @@ async function toDto(room: RoomRow, viewerRole: RoomRole | null, going = false):
     },
     myRole: viewerRole,
     going,
+    rejoin,
   };
 }
 
@@ -311,9 +320,14 @@ export async function viewRoom(
   }
   if (room.status === "ENDED") return { state: "ENDED" };
   const going = !isHost && member?.state === "INVITED";
+  const now = new Date();
+  const holdsSeat =
+    room.status === "LIVE" &&
+    (member?.state === "JOINED" ||
+      (member?.state === "LEFT" && member.graceUntil !== null && member.graceUntil > now));
   return {
     state: "OK",
-    room: await toDto(room, isHost ? "HOST" : (member?.role ?? null), going),
+    room: await toDto(room, isHost ? "HOST" : (member?.role ?? null), going, Boolean(holdsSeat)),
   };
 }
 
@@ -346,7 +360,12 @@ export async function joinRoom(
     locked: room.locked,
     isHost,
     member: member
-      ? { state: member.state, role: member.role, graceUntil: member.graceUntil }
+      ? {
+          state: member.state,
+          role: member.role,
+          graceUntil: member.graceUntil,
+          leftAt: member.leftAt,
+        }
       : null,
     linkValid: linkOk,
     joinedCount: await joinedCount(room.id),
@@ -373,6 +392,7 @@ export async function joinRoom(
       role: verdict.role,
       state: "JOINED",
       joinedAt: now,
+      heartbeatAt: now,
       invitedById: link?.createdById ?? null,
     },
     update: {
@@ -380,6 +400,8 @@ export async function joinRoom(
       role: verdict.role,
       leftAt: null,
       graceUntil: null,
+      heartbeatAt: now,
+      ringStatus: null,
       ...(wasIn
         ? {}
         : { joinedAt: member?.joinedAt && member.state === "LEFT" ? member.joinedAt : now }),
@@ -401,7 +423,11 @@ export async function joinRoom(
 }
 
 /** Leaving keeps your seat for 120 seconds. If the host leaves, the room passes to someone else. */
-export async function leaveRoom(me: User, slug: string): Promise<void> {
+export async function leaveRoom(
+  me: User,
+  slug: string,
+  opts: { dropped?: boolean } = {},
+): Promise<void> {
   const db = getDb();
   const room = await loadBySlug(slug);
   const member = await memberOf(room.id, me.id);
@@ -416,7 +442,8 @@ export async function leaveRoom(me: User, slug: string): Promise<void> {
     },
   });
 
-  if (room.hostId === me.id && room.status === "LIVE") {
+  // A host who dropped keeps the room for the grace period. Everyone sees "Host is reconnecting" until it passes.
+  if (room.hostId === me.id && room.status === "LIVE" && !opts.dropped) {
     const present = await db.roomMember.findMany({ where: { roomId: room.id, state: "JOINED" } });
     const heir = nextHost(
       present.map((m) => ({ userId: m.userId, role: m.role, joinedAt: m.joinedAt })),
@@ -554,12 +581,27 @@ async function actorRole(room: Room, userId: string): Promise<RoomRole | null> {
 export async function listMembers(me: User, slug: string): Promise<RoomMemberDto[]> {
   const room = await loadBySlug(slug);
   if (!(await actorRole(room, me.id))) throw notFound();
+  // People who can invite also see who was invited and has not come in, with how the ring went.
+  const role = await actorRole(room, me.id);
+  const seesInvited = canDo(role, "INVITE");
   const rows = await getDb().roomMember.findMany({
-    where: { roomId: room.id, state: "JOINED" },
+    where: { roomId: room.id, state: seesInvited ? { in: ["JOINED", "INVITED"] } : "JOINED" },
     include: { user: true },
-    orderBy: [{ joinedAt: "asc" }],
+    orderBy: [{ joinedAt: "asc" }, { createdAt: "asc" }],
   });
-  return rows.map((m) => ({ user: toPublicUser(m.user), role: m.role, state: m.state }));
+  return rows
+    .filter((m) => m.userId !== room.hostId || m.state === "JOINED")
+    .map((m) => ({
+      user: toPublicUser(m.user),
+      role: m.role,
+      state: m.state,
+      joinedAt: m.joinedAt?.toISOString() ?? null,
+      ringStatus:
+        m.state === "INVITED" &&
+        (m.ringStatus === "RINGING" || m.ringStatus === "DECLINED" || m.ringStatus === "NO_ANSWER")
+          ? m.ringStatus
+          : null,
+    }));
 }
 
 export async function moderate(me: User, slug: string, input: ModActionInput): Promise<void> {
@@ -1370,4 +1412,269 @@ export async function myRooms(me: User): Promise<RoomDto[]> {
 export async function purgeEndedRoomChat(): Promise<number> {
   const done = await getDb().roomMessage.deleteMany({ where: { room: { status: "ENDED" } } });
   return done.count;
+}
+
+// ---------- Staying in touch: heartbeats, reconciling, rings ----------
+
+/** "Still here" from a tab inside the room. Silent for 20 seconds counts as left. */
+export async function heartbeatRoom(me: User, slug: string): Promise<void> {
+  await enforce(policies.roomHeartbeat, me.id);
+  const room = await loadBySlug(slug);
+  const member = await memberOf(room.id, me.id);
+  if (!member || room.status !== "LIVE") return;
+  // A person whose seat the sweep gave up on a moment ago comes back by joining again, not by this ping.
+  if (member.state !== "JOINED") return;
+  await getDb().roomMember.update({ where: { id: member.id }, data: { heartbeatAt: new Date() } });
+}
+
+async function handOverHost(room: Room, leavingId: string): Promise<void> {
+  const db = getDb();
+  const present = await db.roomMember.findMany({ where: { roomId: room.id, state: "JOINED" } });
+  const heir = nextHost(
+    present.map((m) => ({ userId: m.userId, role: m.role, joinedAt: m.joinedAt })),
+    leavingId,
+  );
+  if (!heir) return;
+  await db.$transaction([
+    db.room.update({ where: { id: room.id }, data: { hostId: heir } }),
+    db.roomMember.updateMany({ where: { roomId: room.id, userId: heir }, data: { role: "HOST" } }),
+    db.roomMember.updateMany({
+      where: { roomId: room.id, userId: leavingId },
+      data: { role: "MEMBER" },
+    }),
+  ]);
+  await log(room.id, leavingId, "PROMOTE", heir, { transfer: true, automatic: true });
+  void publish({ type: "room", roomId: room.id, change: "member", userId: heir });
+}
+
+/**
+ * Makes the database match what is really happening in every live room, so a crashed tab or a missed webhook can never
+ * leave a room stuck. It ends rooms that stayed empty for 5 minutes or ran 8 hours, marks people who stopped sending
+ * heartbeats as left, and hands the room on when the host has been gone past the grace period. LiveKit is asked who is
+ * connected and is believed over a heartbeat. Safe to run often.
+ */
+export async function reconcileLiveRooms(
+  now = new Date(),
+  only?: string,
+): Promise<{
+  left: number;
+  ended: number;
+  handedOver: number;
+}> {
+  const db = getDb();
+  const out = { left: 0, ended: 0, handedOver: 0 };
+  const rooms = await db.room.findMany({
+    where: { status: "LIVE", ...(only ? { livekitRoom: only } : {}) },
+    include: { host: true, topic: { select: { slug: true, name: true } }, members: true },
+    take: 200,
+  });
+  for (const room of rooms) {
+    const connected = await listIdentities(room.livekitRoom);
+    const staleBefore = now.getTime() - LIMITS.HEARTBEAT_GONE_SEC * 1000;
+    for (const m of room.members) {
+      if (m.state !== "JOINED") continue;
+      const lastSign = (m.heartbeatAt ?? m.joinedAt ?? m.updatedAt).getTime();
+      const gone =
+        connected !== null
+          ? // LiveKit answered: not connected there and silent for a while means gone.
+            !connected.includes(liveKitIdentity(m.userId)) && lastSign < staleBefore
+          : lastSign < staleBefore;
+      if (!gone) continue;
+      await db.roomMember.update({
+        where: { id: m.id },
+        data: {
+          state: "LEFT",
+          leftAt: now,
+          graceUntil: new Date(now.getTime() + LIMITS.ROOM_REJOIN_GRACE_SEC * 1000),
+        },
+      });
+      void publish({ type: "room", roomId: room.id, change: "member", userId: m.userId });
+      out.left += 1;
+    }
+
+    // The host dropped and the grace period is over: the room passes on.
+    const host = room.members.find((m) => m.userId === room.hostId);
+    if (host && host.state !== "JOINED" && host.graceUntil && host.graceUntil <= now) {
+      const stillThere = await db.roomMember.count({
+        where: { roomId: room.id, state: "JOINED", userId: { not: room.hostId } },
+      });
+      if (stillThere > 0) {
+        await handOverHost(room, room.hostId);
+        out.handedOver += 1;
+      }
+    }
+
+    // Nobody connected for five minutes, or the room ran its full length.
+    const present = await db.roomMember.count({ where: { roomId: room.id, state: "JOINED" } });
+    if (present === 0) {
+      const since = room.emptySince ?? now;
+      if (!room.emptySince) {
+        await db.room.update({ where: { id: room.id }, data: { emptySince: now } });
+      } else if (now.getTime() - since.getTime() >= LIMITS.ROOM_EMPTY_SWEEP_MIN * 60_000) {
+        await finishRoom(room, null);
+        out.ended += 1;
+        continue;
+      }
+    } else if (room.emptySince) {
+      await db.room.update({ where: { id: room.id }, data: { emptySince: null } });
+    }
+    const started = room.startedAt ?? room.createdAt;
+    const ageMs = now.getTime() - started.getTime();
+    const maxMs = LIMITS.ROOM_MAX_DURATION_HOURS * 3_600_000;
+    if (ageMs >= maxMs) {
+      await finishRoom(room, null);
+      out.ended += 1;
+    } else if (ageMs >= maxMs - 15 * 60_000 && !room.longWarnedAt) {
+      await db.room.update({ where: { id: room.id }, data: { longWarnedAt: now } });
+      const people = room.members.filter(
+        (m) => m.userId === room.hostId || (m.role === "MODERATOR" && m.state === "JOINED"),
+      );
+      for (const p of people) {
+        void notify({
+          userId: p.userId,
+          type: "SYSTEM",
+          payload: {
+            title: "Your room ends in 15 minutes",
+            body: `${room.title} reaches the longest a room can run. Start a new one to keep talking.`,
+          },
+          dedupeKey: `room-long:${room.id}`,
+        }).catch(() => null);
+      }
+      void publish({ type: "room", roomId: room.id, change: "settings" });
+    }
+  }
+  return out;
+}
+
+/** A scheduled room whose host never came is cancelled after a grace period, and the people on its list are told. */
+export async function cancelNoShowRooms(now = new Date(), graceMin = 30): Promise<number> {
+  const db = getDb();
+  const rooms = await db.room.findMany({
+    where: {
+      status: "SCHEDULED",
+      scheduledFor: { lt: new Date(now.getTime() - graceMin * 60_000) },
+    },
+    include: { members: true },
+    take: 100,
+  });
+  for (const room of rooms) {
+    const claimed = await db.room.updateMany({
+      where: { id: room.id, status: "SCHEDULED" },
+      data: { status: "ENDED", endedAt: now },
+    });
+    if (claimed.count === 0) continue;
+    for (const m of room.members) {
+      void notify({
+        userId: m.userId,
+        type: "SYSTEM",
+        payload: {
+          title: "A room was cancelled",
+          body: `${room.title} did not start, so it was cancelled.`,
+        },
+        dedupeKey: `room-noshow:${room.id}`,
+      }).catch(() => null);
+    }
+    void publish({ type: "room", roomId: room.id, change: "ended" });
+  }
+  return rooms.length;
+}
+
+/**
+ * Ring someone who is invited and not inside yet. It is a call style alert: an in-app ring and a high urgency push.
+ * One ring per person every 30 seconds, three per room every 10 minutes. Quiet hours and Do Not Disturb are respected
+ * (the in-app list still gets it) and the ringer is told it may not be seen right away.
+ */
+export async function ringMember(
+  me: User,
+  slug: string,
+  userId: string,
+): Promise<{ status: "RINGING"; mayNotSee: boolean }> {
+  const db = getDb();
+  const room = await loadBySlug(slug);
+  const role = await actorRole(room, me.id);
+  if (!canDo(role, "INVITE")) throw forbidden(errors.roomNotAllowed);
+  if (room.status !== "LIVE") throw denied(room.status === "ENDED" ? "ENDED" : "NOT_STARTED");
+  if (userId === me.id) throw forbidden(errors.roomNotAllowed);
+  if ((await isBlockedEitherWay(me.id, userId)) || !(await areFriends(me.id, userId))) {
+    throw forbidden(errors.roomNotAllowed);
+  }
+  const member = await memberOf(room.id, userId);
+  if (member?.state === "BANNED" || member?.state === "REMOVED") throw denied("BANNED");
+  if (member?.state === "JOINED") throw new AppError(409, "CONFLICT", errors.roomRingNotInside);
+  if (!member && room.visibility === "PRIVATE") {
+    // A private room only rings people already on its list, so ringing never leaks it.
+    throw forbidden(errors.roomNotAllowed);
+  }
+  if (member?.noRing) throw new AppError(409, "CONFLICT", errors.roomRingOff);
+  await enforce(policies.roomRingPerson, `${room.id}:${userId}`);
+  await enforce(policies.roomRingRoom, room.id);
+
+  const now = new Date();
+  await db.roomMember.upsert({
+    where: { roomId_userId: { roomId: room.id, userId } },
+    create: {
+      roomId: room.id,
+      userId,
+      state: "INVITED",
+      invitedById: me.id,
+      ringStatus: "RINGING",
+      ringedAt: now,
+    },
+    update: { ringStatus: "RINGING", ringedAt: now },
+  });
+  const prefs = await db.notificationPreference.findUnique({ where: { userId } });
+  const target = await db.user.findUnique({ where: { id: userId }, select: { timezone: true } });
+  const quiet = inQuietHours(
+    now,
+    target?.timezone ?? "Africa/Lagos",
+    prefs?.quietStart ?? null,
+    prefs?.quietEnd ?? null,
+  );
+  await notify({
+    userId,
+    type: "ROOM_INVITE",
+    payload: {
+      ring: true,
+      roomId: room.id,
+      roomSlug: room.slug,
+      roomTitle: room.title,
+      fromName: me.name,
+    },
+    dedupeKey: `room-ring:${room.id}:${now.getTime()}`,
+  }).catch(() => null);
+  await log(room.id, me.id, "INVITE", userId, { ring: true });
+  void publish({ type: "room", roomId: room.id, change: "member", userId });
+  return { status: "RINGING", mayNotSee: quiet };
+}
+
+/** The ringed person turns it down, or asks not to be rung for this room again. */
+export async function answerRing(
+  me: User,
+  slug: string,
+  answer: { noRing?: boolean },
+): Promise<void> {
+  const room = await loadBySlug(slug);
+  const member = await memberOf(room.id, me.id);
+  if (!member) return;
+  await getDb().roomMember.update({
+    where: { id: member.id },
+    data: { ringStatus: "DECLINED", ...(answer.noRing ? { noRing: true } : {}) },
+  });
+  void publish({ type: "room", roomId: room.id, change: "member", userId: me.id });
+}
+
+/** Rings that nobody answered in 45 seconds become No answer. */
+export async function expireRings(now = new Date()): Promise<number> {
+  const db = getDb();
+  const cutoff = new Date(now.getTime() - LIMITS.CALL_RING_TIMEOUT_SEC * 1000);
+  const due = await db.roomMember.findMany({
+    where: { ringStatus: "RINGING", ringedAt: { lt: cutoff } },
+    select: { id: true, roomId: true, userId: true },
+    take: 200,
+  });
+  for (const m of due) {
+    await db.roomMember.update({ where: { id: m.id }, data: { ringStatus: "NO_ANSWER" } });
+    void publish({ type: "room", roomId: m.roomId, change: "member", userId: m.userId });
+  }
+  return due.length;
 }

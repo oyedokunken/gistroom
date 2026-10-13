@@ -123,7 +123,9 @@ export function RoomScreen({
   const queryClient = useQueryClient();
   const { confirm, showError, showInfo } = useFeedback();
   const view = useQuery({ queryKey: ["room", slug], queryFn: () => roomApi.view(slug, invite) });
-  const [join, setJoin] = useState<RoomJoin | null>(null);
+  // The join details live in the room store, so leaving this screen and coming back keeps you in the room.
+  const join = useRoomStore((s) => s.joins[slug]) ?? null;
+  const setJoin = (value: RoomJoin | null) => useRoomStore.getState().setJoin(slug, value);
   const [joining, setJoining] = useState(false);
   const [reminding, setReminding] = useState(false);
   const [block, setBlock] = useState<Block>(null);
@@ -148,6 +150,18 @@ export function RoomScreen({
   });
 
   const lk = useRoomLiveKit({
+    slug,
+    title: room?.title ?? "",
+    hangUp: async () => {
+      await roomApi.session(slug, "leave").catch(() => undefined);
+    },
+    heartbeat: () => void roomApi.heartbeat(slug),
+    beacon: () => {
+      navigator.sendBeacon(
+        `/api/rooms/${encodeURIComponent(slug)}/session`,
+        new Blob([JSON.stringify({ action: "leave" })], { type: "application/json" }),
+      );
+    },
     url: join?.url ?? null,
     token: join?.token ?? null,
     lowData: dataSaver,
@@ -181,11 +195,9 @@ export function RoomScreen({
 
   // One seat per person: a newer connection replaced this one.
   useEffect(() => {
-    if (lk.replaced) {
-      showError(copy.stage.replacedBody, copy.stage.replacedTitle);
-      setJoin(null);
-    }
-  }, [lk.replaced, showError]);
+    if (lk.replaced) setJoin(null);
+    // setJoin only writes to the store
+  }, [lk.replaced]);
 
   async function enter() {
     setJoining(true);

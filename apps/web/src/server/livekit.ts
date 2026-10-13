@@ -146,11 +146,13 @@ export async function setPublishSources(
   }
 }
 
-export async function listIdentities(room: string): Promise<string[]> {
+/** Who LiveKit says is connected right now. Null when LiveKit is not set up or did not answer, so callers never guess. */
+export async function listIdentities(room: string): Promise<string[] | null> {
   const list = await roomService<{ participants?: Participant[] }>(room, "ListParticipants", {
     room,
   });
-  return (list?.participants ?? []).map((p) => p.identity);
+  if (list === null) return null;
+  return (list.participants ?? []).map((p) => p.identity);
 }
 
 /** Mute one person's microphone or camera, or everyone's microphone except the people listed. */

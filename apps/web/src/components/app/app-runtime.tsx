@@ -8,6 +8,7 @@ import { ConnectionBar } from "@/components/session/connection-bar";
 import { InCallBar } from "@/components/session/in-call-bar";
 import { LiveBanners } from "@/components/session/live-banners";
 import { LiveWatcher } from "@/components/session/live-watcher";
+import { RejoinOffer } from "@/components/session/rejoin-offer";
 import { RoomPresence } from "@/components/session/room-presence";
 import { SessionModalHost } from "@/components/session/session-modal-host";
 import { SoundGate } from "@/components/session/sound-gate";
@@ -34,6 +35,7 @@ export function AppRuntime() {
       <SessionModalHost />
       <LiveWatcher />
       <RoomPresence />
+      <RejoinOffer />
       <LiveBanners />
       <InCallBar />
       <ActivityChips />

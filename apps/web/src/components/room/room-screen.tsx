@@ -220,6 +220,11 @@ export function RoomScreen({
     // lk.leave is stable. Only the two flags matter.
   }, [ended, kicked]);
 
+  // The live session needs to know who the host is, so a dropped host is noticed.
+  useEffect(() => {
+    if (room?.host.id && inRoom) useLive.setState({ hostIdentity: `user_${room.host.id}` });
+  }, [room?.host.id, inRoom]);
+
   // After a reload or a short drop the seat is still yours, so the screen takes it back by itself.
   useEffect(() => {
     if (autoTried.current || join || joining || !room?.rejoin || block) return;

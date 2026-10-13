@@ -59,13 +59,19 @@ export function RoomPresence() {
       } else if (e.type === "participant-joined") {
         if (useLive.getState().kind === "room") announcer.joined(e.identity, e.name);
       } else if (e.type === "participant-left") {
-        if (useLive.getState().kind === "room") announcer.left(e.identity, e.name);
+        if (useLive.getState().kind === "room") {
+          announcer.left(e.identity, e.name);
+          // The host dropped: everyone is told it may only be a bad moment, before anything changes hands.
+          if (e.identity === useLive.getState().hostIdentity) {
+            pushChip({ text: copy.room.hostReconnecting, kind: "mod" });
+          }
+        }
       } else if (e.type === "left") {
         announcer.dispose();
       } else if (e.type === "reconnecting") {
-        if (useLive.getState().kind === "room") sounds().play("reconnecting");
+        sounds().play("reconnecting");
       } else if (e.type === "reconnected") {
-        if (useLive.getState().kind === "room") sounds().play("reconnected");
+        sounds().play("reconnected");
       }
     });
     return () => {

@@ -1120,7 +1120,12 @@ export async function forwardRoom(
     if (room.visibility === "PRIVATE") {
       const existing = await memberOf(room.id, access.peerId);
       if (existing?.state === "BANNED") continue;
-      if (!existing || existing.state === "REMOVED") {
+      // A person removed a moment ago stays out for the wait, so a forwarded link cannot undo it.
+      const cooling =
+        existing?.state === "REMOVED" &&
+        existing.leftAt !== null &&
+        Date.now() - existing.leftAt.getTime() < LIMITS.ROOM_REMOVE_COOLDOWN_MIN * 60_000;
+      if (!cooling && (!existing || existing.state === "REMOVED")) {
         await db.roomMember.upsert({
           where: { roomId_userId: { roomId: room.id, userId: access.peerId } },
           create: { roomId: room.id, userId: access.peerId, state: "INVITED", invitedById: me.id },

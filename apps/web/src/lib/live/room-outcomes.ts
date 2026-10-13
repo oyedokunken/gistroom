@@ -6,6 +6,7 @@ import { roomApi } from "@/lib/rooms/api";
 import { formatDuration } from "@/lib/chat/voice";
 import { useRoomStore } from "@/lib/rooms/store";
 import { showSessionModal, type SessionAction } from "@/lib/session/modals";
+import { sounds } from "@/lib/sound/sounds";
 import type { Nav } from "./call-outcomes";
 
 const told = new Set<string>();
@@ -23,6 +24,7 @@ export async function showRoomEnded(slug: string, nav: Nav): Promise<void> {
   } catch {
     summary = null;
   }
+  sounds().play("roomEnded");
   const self = Boolean(useRoomStore.getState().selfEnded[slug]);
   const duration = summary ? formatDuration(summary.durationSec * 1000) : null;
   const title = self

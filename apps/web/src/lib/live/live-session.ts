@@ -48,6 +48,8 @@ export interface LiveState {
   poorFor10s: boolean;
   /** The other person (1:1) has been lost for 5 seconds. */
   peerLostSince: number | null;
+  /** The LiveKit identity of the host of this room, so a dropped host can be noticed. */
+  hostIdentity: string | null;
   /** The device I speak through changed, for the "Switched to" note. */
   deviceNote: string | null;
   /** Bumps on every change so tiles re-attach tracks. */
@@ -75,6 +77,7 @@ const idle: LiveState = {
   localQuality: "unknown",
   poorFor10s: false,
   peerLostSince: null,
+  hostIdentity: null,
   deviceNote: null,
   version: 0,
 };

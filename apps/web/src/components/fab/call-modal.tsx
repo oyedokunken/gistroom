@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { fab as copy } from "@/content/fab";
 import { ApiClientError, apiFetch } from "@/lib/api";
 import { startCallRequest } from "@/lib/calls/api";
+import { handleStartCallError } from "@/lib/live/call-outcomes";
 import Link from "next/link";
 
 /** Pick a friend, then the call starts. The button that opened this says whether it is audio or video. */
@@ -59,7 +60,11 @@ export function CallModal({
       router.push(`/app/call/${started.call.id}`);
     } catch (e) {
       setBusyId(null);
-      showError(e instanceof ApiClientError ? e.message : copy.call.failed);
+      if (e instanceof ApiClientError) {
+        handleStartCallError(e, f.user.name, { push: (p) => router.push(p) });
+      } else {
+        showError(copy.call.failed);
+      }
     }
   }
 

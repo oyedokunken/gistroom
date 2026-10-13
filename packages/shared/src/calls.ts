@@ -28,6 +28,10 @@ export interface CallDto {
   answeredAt: string | null;
   endedAt: string | null;
   endReason: string | null;
+  /** Who ended it: the viewer, the other person, or the system (rang out, dropped, blocked). Null while it is on. */
+  endedBy: "ME" | "PEER" | "SYSTEM" | null;
+  /** For a call I placed that is ringing: false when they have no alerts on and have not been seen lately. */
+  peerReachable: boolean | null;
 }
 
 export interface CallJoin {

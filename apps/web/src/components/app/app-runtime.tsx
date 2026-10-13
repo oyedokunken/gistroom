@@ -5,6 +5,9 @@ import { UpdateBar } from "@/components/app/update-bar";
 import { IncomingCall } from "@/components/call/incoming-call";
 import { ActivityChips } from "@/components/session/activity-chips";
 import { ConnectionBar } from "@/components/session/connection-bar";
+import { InCallBar } from "@/components/session/in-call-bar";
+import { LiveBanners } from "@/components/session/live-banners";
+import { LiveWatcher } from "@/components/session/live-watcher";
 import { SessionModalHost } from "@/components/session/session-modal-host";
 import { SoundGate } from "@/components/session/sound-gate";
 import { useOutboxFlusher } from "@/lib/chat/hooks";
@@ -28,6 +31,9 @@ export function AppRuntime() {
       <IncomingCall />
       <ConnectionBar />
       <SessionModalHost />
+      <LiveWatcher />
+      <LiveBanners />
+      <InCallBar />
       <ActivityChips />
     </>
   );

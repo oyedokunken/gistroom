@@ -547,13 +547,7 @@ model PushSubscription {
   deviceLabel     String?
   lastSuccessAt   DateTime?
   failureCount    Int       @default(0)
-  /// The session on this device ended more than 30 days ago, so alerts stopped until the person signs in again.
-  /**
-   * /**
-   * /**
-   * /**
-   * /** When the session on this device ended (first noticed). Alerts go out as plain text for 30 days after this.
-   */
+  /// When the session on this device ended (first noticed). Alerts go out as plain text for 30 days after this.
   sessionEndedAt  DateTime?
   needsReauth     Boolean   @default(false)
   /// Three failures in a row. The person is told the next time they open the app.
@@ -596,6 +590,8 @@ model Call {
   /// The last time each side said it was still on the call. A side silent for a minute counts as gone.
   callerSeenAt  DateTime?
   calleeSeenAt  DateTime?
+  /// Who ended the call on purpose. Null when the system ended it (it rang out, someone dropped, a block).
+  endedById     String?
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
   caller        User       @relation("Caller", fields: [callerId], references: [id])

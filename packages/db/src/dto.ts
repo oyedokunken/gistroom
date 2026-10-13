@@ -131,5 +131,13 @@ export function callDto(
     answeredAt: row.answeredAt?.toISOString() ?? null,
     endedAt: row.endedAt?.toISOString() ?? null,
     endReason: row.endReason,
+    endedBy: row.endedAt
+      ? row.endedById
+        ? row.endedById === viewerId
+          ? "ME"
+          : "PEER"
+        : "SYSTEM"
+      : null,
+    peerReachable: null,
   };
 }

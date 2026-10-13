@@ -1335,6 +1335,15 @@ export async function roomSummary(me: User, slug: string): Promise<RoomSummaryDt
   if (room.visibility === "PRIVATE" && !attended) throw notFound();
   const started = room.startedAt ?? room.createdAt;
   const ended = room.endedAt ?? started;
+  const endLog = await db.roomModLog.findFirst({
+    where: { roomId: room.id, action: "END" },
+    orderBy: { createdAt: "desc" },
+  });
+  const endedBy: RoomSummaryDto["endedBy"] = !endLog
+    ? "SYSTEM"
+    : endLog.actorId === room.hostId
+      ? "HOST"
+      : "MODERATOR";
   const notes = attended
     ? await db.note.findMany({
         where: { userId: me.id, roomId: room.id },
@@ -1357,6 +1366,7 @@ export async function roomSummary(me: User, slug: string): Promise<RoomSummaryDt
     messageCount: room.messageCount,
     reactionCount: room.reactionCount,
     attendees: attended ? attendeesRows.map((m) => toPublicUser(m.user)) : null,
+    endedBy,
     modActionCount: isHost ? await db.roomModLog.count({ where: { roomId: room.id } }) : null,
     notes: notes.map((n) => ({
       id: n.id,
@@ -1403,8 +1413,21 @@ export async function myRooms(me: User): Promise<RoomDto[]> {
     orderBy: [{ status: "asc" }, { startedAt: "desc" }, { scheduledFor: "asc" }],
     take: 30,
   });
+  const now = new Date();
   return Promise.all(
-    rows.map((r) => toDto(r, r.hostId === me.id ? "HOST" : (r.members[0]?.role ?? null))),
+    rows.map((r) => {
+      const mine = r.members[0];
+      const holdsSeat =
+        r.status === "LIVE" &&
+        (mine?.state === "JOINED" ||
+          (mine?.state === "LEFT" && mine.graceUntil !== null && mine.graceUntil > now));
+      return toDto(
+        r,
+        r.hostId === me.id ? "HOST" : (mine?.role ?? null),
+        false,
+        Boolean(holdsSeat),
+      );
+    }),
   );
 }
 

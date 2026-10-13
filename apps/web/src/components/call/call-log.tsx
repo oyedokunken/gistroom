@@ -28,6 +28,7 @@ import { pages } from "@/content/app";
 import { callCopy as copy } from "@/content/calls";
 import { ApiClientError, apiFetch } from "@/lib/api";
 import { startCallRequest } from "@/lib/calls/api";
+import { handleStartCallError } from "@/lib/live/call-outcomes";
 import { formatDuration } from "@/lib/chat/voice";
 import { cn } from "@/lib/cn";
 import { formatClock, formatDayLabel } from "@/lib/time";
@@ -70,7 +71,16 @@ function Row({ entry }: { entry: CallLogDto }) {
       );
       router.push(`/app/call/${started.call.id}`);
     } catch (e) {
-      showError(e instanceof ApiClientError ? e.message : copy.loadError);
+      if (e instanceof ApiClientError) {
+        handleStartCallError(
+          e,
+          entry.title,
+          { push: (p) => router.push(p) },
+          () => void callBack(),
+        );
+      } else {
+        showError(copy.loadError);
+      }
     } finally {
       setBusy(false);
     }

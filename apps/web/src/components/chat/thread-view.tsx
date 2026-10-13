@@ -18,6 +18,7 @@ import { chat } from "@/content/chat";
 import { ApiClientError, apiFetch } from "@/lib/api";
 import { upsertMessage, flattenOldestFirst, type CachedMessages } from "@/lib/chat/cache";
 import { startCallRequest } from "@/lib/calls/api";
+import { handleStartCallError } from "@/lib/live/call-outcomes";
 import { keys, useMessages } from "@/lib/chat/hooks";
 import { useOutbox } from "@/lib/chat/outbox-store";
 import { toggleReactionLocal } from "@/lib/chat/reactions";
@@ -336,7 +337,13 @@ export function ThreadView({
       const started = await startCallRequest(conversationId, video ? "VIDEO" : "AUDIO");
       router.push(`/app/call/${started.call.id}`);
     } catch (e) {
-      failure(e);
+      // Not able to reach them, they are busy, or the line is down: each has its own dialog and none names a block.
+      handleStartCallError(
+        e,
+        peer.name,
+        { push: (p) => router.push(p) },
+        () => void startCall(kind),
+      );
     }
   }
 

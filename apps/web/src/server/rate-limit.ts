@@ -31,6 +31,7 @@ export const policies = {
   roomRingPerson: { name: "room-ring-person", limit: 1, windowSec: 30 },
   roomRingRoom: { name: "room-ring-room", limit: 3, windowSec: 600 },
   roomHeartbeat: { name: "room-heartbeat", limit: 30, windowSec: 60 },
+  sessionEvent: { name: "session-event", limit: 120, windowSec: 3600 },
   roomGoing: { name: "room-going", limit: 30, windowSec: 3600 },
   roomMod: { name: "room-mod", limit: 120, windowSec: 60 },
   roomReaction: { name: "room-reaction", limit: 60, windowSec: 10 },

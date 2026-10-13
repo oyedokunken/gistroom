@@ -33,6 +33,10 @@ export async function apiFetch<T>(
     throw new ApiClientError(0, "NETWORK", network.offline);
   }
   if (res.ok) return (await res.json()) as T;
+  // A call or a room that is on needs to know when the sign in has gone. The app confirms before it says so.
+  if (res.status === 401 && typeof window !== "undefined") {
+    window.dispatchEvent(new Event("gr:unauthorized"));
+  }
   let body: Partial<ApiErrorBody> = {};
   try {
     body = (await res.json()) as ApiErrorBody;

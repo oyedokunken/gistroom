@@ -18,6 +18,9 @@ interface RoomState {
   floating: Record<string, FloatingReaction[]>;
   /** A moderator muted me or turned my camera off. Shown once, then dismissed. */
   notice: Record<string, ModeratorNotice | undefined>;
+  /** Rooms I ended myself, so the closing words say "You ended the room". */
+  selfEnded: Record<string, true | undefined>;
+  markSelfEnded: (slug: string) => void;
   /** The join details of the rooms I am in, kept so leaving the screen does not lose them. */
   joins: Record<string, RoomJoin | undefined>;
   setJoin: (slug: string, join: RoomJoin | null) => void;
@@ -35,6 +38,8 @@ export const useRoomStore = create<RoomState>((set) => ({
   floating: {},
   notice: {},
   joins: {},
+  selfEnded: {},
+  markSelfEnded: (slug) => set((s) => ({ selfEnded: { ...s.selfEnded, [slug]: true } })),
   setJoin: (slug, join) => set((s) => ({ joins: { ...s.joins, [slug]: join ?? undefined } })),
   addReaction: (slug, userId, emoji) =>
     set((s) => ({

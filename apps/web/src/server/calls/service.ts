@@ -49,7 +49,18 @@ function participant(row: CallRow, me: User): void {
 }
 
 async function dto(row: CallRow, me: User) {
-  return callDto(row, me.id, await conversationOf(row.callerId, row.calleeId));
+  const base = callDto(row, me.id, await conversationOf(row.callerId, row.calleeId));
+  if (row.status !== "RINGING" || row.callerId !== me.id) return base;
+  // Can the callee see this at all? A person with alerts on, or seen in the last couple of minutes, can.
+  const db = getDb();
+  const [alerts, seen] = await Promise.all([
+    db.pushSubscription.count({
+      where: { userId: row.calleeId, revokedAt: null, needsReauth: false },
+    }),
+    db.user.findUnique({ where: { id: row.calleeId }, select: { lastSeenAt: true } }),
+  ]);
+  const recent = seen?.lastSeenAt ? Date.now() - seen.lastSeenAt.getTime() < 120_000 : false;
+  return { ...base, peerReachable: alerts > 0 || recent };
 }
 
 async function markSeen(row: CallRow, userId: string): Promise<void> {
@@ -150,12 +161,17 @@ async function postCallRecord(row: CallRow, status: CallStatus): Promise<void> {
  * Move a call to a finished state exactly once. The update only succeeds while the call is still in the state
  * we read, so two devices ending it together cannot write two log rows (R17).
  */
-async function finish(row: CallRow, next: CallStatus, reason: string): Promise<CallRow> {
+async function finish(
+  row: CallRow,
+  next: CallStatus,
+  reason: string,
+  actorId: string | null = null,
+): Promise<CallRow> {
   const db = getDb();
   const endedAt = new Date();
   const claimed = await db.call.updateMany({
     where: { id: row.id, status: row.status },
-    data: { status: next, endedAt, endReason: reason },
+    data: { status: next, endedAt, endReason: reason, endedById: actorId },
   });
   const fresh = await load(row.id);
   if (claimed.count === 0) return fresh;
@@ -211,7 +227,7 @@ async function act(me: User, id: string, action: CallAction): Promise<CallJoin> 
     return join(fresh, me);
   }
   const reason = action === "TIMEOUT" ? "timeout" : action.toLowerCase();
-  return join(await finish(row, result.next, reason), me);
+  return join(await finish(row, result.next, reason, me.id), me);
 }
 
 export const acceptCall = (me: User, id: string) => act(me, id, "ACCEPT");

@@ -351,6 +351,8 @@ export interface RoomSummaryDto {
   reactionCount: number;
   /** Only people who attended see who was there. */
   attendees: PublicUser[] | null;
+  /** Who closed the room: the host, a moderator, or the system (empty too long, ran its full length). */
+  endedBy: "HOST" | "MODERATOR" | "SYSTEM" | null;
   /** Only the host sees these. */
   modActionCount: number | null;
   /** The viewer's private notes for this room. */

@@ -4,6 +4,7 @@ import { create } from "zustand";
 import type { Participant, Room } from "livekit-client";
 import { isReactionEmoji } from "@gistroom/shared";
 import { setLiveKitStatus } from "@/lib/session/connection";
+import { unsupportedReason } from "@/lib/session/browser";
 
 /**
  * The one live connection of this browser tab, for a 1:1 call or a room. It lives outside every screen, so moving
@@ -33,6 +34,8 @@ export interface LiveState {
   audioBlocked: boolean;
   /** The mic stopped while the tab was in the background on a phone. */
   micPausedInBackground: boolean;
+  /** This browser cannot run calls, for example the one built into another app. */
+  unsupported: boolean;
   disconnectReason: DisconnectReason;
   /** When the connection first came up, in milliseconds since 1970. */
   startedAt: number | null;
@@ -63,6 +66,7 @@ const idle: LiveState = {
   camIssue: null,
   audioBlocked: false,
   micPausedInBackground: false,
+  unsupported: false,
   disconnectReason: null,
   startedAt: null,
   participants: [],
@@ -179,6 +183,8 @@ export class LiveSession {
   private wakeLock: { release: () => Promise<void> } | null = null;
   private joinedAt = new Map<string, number>();
   private detachers: (() => void)[] = [];
+  private titleTimer: unknown = null;
+  private baseTitle = "";
 
   constructor(private readonly deps: LiveDeps = realDeps) {}
 
@@ -219,6 +225,20 @@ export class LiveSession {
     });
     setLiveKitStatus("connecting");
 
+    // Some browsers cannot join at all. Say so up front instead of failing halfway.
+    if (typeof navigator !== "undefined" && typeof window !== "undefined") {
+      const why = unsupportedReason(
+        navigator.userAgent,
+        Boolean(navigator.mediaDevices?.getUserMedia),
+        "RTCPeerConnection" in window,
+      );
+      if (why) {
+        useLive.setState({ status: "failed", unsupported: true });
+        setLiveKitStatus("disconnected");
+        return;
+      }
+    }
+
     const lk = await this.deps.loadLiveKit();
     if (generation !== this.generation) return;
     this.lk = lk;
@@ -251,6 +271,7 @@ export class LiveSession {
       setLiveKitStatus("connected");
       emit({ type: "connected" });
       this.startHeartbeat();
+      this.startTitle();
       this.holdScreenAwake();
       this.installUnload();
       try {
@@ -475,12 +496,25 @@ export class LiveSession {
     );
   }
 
+  /** On a poor line the video coming in drops to its smallest size, and goes back when the line recovers. */
+  private setIncomingQuality(low: boolean) {
+    const lk = this.lk;
+    const room = this.room;
+    if (!lk || !room) return;
+    for (const p of room.remoteParticipants.values()) {
+      for (const pub of p.videoTrackPublications.values()) {
+        pub.setVideoQuality(low ? lk.VideoQuality.LOW : lk.VideoQuality.HIGH);
+      }
+    }
+  }
+
   private trackPoor(poor: boolean) {
     if (!poor) {
       if (this.poorTimer !== null) this.deps.clearTimeout(this.poorTimer);
       this.poorTimer = null;
       if (useLive.getState().poorFor10s) {
         useLive.setState({ poorFor10s: false });
+        this.setIncomingQuality(false);
         this.updateLivekitHint();
       }
       return;
@@ -489,6 +523,7 @@ export class LiveSession {
     this.poorTimer = this.deps.setTimeout(() => {
       this.poorTimer = null;
       useLive.setState({ poorFor10s: true });
+      this.setIncomingQuality(true);
       this.updateLivekitHint();
     }, POOR_MS);
   }
@@ -566,6 +601,38 @@ export class LiveSession {
     if (next) await room.switchActiveDevice("videoinput", next.deviceId);
   }
 
+  /** Joins again with the details of the last try, after "Can't connect right now". */
+  async retry(): Promise<void> {
+    const opts = this.opts;
+    if (!opts) return;
+    const status = useLive.getState().status;
+    if (status !== "failed" && status !== "disconnected") return;
+    this.leave();
+    await this.join(opts);
+  }
+
+  /** Turns the microphone back on after the phone paused it in the background. */
+  async resumeMic(): Promise<void> {
+    const lp = this.room?.localParticipant;
+    if (!lp) return;
+    try {
+      await lp.setMicrophoneEnabled(true);
+      this.wantMic = true;
+      useLive.setState({ micPausedInBackground: false, micIssue: null });
+    } catch (e) {
+      useLive.setState({ micIssue: issueOf(e) });
+    }
+    this.sync();
+  }
+
+  clearDeviceNote(): void {
+    useLive.setState({ deviceNote: null });
+  }
+
+  dismissMicPause(): void {
+    useLive.setState({ micPausedInBackground: false });
+  }
+
   /** Lets the browser play remote audio after it blocked autoplay. Must be called from a tap. */
   async enableAudio(): Promise<void> {
     await this.room?.startAudio();
@@ -604,6 +671,33 @@ export class LiveSession {
   private stopHeartbeat() {
     if (this.heartbeatTimer !== null) this.deps.clearInterval(this.heartbeatTimer);
     this.heartbeatTimer = null;
+  }
+
+  /** "In call 05:12 | Gistroom" in the tab, so you can see it from another tab. */
+  private startTitle() {
+    if (typeof document === "undefined") return;
+    this.stopTitle();
+    const prefix = /^In (call|room) [\d:]+ \| /;
+    const tick = () => {
+      const s = useLive.getState();
+      if (!s.startedAt || !s.kind) return;
+      if (!document.title.match(prefix)) this.baseTitle = document.title;
+      const secs = Math.max(0, Math.floor((this.deps.now() - s.startedAt) / 1000));
+      const h = Math.floor(secs / 3600);
+      const m = String(Math.floor((secs % 3600) / 60)).padStart(2, "0");
+      const sec = String(secs % 60).padStart(2, "0");
+      const time = h > 0 ? `${h}:${m}:${sec}` : `${m}:${sec}`;
+      document.title = `In ${s.kind} ${time} | Gistroom`;
+    };
+    tick();
+    this.titleTimer = this.deps.setInterval(tick, 1000);
+  }
+
+  private stopTitle() {
+    if (this.titleTimer !== null) this.deps.clearInterval(this.titleTimer);
+    this.titleTimer = null;
+    if (typeof document !== "undefined" && this.baseTitle) document.title = this.baseTitle;
+    this.baseTitle = "";
   }
 
   private async holdScreenAwake() {
@@ -645,6 +739,7 @@ export class LiveSession {
     const had = this.opts !== null;
     this.generation += 1;
     this.stopHeartbeat();
+    this.stopTitle();
     if (this.poorTimer !== null) this.deps.clearTimeout(this.poorTimer);
     if (this.peerTimer !== null) this.deps.clearTimeout(this.peerTimer);
     this.poorTimer = null;

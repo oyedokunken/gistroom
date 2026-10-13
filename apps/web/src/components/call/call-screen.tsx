@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -22,6 +23,10 @@ import { Button, buttonStyles } from "@/components/ui/button";
 import { callCopy as copy } from "@/content/calls";
 import { ApiClientError } from "@/lib/api";
 import { callAction, callHeartbeat, fetchCall } from "@/lib/calls/api";
+import { session as sessionCopy } from "@/content/session";
+import { showCallOutcome } from "@/lib/live/call-outcomes";
+import { showSessionModal } from "@/lib/session/modals";
+import { sounds } from "@/lib/sound/sounds";
 import { startRingtone, stopRingtone } from "@/lib/calls/ringtone";
 import { useCallStore } from "@/lib/calls/store";
 import { useLiveKit } from "@/lib/calls/use-livekit";
@@ -40,19 +45,6 @@ function useElapsed(answeredAt: string | null, running: boolean): number {
     return () => window.clearInterval(id);
   }, [answeredAt, running]);
   return ms;
-}
-
-/** Keeps the screen on while a call is running, where the browser allows it. */
-function useWakeLock(active: boolean) {
-  useEffect(() => {
-    if (!active || !("wakeLock" in navigator)) return;
-    let lock: WakeLockSentinel | null = null;
-    void navigator.wakeLock
-      .request("screen")
-      .then((l) => (lock = l))
-      .catch(() => undefined);
-    return () => void lock?.release().catch(() => undefined);
-  }, [active]);
 }
 
 export function CallScreen({
@@ -113,14 +105,69 @@ export function CallScreen({
     [],
   );
   const elapsed = useElapsed(call?.answeredAt ?? null, status === "ACTIVE");
-  useWakeLock(status === "ACTIVE");
+  const router = useRouter();
+  const nav = useMemo(() => ({ push: (path: string) => router.push(path) }), [router]);
 
-  // Outgoing ring tone is quiet: nothing plays. Incoming rings on this screen until answered.
+  // The call screen that is open, so its ending is told even when there is no live connection (it rang out).
+  useEffect(() => {
+    useCallStore.getState().setScreen(callId);
+    return () => useCallStore.getState().setScreen(null);
+  }, [callId]);
+
+  // Incoming rings on this screen until answered. The caller hears a softer ringback while it rings.
   useEffect(() => {
     if (!ringingIn) return;
     startRingtone();
     return () => stopRingtone();
   }, [ringingIn]);
+  const ringingOut = call?.direction === "OUTGOING" && status === "RINGING";
+  useEffect(() => {
+    if (!ringingOut) return;
+    sounds().startLoop("ringback");
+    return () => sounds().stopLoop("ringback");
+  }, [ringingOut]);
+
+  // Tones for the moments of a call: picked up, and over.
+  const wasActive = useRef(false);
+  useEffect(() => {
+    if (status === "ACTIVE" && !wasActive.current) {
+      wasActive.current = true;
+      sounds().play("callConnected");
+    }
+    if (finished && wasActive.current) {
+      wasActive.current = false;
+      sounds().play("callEnded");
+    }
+  }, [status, finished]);
+
+  // How the call ended is said once, in a dialog, in plain words.
+  useEffect(() => {
+    if (call && finished) showCallOutcome(call, nav);
+  }, [call, finished, nav]);
+
+  // The person being called has no alerts on and has not been seen lately. Say so, and let the caller choose.
+  const unreachable = ringingOut && call?.peerReachable === false;
+  useEffect(() => {
+    if (!unreachable || !call) return;
+    showSessionModal({
+      id: `call-unavailable:${call.id}`,
+      priority: "info",
+      icon: "phone-missed",
+      title: sessionCopy.call.unavailableTitle(call.peer.name),
+      body: sessionCopy.call.unavailableBody,
+      actions: [
+        { id: "keep", label: sessionCopy.call.keepCalling },
+        {
+          id: "message",
+          label: sessionCopy.modal.message,
+          kind: "secondary",
+          run: () => {
+            if (call.conversationId) router.push(`/app/chats/${call.conversationId}`);
+          },
+        },
+      ],
+    });
+  }, [unreachable, call, router]);
 
   // Close the connection the moment the call is over.
   useEffect(() => {

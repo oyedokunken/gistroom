@@ -6,6 +6,8 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ### Added
 
+- `npm run db:migrate:prod` applies migrations to the production `public` schema, and the release checklists now require it before a push that ships a migration.
+
 - The ring window. Incoming calls and rooms that ring you use one card in one place, top right (a heads-up card on a phone), whatever page you are on. A video call offers Answer with video, Answer with audio only and Decline. A room ring shows the room, its topic and language, the host and how many are inside, and updates when the room fills, locks or ends. Up to three stack. The countdown follows the server's clock and a reload brings the ring back with the right time left. `GET /api/rings/active` lists what is ringing, and `room:ring`, `ring:cancelled`, `ring:answered_elsewhere` and `ring:expired` are new hint events.
 
 - The call and room window. A call or room now floats over the page you are on instead of taking the whole screen: drag it by the title bar, resize it from any edge or corner, minimize it to a bar (a thin bar to tap on a phone, a video bubble for a video call), or go full screen. It remembers its size and place. Starting or joining while another call or room is live asks first. The address stays as it was, and `/app/call/{id}` and `/app/rooms/{slug}` still open it.

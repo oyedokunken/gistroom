@@ -10,7 +10,15 @@ Two deployments: `apps/web` on Vercel and `apps/realtime` on Render. These steps
 4. Run `npm run db:migrate`. The guard refuses any schema other than `gistroom_dev` or `gistroom_test`.
 5. Create two storage buckets: a private `media` bucket and a public `avatars` bucket. Copy the project URL and the service role key into `.env`.
 
-Production later gets its own Supabase project with the `public` schema, and `PRODUCTION_DB_HOST` set so dev commands refuse to touch it.
+Production later gets its own Supabase project with the `public` schema, and `PRODUCTION_DB_HOST` set so dev commands refuse to touch it. Today production uses the `public` schema of the same project.
+
+### Migrating production on every release
+
+Neither build runs migrations. When a change adds a migration, apply it to production before you push it, or the new code reads columns that do not exist and every query on that table fails with `P2022` (this happened on 2026-10-13 with `Room.longWarnedAt`).
+
+1. `npm run db:migrate` applies it to `gistroom_dev`.
+2. `npm run db:migrate:prod` runs `prisma migrate deploy` against the `public` schema. It reads `PRODUCTION_DIRECT_URL` from `.env`, or `DIRECT_URL` with the schema switched to `public`.
+3. Push. Migrations must stay additive (new nullable columns, new tables) so the running deployment keeps working between steps 2 and 3.
 
 ## 2. Vercel (web)
 

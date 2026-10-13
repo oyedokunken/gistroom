@@ -47,7 +47,8 @@
     "seed:friends": "tsx scripts/seed-friends.ts",
     "seed:act": "tsx scripts/seed-act.ts",
     "sessions:ends": "tsx scripts/session-ends.ts",
-    "db:migrate:deploy": "npm run migrate:deploy -w @gistroom/db"
+    "db:migrate:deploy": "npm run migrate:deploy -w @gistroom/db",
+    "db:migrate:prod": "node scripts/migrate-production.mjs"
   },
   "lint-staged": {
     "*.{ts,tsx,mjs,js,json,md,css}": [

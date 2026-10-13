@@ -729,6 +729,7 @@ Two deployments only: `apps/web` on Vercel and `apps/realtime` on Render. Supaba
 - [ ] Legal pages reviewed against the NDPA and the Cybercrimes Act
 - [ ] Graphik web license confirmed (D7)
 - [ ] Sitemap submitted in Search Console
+- [ ] Every release: `npm run db:migrate` for dev, then `npm run db:migrate:prod` for production, before the push that ships a new migration
 
 ## Documentation
 

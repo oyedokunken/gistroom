@@ -48,3 +48,4 @@ One plain sentence in the imperative mood, for example `Add friend request coold
 - [ ] Docs, wiki and CHANGELOG are updated
 - [ ] Screenshots at 360, 768 and 1440 for any UI change
 - [ ] A new dependency has a one line reason and is maintained
+- [ ] A new migration is applied to production with `npm run db:migrate:prod` before the push that ships it (builds never migrate, so the deployed code would read columns that do not exist)

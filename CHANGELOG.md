@@ -6,6 +6,10 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ### Production migrations to run
 
+- `20261013160000_live_session_reliability`: heartbeats, rings, empty and long room tracking, and the LiveKit webhook event table.
+- `20261013170000_call_ended_by`: who ended a call.
+- `20261013150000_room_message_edit_delete`: edited and deleted markers on room chat.
+
 - `20261013150000_room_message_edit_delete`: edited and deleted markers on room chat messages.
 
 - `20261013120000_user_is_seed`: marks seeded test people so they can be removed in one command.
@@ -22,6 +26,12 @@ These are applied to the dev and test schemas already. Run them on production wi
 - `20261012140000_room_invite_link_token`: the link token that lets active links show in full.
 
 ### Connection states, calls and rooms
+
+- A call or room now lives in the tab: opening chats or settings never drops it. An in call bar follows you with the timer, mute, a way back and hang up. A reload offers to rejoin. The tab title shows the timer.
+- Every way a call or room can go wrong has a clear dialog: offline, reconnecting, disconnected, cannot connect, the other person lost, our server down, session ended, another device, blocked audio, microphone and camera problems, a browser built into another app, and a phone that paused the mic. Weak signal is a banner with an audio only offer.
+- Calls say how they ended: declined, busy, no answer, may not see this right away, the other person left, your own summary.
+- Rooms: a check screen before joining, join and leave chips, signal bars, a paged stage for big rooms, ringing invited people, remove and ban waits, who ended the room, the 8 hour limit, empty room and no show cleanup, and a reconcile with LiveKit.
+- Sounds made in code for calls, rooms and messages, with a Sounds card in settings.
 
 - A connection monitor (`useConnection()`) checks our own server every 10 seconds, so a captive portal or Wi-Fi with no data counts as offline. A change has to hold for 3 seconds before anything reacts and recovery for 2 seconds. Offline shows a bar under the header, and "Back online" for 3 seconds when it returns. If only the chat connection is down the bar says Connecting to chat quietly.
 - One dialog host for calls and rooms (one at a time, most urgent first) and activity chips for in-call notices.

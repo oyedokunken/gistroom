@@ -380,8 +380,10 @@ Rules:
 - Multi-device: answering on one device sends `call:answered_elsewhere` and a cancel push to the others.
 - Switching media: audio to video and back mid-call by toggling the camera track on the same LiveKit room (`setCameraEnabled`). No reconnect. Both sides see the tile appear and disappear with a short animation. If camera permission is denied, show a modal that explains how to enable it and stay in audio.
 - Quality: adaptive stream, dynacast and simulcast on. Data saver mode starts calls audio-only and caps video at 360p. If connection quality stays poor for 10 seconds, offer "Switch to audio only" in an inline banner.
-- Controls: mute, camera, flip camera (mobile), speaker or device picker, end. Pre-call device check modal on first use.
+- Controls: mute (`M`), camera (`V`), flip camera (mobile), speaker, microphone and camera picker, mirror, reactions, end. The answer step has mute and camera toggles.
 - Keep screen awake during calls (Screen Wake Lock API where supported).
+- **The call lives in the tab, not the screen.** One live session (`lib/live/live-session.ts`) holds the LiveKit connection, so opening chats or settings never drops a call. An in call bar shows the timer, mute, a way back and hang up. Leaving always runs one cleanup: every track stopped, the room disconnected, timers and listeners removed, the wake lock released. The tab title reads "In call 05:12 | Gistroom". A tab sends a heartbeat every 8 seconds, and a side silent for 60 seconds ends the call (`peer-gone`). A block or an unfriend ends the call with the neutral line "This call has ended".
+- **Outcomes are dialogs, never silent.** The caller hears "declined", "is busy" (another call or a room), "didn't pick up" or "may not see this right away". The other person leaving shows "{name} left the call" with the length. A reload offers "Rejoin your call".
 
 ### 9.5 Call logs tab
 
@@ -404,6 +406,12 @@ Rules:
 - Room chat: ephemeral text with emoji, avatars and role badges, rate limited, senders delete their own and moderators delete any, chat mode (everyone, moderators, off), slow mode, reactions. Floating reactions use the ten fixed reactions in `packages/shared/src/reactions.ts`.
 - Room settings (host and moderators, live, logged): name, description, topic, language, visibility, cameras allowed, join muted, chat mode, reactions, slow mode, members can share the link, only moderators can unmute, lock. Moderators can also turn off one person's video.
 - Same person in two tabs or devices: one seat. The newer connection replaces the older, with a modal on the older.
+- **Before joining:** a check screen with a microphone level, a camera preview, device pickers and "Join muted" and "Join with camera off" (remembered). A browser built into another app is told to open the link in the real browser first.
+- **Chips, not noise:** "{name} joined", "{name} left", "{name} reconnected", "5 people joined" for a burst, never your own name, a leave only after a 10 second reconnect window, and only counts above 24 people. A setting turns the notices off. Join and leave tones play in rooms of 12 people or fewer.
+- **People panel:** count, role badges, mic and camera state, signal bars and when each person joined. People who were invited and are not inside show Invited, Ringing, Declined or No answer, with a Ring button (one ring per person per 30 seconds, three per room per 10 minutes, quiet hours respected, "Don't ring me for this room").
+- **Remove or ban:** a removed person waits 10 minutes (`ROOM_REMOVE_COOLDOWN_MIN`) on every way in, links included, and private rooms need a new invite. A ban never ends. Their chat comes off the screen.
+- **The end:** the person who ends it reads "You ended the room". Everyone else reads who ended it (the host or a moderator) with the length and peak, and attendees can open the summary. A room with nobody connected for 5 minutes is ended by the sweeper, which asks LiveKit who is connected. A room ends after 8 hours with a warning 15 minutes before. A scheduled room whose host never came is cancelled after 30 minutes and its list is told.
+- **Large rooms:** 16 people per page of the stage, the people speaking first, and video is only subscribed for the tiles on screen.
 - Moderator action log: every moderator action is written to `RoomModLog` and shown to the host in a panel inside the Room.
 - Discover (`/rooms` public, `/app/rooms` authed): live public Rooms sorted by activity, scheduled Rooms, filters for topic and language, search by title. Public page revalidates every 30 seconds.
 - Optional later (flagged, not Phase 5 core): Stage mode with raise hand, where only invited speakers hold the mic.
@@ -481,6 +489,10 @@ Web Push depends on the browser's push subscription and the notification permiss
 - One row per endpoint. On HTTP 404 or 410 from the push service, mark revoked. Record `lastSuccessAt` and `failureCount`; revoke after repeated failures.
 - iOS: push only works for the installed PWA (iOS 16.4 or newer). The Install page and a contextual modal explain "Add to Home Screen" with illustrated steps. Android and desktop work in the browser.
 - Android phones with aggressive battery managers can delay push. Document this in the Support FAQ and always keep the missed-call log and the optional email fallback.
+
+### 10.4b Connection states (calls, rooms and chat)
+
+One `ConnectionMonitor` (`useConnection()`) checks our own server every 10 seconds while the app is visible and every 30 seconds hidden, so a captive portal or Wi-Fi with no data counts as offline. A change holds for 3 seconds before anything reacts and recovery for 2. Offline shows a bar ("You're offline. Messages will send when you're back."), then "Back online" for 3 seconds. Weak signal is a banner, never a dialog, unless `NETWORK_WEAK_AS_MODAL` is set. Only the realtime service being down is a quiet note ("Connecting to chat..."), because chat works over plain requests. Call and room dialogs go through one `SessionModalHost`: one at a time, most urgent first (removed, ended, disconnected, blocked, offline, info), `role="alertdialog"`, always a way out, closing by themselves when the cause clears with a "You're back" chip. The LiveKit webhook (`/api/livekit/webhook`) is verified, de-duplicated by event id, and only ever asks for a reconcile of that room, so out of order events cannot leave a room stuck. See `wiki/Network-States.md`.
 
 ### 10.5 Reliability when the realtime service sleeps or restarts
 
@@ -926,6 +938,18 @@ export const LIMITS = {
   INVITE_LINK_TTL_OPTIONS_HOURS: [1, 12, 24, 168],
   // Calls
   CALL_RING_TIMEOUT_SEC: 45,
+  CALL_PEER_GONE_SEC: 60,
+  HEARTBEAT_GONE_SEC: 20,
+  // Rooms, reliability
+  ROOM_REMOVE_COOLDOWN_MIN: 10,
+  ROOM_MAX_DURATION_HOURS: 8,
+  ROOM_EMPTY_SWEEP_MIN: 5,
+  HOST_RECONNECT_GRACE_SEC: 120,
+  ROOM_RING_COOLDOWN_SEC: 30,
+  ROOM_RING_PER_ROOM: 3,
+  ROOM_RING_WINDOW_MIN: 10,
+  ROOM_CHIP_CROWD: 24,
+  ROOM_SOUND_MAX_PEOPLE: 12,
   // Auth
   OTP_LENGTH: 6,
   OTP_TTL_MIN: 10,

@@ -177,3 +177,22 @@ Use Settings, Notifications, then press Send a test notification on each device.
 | Two people use one browser: A turns alerts on, signs out, B signs in                                 | A's messages never show on that browser. B's do                                                                                         | [ ]    |
 | Block notifications in the browser after turning them on, then open Gistroom                         | A modal explains how to turn them back on, and Settings shows Blocked                                                                   | [ ]    |
 | Press Send a test notification with alerts on                                                        | "Sent" and the alert appears                                                                                                            | [ ]    |
+
+## 12. Connections, calls and rooms on real devices
+
+Do these on a real phone and a laptop. None of them can be proved by the automated tests.
+
+1. Airplane mode on, wait 5 seconds, then off, during a 1:1 call and during a room. Expect "You're offline" with a counter, then a "You're back" chip. After a minute offline expect "You were disconnected" with Rejoin.
+2. Switch from Wi-Fi to mobile data in a call. Expect the "Switching networks" banner and no dialog if it reconnects in 3 seconds.
+3. Walk out of signal. Expect the weak banner with "Switch to audio only" after 10 seconds, and the other person's video getting smaller.
+4. Bluetooth headset on and off in a call. Expect "Switched to {device}", and if the active microphone vanishes, the microphone dialog.
+5. Open another app that takes the camera, then turn your camera on. Expect "Camera is not available. You are still in audio."
+6. Put the browser in the background on iPhone and Android for a minute, then come back. Expect "Your mic paused" with Unmute.
+7. Open a room link inside Facebook or Instagram. Expect "Open in your browser to join" before any join.
+8. Sign in on two devices and join the same room on both. The older one must say "You joined from another device".
+9. A host drops (airplane mode) and returns inside 2 minutes. Everyone sees "Host is reconnecting" and the room stays theirs. Past 2 minutes the room passes on.
+10. A moderator ends a room. The moderator reads "You ended the room", everyone else reads who ended it with the length.
+11. Ring an invited person from the People panel. Expect Ringing, then Joined with a time, and the rate limits (30 seconds per person, 3 per room per 10 minutes).
+12. Play every sound in Settings, Notifications, Sounds on each device, and check quiet hours silence them.
+13. Reload during a call and during a room. Expect "Rejoin your call" or an automatic rejoin of the room.
+14. Close the tab during a call. The other person should see "Waiting for {name} to reconnect" and, after a minute, the call ending.

@@ -335,6 +335,18 @@ export async function startCall(
     const missed = logRow(created, "callee", "BUSY");
     if (missed) entries.push({ ...missed, outcome: "MISSED" });
     await db.callLogEntry.createMany({ data: entries });
+    // The busy person is not disturbed. They see a quiet note, in the app only, that someone tried.
+    await notify({
+      userId: callee.id,
+      type: "CALL_MISSED",
+      payload: {
+        callId: created.id,
+        fromName: me.name,
+        fromUsername: me.username,
+        noPush: true,
+      },
+      dedupeKey: `missed:${created.id}`,
+    }).catch(() => null);
     throw conflict(inRoom ? errors.callInRoom : errors.callBusy);
   }
 

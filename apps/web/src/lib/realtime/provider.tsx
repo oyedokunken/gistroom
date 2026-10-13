@@ -7,6 +7,10 @@ import { io, type Socket } from "socket.io-client";
 import type { CallDto, ConversationDto, ServerEvents } from "@gistroom/shared";
 import { useCallStore } from "@/lib/calls/store";
 import { useRoomStore } from "@/lib/rooms/store";
+import { session as sessionCopy } from "@/content/session";
+import { useLive } from "@/lib/live/live-session";
+import { pushChip } from "@/lib/session/chips";
+import { sounds } from "@/lib/sound/sounds";
 import { apiFetch } from "@/lib/api";
 import {
   advancePeerCursor,
@@ -151,6 +155,9 @@ export function RealtimeProvider({ userId, children }: { userId: string; childre
         );
       }
       if (missing) void queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      if (message.senderId !== userId && !open && message.type !== "SYSTEM") {
+        sounds().play("message");
+      }
       if (message.senderId !== userId) {
         socket.emit("message:ack", {
           conversationId,
@@ -188,8 +195,14 @@ export function RealtimeProvider({ userId, children }: { userId: string; childre
       void queryClient.invalidateQueries({ queryKey: ["requests"] });
       void queryClient.invalidateQueries({ queryKey: ["conversations"] });
     });
-    on("notification:new", () => {
+    on("notification:new", ({ notification }) => {
       void queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      // Someone tried to call while I am on a call or in a room: a quiet chip, never a ring on top of the conversation.
+      const busy = useLive.getState().kind !== null;
+      const from = (notification.payload as { fromName?: unknown } | null)?.fromName;
+      if (busy && notification.type === "CALL_MISSED" && typeof from === "string") {
+        pushChip({ text: sessionCopy.call.triedChip(from), kind: "call" });
+      }
     });
     on("badge:update", (counts) => {
       queryClient.setQueryData(["unread"], counts);
@@ -254,6 +267,19 @@ export function RealtimeProvider({ userId, children }: { userId: string; childre
     });
     on("room:muted", ({ roomSlug, userId: who, kind }) => {
       if (kind === "all" || who === userId) useRoomStore.getState().setNotice(roomSlug, kind);
+      // Chips and a soft tone, so everyone in the room sees that a moderator acted.
+      if (kind === "all" || who === userId) {
+        pushChip({
+          text: kind === "video" ? sessionCopy.chips.camOff : sessionCopy.chips.youMuted,
+          kind: "mod",
+        });
+        sounds().play("muted");
+      } else {
+        const name = useLive
+          .getState()
+          .participants.find((p) => p.identity === `user_${who}`)?.name;
+        if (name) pushChip({ text: sessionCopy.chips.mutedBy(name), kind: "mod" });
+      }
     });
     on("session:revoked", () => {
       void confirmSignedOut().then((out) => {

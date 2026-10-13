@@ -5,6 +5,7 @@ import { Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import { Switch } from "@/components/ui/switch";
+import { setShowRoomNotices, showRoomNotices } from "@/lib/session/prefs";
 import { soundSettings as copy } from "@/content/app";
 import { loadSoundSettings, saveSoundSettings, sounds } from "@/lib/sound/sounds";
 import type { SoundId, SoundSettings } from "@/lib/sound/sound-manager";
@@ -24,6 +25,7 @@ const SAMPLES: Record<"calls" | "rooms" | "messages", SoundId> = {
 /** Sounds are kept on this device. Each kind can be switched off, and each has a button to hear it. */
 export function SoundSettingsCard() {
   const [settings, setSettings] = useState<SoundSettings>(() => loadSoundSettings());
+  const [notices, setNotices] = useState<boolean>(() => showRoomNotices());
   const change = (next: SoundSettings) => {
     setSettings(next);
     saveSoundSettings(next);
@@ -52,6 +54,15 @@ export function SoundSettingsCard() {
           options={VOLUMES.map((v) => ({ value: v.value, label: v.label }))}
         />
       </div>
+      <Switch
+        label={copy.noticesLabel}
+        help={copy.noticesHelp}
+        checked={notices}
+        onChange={(on) => {
+          setNotices(on);
+          setShowRoomNotices(on);
+        }}
+      />
       <div className="flex flex-col divide-y divide-border">
         {(["calls", "rooms", "messages"] as const).map((kind) => (
           <div key={kind} className="flex items-center gap-3">

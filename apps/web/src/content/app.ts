@@ -448,6 +448,8 @@ export const soundSettings = {
   volumeLow: "Low",
   volumeMedium: "Medium",
   volumeHigh: "High",
+  noticesLabel: "Show join and leave notices",
+  noticesHelp: "A small note in a room when someone comes in or goes out.",
   sample: "Play sample",
   sampleFor: (kind: string) => `Play a sample of ${kind.toLowerCase()} sounds`,
   kinds: {

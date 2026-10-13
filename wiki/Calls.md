@@ -62,3 +62,18 @@ A call opens in the call window (`components/call-window/call-window.tsx`), moun
 - Size and place are saved in local storage per person (`gr_callwindow:{userId}`). Nothing depends on it.
 - Full screen asks the browser to put the whole page full screen, so dialogs that render in the page body stay visible above the window. On an iPhone, where the API is missing, the window fills the page by CSS.
 - A phone has no room to float: the window opens full screen, and minimizing gives a thin bar to tap, or a draggable video bubble for a video call (the same screen scaled down, so it needs no second layout).
+
+## The ring window
+
+One component (`components/rings/ring-host.tsx`) draws every ring, for calls and for rooms. It is mounted in the app shell, in a node that is the first child of the page body, so it is early in the tab order. The list comes from `GET /api/rings/active` (`server/rings/service.ts`): calls that are RINGING for you and not rung out, and room rings from the last 45 seconds, with `serverNow` so the countdown is right on a device with a wrong clock. The tab asks on load, on focus, when the line returns, every 3 seconds without a live socket (30 with one) and every 4 seconds while something rings. Socket events only make it quicker.
+
+| How it ends                            | What shows                                                                                                         |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| You answer or decline on this tab      | The card goes                                                                                                      |
+| The caller cancels                     | "Missed call from {name}" for 3 seconds                                                                            |
+| Answered or declined on another device | The card goes with a chip saying so                                                                                |
+| 45 seconds pass                        | The card goes, the server finishes the call as missed, and the missed call is in the log and the notification list |
+| Quiet hours                            | Nothing rings, the missed call is still logged                                                                     |
+| You are already in a call or room      | No card, a quiet chip "{name} is calling"                                                                          |
+
+The window state machine has a RINGING state (HIDDEN to RINGING on a ring, RINGING to EXPANDED on answer, RINGING to HIDDEN on every other way out).

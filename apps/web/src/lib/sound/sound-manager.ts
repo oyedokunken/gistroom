@@ -146,6 +146,11 @@ export class SoundManager {
     }
   }
 
+  /** True while the browser keeps audio locked, so a ring would be silent until the person taps. */
+  isBlocked(): boolean {
+    return this.ctx?.state === "suspended";
+  }
+
   private allowed(id: SoundId, opts: { force?: boolean } = {}): boolean {
     if (!this.settings[SOUND_CATEGORY[id]] && !opts.force) return false;
     if (this.settings.master <= 0 && !opts.force) return false;

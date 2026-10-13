@@ -3,7 +3,7 @@
 import { PwaRuntime } from "@/components/app/pwa-runtime";
 import { CallWindow, type WindowUser } from "@/components/call-window/call-window";
 import { UpdateBar } from "@/components/app/update-bar";
-import { IncomingCall } from "@/components/call/incoming-call";
+import { RingHost } from "@/components/rings/ring-host";
 import { ActivityChips } from "@/components/session/activity-chips";
 import { ConnectionBar } from "@/components/session/connection-bar";
 import { LiveBanners } from "@/components/session/live-banners";
@@ -30,7 +30,7 @@ export function AppRuntime({ user }: { user: WindowUser }) {
       <SoundGate />
       <PwaRuntime />
       <UpdateBar />
-      <IncomingCall />
+      <RingHost />
       <ConnectionBar />
       <SessionModalHost />
       <LiveWatcher />

@@ -13,6 +13,7 @@ export * from "./chat";
 export * from "./media";
 export * from "./calls";
 export * from "./rooms";
+export * from "./rings";
 export * from "./avatars";
 export * from "./content/push";
 export * from "./chat-preview";

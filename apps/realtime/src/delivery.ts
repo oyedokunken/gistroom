@@ -168,6 +168,23 @@ export function createDelivery(deps: DeliveryDeps) {
       }
       case "call":
         return handleCall(event.callId, event.change);
+      case "ring": {
+        // Hints only. The tab asks the server for the card, so there is nothing to look up here.
+        const base = { ringId: event.ringId };
+        if (event.change === "ringing") {
+          emitTo(io, event.userId, "room:ring", { ...base, roomSlug: event.roomSlug });
+        } else if (event.change === "cancelled") {
+          emitTo(io, event.userId, "ring:cancelled", base);
+        } else if (event.change === "expired") {
+          emitTo(io, event.userId, "ring:expired", base);
+        } else {
+          emitTo(io, event.userId, "ring:answered_elsewhere", {
+            ...base,
+            how: event.change === "joined" ? "JOINED" : "DECLINED",
+          });
+        }
+        return;
+      }
       case "room":
         return handleRoom(event);
       case "badge": {

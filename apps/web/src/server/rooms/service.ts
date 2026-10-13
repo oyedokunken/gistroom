@@ -18,6 +18,7 @@ import {
   inQuietHours,
   liveKitIdentity,
   nextHost,
+  roomRingId,
   slugFromBytes,
   topicBySlug,
   type CreateRoomInput,
@@ -454,6 +455,16 @@ export async function joinRoom(
         : { joinedAt: member?.joinedAt && member.state === "LEFT" ? member.joinedAt : now }),
     },
   });
+  // Joining answers a ring: the card closes on this person's other devices.
+  if (member?.ringStatus === "RINGING" && member.ringedAt) {
+    void publish({
+      type: "ring",
+      userId: me.id,
+      ringId: roomRingId(room.slug, member.ringedAt),
+      roomSlug: room.slug,
+      change: "joined",
+    });
+  }
   // Two people taking the last seat together both pass the check above. The database has the final say: the seats
   // are counted in the order people came in, and whoever is past the limit steps back out.
   if (!isHost && !wasIn) {
@@ -1752,6 +1763,13 @@ export async function ringMember(
   }).catch(() => null);
   await log(room.id, me.id, "INVITE", userId, { ring: true });
   void publish({ type: "room", roomId: room.id, change: "member", userId });
+  void publish({
+    type: "ring",
+    userId,
+    ringId: roomRingId(room.slug, now),
+    roomSlug: room.slug,
+    change: "ringing",
+  });
   return { status: "RINGING", mayNotSee: quiet };
 }
 
@@ -1769,6 +1787,16 @@ export async function answerRing(
     data: { ringStatus: "DECLINED", ...(answer.noRing ? { noRing: true } : {}) },
   });
   void publish({ type: "room", roomId: room.id, change: "member", userId: me.id });
+  // The card closes on this person's other devices too.
+  if (member.ringedAt) {
+    void publish({
+      type: "ring",
+      userId: me.id,
+      ringId: roomRingId(room.slug, member.ringedAt),
+      roomSlug: room.slug,
+      change: "declined",
+    });
+  }
 }
 
 /** Rings that nobody answered in 45 seconds become No answer. */
@@ -1777,12 +1805,27 @@ export async function expireRings(now = new Date()): Promise<number> {
   const cutoff = new Date(now.getTime() - LIMITS.CALL_RING_TIMEOUT_SEC * 1000);
   const due = await db.roomMember.findMany({
     where: { ringStatus: "RINGING", ringedAt: { lt: cutoff } },
-    select: { id: true, roomId: true, userId: true },
+    select: {
+      id: true,
+      roomId: true,
+      userId: true,
+      ringedAt: true,
+      room: { select: { slug: true } },
+    },
     take: 200,
   });
   for (const m of due) {
     await db.roomMember.update({ where: { id: m.id }, data: { ringStatus: "NO_ANSWER" } });
     void publish({ type: "room", roomId: m.roomId, change: "member", userId: m.userId });
+    if (m.ringedAt) {
+      void publish({
+        type: "ring",
+        userId: m.userId,
+        ringId: roomRingId(m.room.slug, m.ringedAt),
+        roomSlug: m.room.slug,
+        change: "expired",
+      });
+    }
   }
   return due.length;
 }

@@ -6,15 +6,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { io, type Socket } from "socket.io-client";
 import type { CallDto, ConversationDto, ServerEvents } from "@gistroom/shared";
 import { useCallStore } from "@/lib/calls/store";
-import { openRoom } from "@/lib/call-window/store";
+import { refreshRings } from "@/lib/rings/store";
 import { useRoomStore } from "@/lib/rooms/store";
 import { session as sessionCopy } from "@/content/session";
 import { useLive } from "@/lib/live/live-session";
 import { pushChip } from "@/lib/session/chips";
 import { sounds } from "@/lib/sound/sounds";
-import { roomCopy } from "@/content/rooms";
-import { roomApi } from "@/lib/rooms/api";
-import { clearSessionModal, showSessionModal } from "@/lib/session/modals";
 import { apiFetch } from "@/lib/api";
 import {
   advancePeerCursor,
@@ -80,6 +77,7 @@ export function RealtimeProvider({ userId, children }: { userId: string; childre
       void queryClient.invalidateQueries({ queryKey: ["notifications"] });
       void queryClient.invalidateQueries({ queryKey: ["friends"] });
       void queryClient.invalidateQueries({ queryKey: ["requests"] });
+      void refreshRings();
       const open = useRealtimeStore.getState().openConversationId;
       if (open) void queryClient.invalidateQueries({ queryKey: keys.messages(open) });
     };
@@ -201,50 +199,9 @@ export function RealtimeProvider({ userId, children }: { userId: string; childre
     });
     on("notification:new", ({ notification }) => {
       void queryClient.invalidateQueries({ queryKey: ["notifications"] });
-      // A host or moderator is ringing me for a room. It rings like a call, for as long as a call does.
-      const payload = (notification.payload ?? {}) as Record<string, unknown>;
-      if (
-        notification.type === "ROOM_INVITE" &&
-        payload["ring"] === true &&
-        typeof payload["roomSlug"] === "string" &&
-        useLive.getState().kind === null
-      ) {
-        const slug = payload["roomSlug"];
-        const title = typeof payload["roomTitle"] === "string" ? payload["roomTitle"] : "a room";
-        const from = typeof payload["fromName"] === "string" ? payload["fromName"] : "A host";
-        sounds().startLoop("ringtone");
-        const timer = window.setTimeout(() => clearSessionModal(`room-ring:${slug}`), 45_000);
-        showSessionModal({
-          id: `room-ring:${slug}`,
-          priority: "info",
-          icon: "radio",
-          title: roomCopy.people.ringTitle(from),
-          body: roomCopy.people.ringBody(from, title),
-          actions: [
-            {
-              id: "join",
-              label: roomCopy.people.ringJoin,
-              run: () => openRoom(slug),
-            },
-            {
-              id: "later",
-              label: roomCopy.people.ringNotNow,
-              kind: "secondary",
-              run: () => void roomApi.declineRing(slug),
-            },
-            {
-              id: "stop",
-              label: roomCopy.people.ringStop,
-              kind: "secondary",
-              run: () => void roomApi.declineRing(slug, true),
-            },
-          ],
-          onClose: () => {
-            window.clearTimeout(timer);
-            sounds().stopLoop("ringtone");
-          },
-        });
-      }
+      // A room ring is shown by the ring window, which asks the server. Nothing to do here but nudge it.
+      const ring = (notification.payload as { ring?: unknown } | null)?.ring === true;
+      if (notification.type === "ROOM_INVITE" && ring) void refreshRings();
       // Someone tried to call while I am on a call or in a room: a quiet chip, never a ring on top of the conversation.
       const busy = useLive.getState().kind !== null;
       const from = (notification.payload as { fromName?: unknown } | null)?.fromName;
@@ -263,15 +220,16 @@ export function RealtimeProvider({ userId, children }: { userId: string; childre
       if (total > 0) void nav.setAppBadge?.(total).catch(() => undefined);
       else void nav.clearAppBadge?.().catch(() => undefined);
     });
-    on("call:incoming", ({ call }) => {
-      const calls = useCallStore.getState();
-      // Already on the call screen for this one, or another ring is showing: keep what is there.
-      if (calls.incoming && calls.incoming.id !== call.id) return;
-      calls.setIncoming(call);
-    });
+    // A ring is a hint: the server's list decides what shows, with the time left on its own clock.
+    on("call:incoming", () => void refreshRings());
+    on("room:ring", () => void refreshRings());
+    on("ring:cancelled", () => void refreshRings());
+    on("ring:answered_elsewhere", () => void refreshRings());
+    on("ring:expired", () => void refreshRings());
     const callMoved = ({ call }: { call: CallDto }) => {
       useCallStore.getState().update(call);
       void queryClient.invalidateQueries({ queryKey: ["calls"] });
+      void refreshRings();
     };
     on("call:accepted", callMoved);
     on("call:cancelled", callMoved);

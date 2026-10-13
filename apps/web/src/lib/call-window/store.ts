@@ -115,8 +115,11 @@ export class StartCancelled extends Error {
 }
 export const isStartCancelled = (e: unknown): boolean => e instanceof StartCancelled;
 
-export function openCall(callId: string, opts: { autoAnswer?: boolean } = {}): void {
-  show({ kind: "call", id: callId, autoAnswer: opts.autoAnswer });
+export function openCall(
+  callId: string,
+  opts: { autoAnswer?: boolean; audioOnly?: boolean } = {},
+): void {
+  show({ kind: "call", id: callId, autoAnswer: opts.autoAnswer, audioOnly: opts.audioOnly });
 }
 
 /** Opens a room in the window. Starting from another call or room asks to leave that one first. */

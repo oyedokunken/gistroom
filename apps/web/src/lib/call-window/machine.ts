@@ -12,6 +12,8 @@ export interface WindowTarget {
   id: string;
   /** Answer as soon as the call screen opens (a notification's Answer button). */
   autoAnswer?: boolean;
+  /** Answer with the camera off, from the ring card's "Answer with audio only". */
+  audioOnly?: boolean;
   /** A room invite link token, kept so the room page can use it. */
   invite?: string | null;
 }

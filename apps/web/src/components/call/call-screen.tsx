@@ -54,10 +54,13 @@ function useElapsed(answeredAt: string | null, running: boolean): number {
 export function CallScreen({
   callId,
   autoAnswer,
+  startAudioOnly = false,
   dataSaver,
 }: {
   callId: string;
   autoAnswer: boolean;
+  /** Arrive with the camera off, chosen on the ring card. */
+  startAudioOnly?: boolean;
   dataSaver: boolean;
 }) {
   const queryClient = useQueryClient();
@@ -80,7 +83,7 @@ export function CallScreen({
 
   // What to arrive with. Set while it rings, so answering is one tap.
   const [answerMuted, setAnswerMuted] = useState(false);
-  const [answerCamOff, setAnswerCamOff] = useState(false);
+  const [answerCamOff, setAnswerCamOff] = useState(startAudioOnly);
   const [mirror, setMirror] = useState(true);
   const peerQuality = useLive((s) => s.quality[`user_${call?.peer.id ?? ""}`] ?? "unknown");
   const myQuality = useLive((s) => s.localQuality);

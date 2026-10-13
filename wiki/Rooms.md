@@ -41,3 +41,7 @@ Everything is idempotent through the dedupe keys `room:{roomId}:remind15:{userId
 ## Rooms in the call window
 
 A plain click on a room anywhere (Discover, the room list, search, an invite card in a chat, a new room) opens it in the call window and leaves the page alone (`RoomLink`, `openRoom`). A modified click or a new tab goes to `/app/rooms/{slug}`, which opens the window over a quiet details page (`RoomEntry`). A room that has ended, a private room you are not in, or a bad link has no call to float, so it keeps its own page there.
+
+## Rooms that ring you
+
+A host or moderator rings an invited person from the People panel. The ringed person sees the same card as for a call (see wiki/Calls.md), with the room title, topic, language, Audio or Video, a lock mark, the host, who is inside and the three buttons Join, Decline and Don't ring me for this room. The card reads the room each time the list is fetched, so it says "This room is full", "This room is locked right now" or "This room has ended" and turns Join off. Joining on one device closes the card on the others (`ring:answered_elsewhere`).

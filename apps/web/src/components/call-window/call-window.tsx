@@ -240,6 +240,7 @@ export function CallWindow({ user }: { user: WindowUser }) {
         <CallScreen
           callId={target.id}
           autoAnswer={Boolean(target.autoAnswer)}
+          startAudioOnly={Boolean(target.audioOnly)}
           dataSaver={user.dataSaver}
         />
       ) : (

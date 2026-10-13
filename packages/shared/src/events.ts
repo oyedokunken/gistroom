@@ -47,6 +47,17 @@ export interface ServerEvents {
   "call:cancelled": { call: CallDto };
   "call:ended": { call: CallDto };
   "room:invite": { roomSlug: string; title: string; fromName: string };
+  /**
+   * A host is ringing you into a room. A hint: the tab asks `/api/rings/active` for the card, so a missed event is
+   * caught by the next look. A 1:1 call uses the `call:*` events above for the same four things.
+   */
+  "room:ring": { ringId: string; roomSlug: string };
+  /** The ringer stopped, or the room closed. The card goes. */
+  "ring:cancelled": { ringId: string };
+  /** Joined or declined on another device of yours. The card goes, with a short note. */
+  "ring:answered_elsewhere": { ringId: string; how: "JOINED" | "DECLINED" };
+  /** Nobody answered in 45 seconds. */
+  "ring:expired": { ringId: string };
   "room:started": { roomSlug: string; title: string };
   "room:ended": { roomSlug: string };
   "room:member_updated": {
@@ -115,6 +126,14 @@ export const internalEventSchema = z.discriminatedUnion("type", [
     type: z.literal("call"),
     callId: id,
     change: z.enum(["ringing", "accepted", "cancelled", "ended"]),
+  }),
+  /** A room ring began, stopped, was answered on another device or ran out. Only the rung person's tabs hear it. */
+  z.object({
+    type: z.literal("ring"),
+    userId: id,
+    ringId: z.string().min(1).max(128),
+    roomSlug: z.string().min(1).max(64),
+    change: z.enum(["ringing", "cancelled", "joined", "declined", "expired"]),
   }),
 ]);
 export type InternalEvent = z.infer<typeof internalEventSchema>;

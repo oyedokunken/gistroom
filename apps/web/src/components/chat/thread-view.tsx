@@ -18,6 +18,7 @@ import { chat } from "@/content/chat";
 import { ApiClientError, apiFetch } from "@/lib/api";
 import { upsertMessage, flattenOldestFirst, type CachedMessages } from "@/lib/chat/cache";
 import { startCallRequest } from "@/lib/calls/api";
+import { isStartCancelled, openCall } from "@/lib/call-window/store";
 import { handleStartCallError } from "@/lib/live/call-outcomes";
 import { keys, useMessages } from "@/lib/chat/hooks";
 import { useOutbox } from "@/lib/chat/outbox-store";
@@ -335,8 +336,9 @@ export function ThreadView({
     if (!ok) return;
     try {
       const started = await startCallRequest(conversationId, video ? "VIDEO" : "AUDIO");
-      router.push(`/app/call/${started.call.id}`);
+      openCall(started.call.id);
     } catch (e) {
+      if (isStartCancelled(e)) return;
       // Not able to reach them, they are busy, or the line is down: each has its own dialog and none names a block.
       handleStartCallError(
         e,

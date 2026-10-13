@@ -52,3 +52,13 @@ Tokens are HS256 JWTs signed in `apps/web/src/server/livekit.ts` with the API se
 
 - Answering on one device clears the ring everywhere through the `call:accepted` event and a `CALL_CANCEL` push with `reason: dismiss`. A separate `call:answered_elsewhere` event is not needed.
 - Pre call device check: the first time the microphone or camera is refused, a modal explains how to allow it. A separate check screen is not built yet.
+
+## The call window
+
+A call opens in the call window (`components/call-window/call-window.tsx`), mounted once in the app shell. The window is a small state machine (`lib/call-window/machine.ts`): HIDDEN, RINGING, EXPANDED, MINIMIZED and FULLSCREEN. Geometry (drag, resize, snap, clamp) is pure code in `lib/call-window/geometry.ts` with unit tests. The call and room screens are the same screens as before. They fill the window because the window body is a transformed box, which makes it the containing block for their fixed layout, and their padding follows the window width (container queries) instead of the page width.
+
+- Open from code with `openCall(id)` and `openRoom(slug)` in `lib/call-window/store.ts`. Both ask to leave a live call or room first (`confirmLeaveCurrent`). `startCallRequest` asks before it rings anyone.
+- Close asks first when something is live, because closing leaves it.
+- Size and place are saved in local storage per person (`gr_callwindow:{userId}`). Nothing depends on it.
+- Full screen asks the browser to put the whole page full screen, so dialogs that render in the page body stay visible above the window. On an iPhone, where the API is missing, the window fills the page by CSS.
+- A phone has no room to float: the window opens full screen, and minimizing gives a thin bar to tap, or a draggable video bubble for a video call (the same screen scaled down, so it needs no second layout).

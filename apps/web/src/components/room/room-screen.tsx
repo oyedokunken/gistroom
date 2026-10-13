@@ -3,6 +3,8 @@
 import { type CardIconName } from "@/components/public/card-icon";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEmbedded } from "@/components/call-window/embed";
+import { closeWindow } from "@/lib/call-window/store";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -140,6 +142,12 @@ export function RoomScreen({
   dataSaver: boolean;
 }) {
   const router = useRouter();
+  const embedded = useEmbedded();
+  /** Back to the room list. In the window the window just closes and the page behind stays where it is. */
+  const toRooms = () => {
+    if (embedded) closeWindow();
+    else router.push("/app/rooms");
+  };
   const queryClient = useQueryClient();
   const { confirm, showError, showInfo } = useFeedback();
   const view = useQuery({ queryKey: ["room", slug], queryFn: () => roomApi.view(slug, invite) });
@@ -304,7 +312,10 @@ export function RoomScreen({
         {
           id: "browse",
           label: sessionCopy.modal.browseRooms,
-          run: () => router.push("/app/rooms"),
+          run: () => {
+            router.push("/app/rooms");
+            if (embedded) closeWindow();
+          },
         },
         { id: "close", label: sessionCopy.modal.close, kind: "secondary" },
       ],
@@ -390,7 +401,7 @@ export function RoomScreen({
     lk.leave();
     setJoin(null);
     await roomApi.session(slug, "leave").catch(() => undefined);
-    router.push("/app/rooms");
+    toRooms();
   }
 
   async function leave() {
@@ -432,7 +443,7 @@ export function RoomScreen({
       lk.leave();
       setJoin(null);
       void showRoomEnded(slug, { push: (p) => router.push(p) });
-      router.push("/app/rooms");
+      toRooms();
     } catch (e) {
       showError(e instanceof ApiClientError ? e.message : copy.stage.failed);
     }
@@ -645,7 +656,11 @@ export function RoomScreen({
           <Badge>{room.media === "VIDEO" ? copy.create.video : copy.create.audio}</Badge>
           <span className="text-sm text-text-muted">{LANGUAGE_LABELS[room.language]}</span>
         </div>
-        <h1 className="text-3xl font-black tracking-tight text-text">{room.title}</h1>
+        {embedded ? (
+          <h2 className="text-3xl font-black tracking-tight text-text">{room.title}</h2>
+        ) : (
+          <h1 className="text-3xl font-black tracking-tight text-text">{room.title}</h1>
+        )}
         {room.description ? (
           <p className="max-w-prose text-text-muted">{room.description}</p>
         ) : null}

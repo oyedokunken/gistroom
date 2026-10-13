@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import type { CallJoin } from "@gistroom/shared";
 import { session as copy } from "@/content/session";
 import { apiFetch } from "@/lib/api";
+import { openCall, openRoom } from "@/lib/call-window/store";
 import { useLive } from "@/lib/live/live-session";
 import { roomApi } from "@/lib/rooms/api";
 import { showSessionModal } from "@/lib/session/modals";
@@ -14,7 +15,6 @@ import { showSessionModal } from "@/lib/session/modals";
  * one tap. It looks once, when the app opens, and never when you are already in one.
  */
 export function RejoinOffer() {
-  const router = useRouter();
   const pathname = usePathname();
   const asked = useRef(false);
 
@@ -41,7 +41,7 @@ export function RejoinOffer() {
               {
                 id: "rejoin",
                 label: copy.modal.rejoin,
-                run: () => router.push(`/app/call/${current.call.id}`),
+                run: () => openCall(current.call.id),
               },
               { id: "close", label: copy.modal.close, kind: "secondary" },
             ],
@@ -61,7 +61,7 @@ export function RejoinOffer() {
             {
               id: "rejoin",
               label: copy.modal.rejoin,
-              run: () => router.push(`/app/rooms/${mine.slug}`),
+              run: () => openRoom(mine.slug),
             },
             { id: "close", label: copy.modal.close, kind: "secondary" },
           ],

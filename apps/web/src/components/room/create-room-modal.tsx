@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { openRoom } from "@/lib/call-window/store";
 import { Mic } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -53,7 +53,6 @@ export function CreateRoomModal({
 }) {
   const copy = roomCopy.create;
   const offline = useOffline();
-  const router = useRouter();
   const { showError } = useFeedback();
   const form = useForm<Values>({
     resolver: zodResolver(schema),
@@ -84,7 +83,7 @@ export function CreateRoomModal({
         scheduledFor: v.scheduledFor ? new Date(v.scheduledFor).toISOString() : null,
       });
       onOpenChange(false);
-      router.push(`/app/rooms/${room.slug}`);
+      openRoom(room.slug);
     } catch (e) {
       if (e instanceof ApiClientError && e.fields.scheduledFor) {
         form.setError("scheduledFor", { message: e.fields.scheduledFor });

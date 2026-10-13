@@ -1,5 +1,6 @@
 "use client";
 
+import { RoomLink } from "@/components/call-window/room-link";
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -213,7 +214,7 @@ export function SearchDialog() {
                   <Group title={copy.rooms} icon={<Radio aria-hidden className="size-4" />}>
                     {data.rooms.map((r) => (
                       <li key={r.slug}>
-                        <Link href={`/app/rooms/${r.slug}`} onClick={close} className={row}>
+                        <RoomLink slug={r.slug} onClick={close} className={row}>
                           <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700">
                             <Radio aria-hidden className="size-5" />
                           </span>
@@ -226,7 +227,7 @@ export function SearchDialog() {
                               {r.topicName ? `, ${r.topicName}` : ""}
                             </span>
                           </span>
-                        </Link>
+                        </RoomLink>
                       </li>
                     ))}
                   </Group>

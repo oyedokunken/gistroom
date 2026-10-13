@@ -22,3 +22,5 @@ Plan and expectations: CLAUDE.md Section 21.
 ## Targeted runs
 
 `npm run verify:changed` compares your work with `origin/main` (or `--base <ref>`) and runs only the matching checks: copy and UI rules, ESLint and Prettier on the changed files, typecheck when TypeScript changed, Vitest with `--changed` for unit, integration and socket tests, and the Playwright specs that map to the changed areas (the map lives in `scripts/verify-changed.mjs`). Add `--no-browser` to skip Playwright. The full `npm run verify` still runs in CI and before a release, and CI is the final word.
+
+- Browser tests run with two workers and one retry (`playwright.config.ts`). They share one hosted database and one server, and more workers made slow pages time out under load with nothing wrong. A retry that passes shows as flaky in the list.

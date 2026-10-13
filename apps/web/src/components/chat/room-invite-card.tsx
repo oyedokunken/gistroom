@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { RoomLink } from "@/components/call-window/room-link";
 import { Lock, Video, Mic } from "lucide-react";
 import type { MessageDto } from "@gistroom/shared";
 import { buttonStyles } from "@/components/ui/button";
@@ -52,12 +52,12 @@ export function RoomInviteCard({ message, mine }: { message: MessageDto; mine: b
           {roomCopy.stage.startingSoon(formatFull(new Date(meta.scheduledFor)))}
         </span>
       ) : null}
-      <Link
-        href={`/app/rooms/${meta.roomSlug}`}
+      <RoomLink
+        slug={meta.roomSlug}
         className={cn(buttonStyles(mine ? "accent" : "primary"), "mt-3 w-full justify-center")}
       >
         {roomCopy.stage.join}
-      </Link>
+      </RoomLink>
     </span>
   );
 }

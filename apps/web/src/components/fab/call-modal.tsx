@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { fab as copy } from "@/content/fab";
 import { ApiClientError, apiFetch } from "@/lib/api";
 import { startCallRequest } from "@/lib/calls/api";
+import { isStartCancelled, openCall } from "@/lib/call-window/store";
 import { handleStartCallError } from "@/lib/live/call-outcomes";
 import Link from "next/link";
 
@@ -57,9 +58,10 @@ export function CallModal({
         ).conversationId;
       const started = await startCallRequest(conversationId, media);
       onOpenChange(false);
-      router.push(`/app/call/${started.call.id}`);
+      openCall(started.call.id);
     } catch (e) {
       setBusyId(null);
+      if (isStartCancelled(e)) return;
       if (e instanceof ApiClientError) {
         handleStartCallError(e, f.user.name, { push: (p) => router.push(p) });
       } else {

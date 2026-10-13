@@ -28,6 +28,7 @@ import { pages } from "@/content/app";
 import { callCopy as copy } from "@/content/calls";
 import { ApiClientError, apiFetch } from "@/lib/api";
 import { startCallRequest } from "@/lib/calls/api";
+import { isStartCancelled, openCall } from "@/lib/call-window/store";
 import { handleStartCallError } from "@/lib/live/call-outcomes";
 import { formatDuration } from "@/lib/chat/voice";
 import { cn } from "@/lib/cn";
@@ -69,8 +70,9 @@ function Row({ entry }: { entry: CallLogDto }) {
         entry.conversationId,
         entry.media === "VIDEO" ? "VIDEO" : "AUDIO",
       );
-      router.push(`/app/call/${started.call.id}`);
+      openCall(started.call.id);
     } catch (e) {
+      if (isStartCancelled(e)) return;
       if (e instanceof ApiClientError) {
         handleStartCallError(
           e,

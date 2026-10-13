@@ -68,3 +68,8 @@ Decision log. Newest at the bottom. Defaults D1 to D13 live in CLAUDE.md Section
 - D73 (2026-10-14): Quiet hours and Do Not Disturb hold back push for room notices. The in app list and room emails still arrive, since an email is read when the person chooses.
 - D74 (2026-10-14): The host's reminder email shows the host's name but not their picture. Email clients block most remote images and Graphik cannot load there, so the plain name is the reliable part.
 - D75 (2026-10-14): Moving a scheduled room is an API call (`scheduledFor` in the settings call, host only). There is no date picker for it in the room screen yet.
+- D76 (2026-10-14): The call and room window hosts the existing `CallScreen` and `RoomScreen` as they are. The window body is a transformed box, so their fixed full screen layout fills the window and neither screen was rewritten. Inside it the room title is an h2 so the page keeps one h1.
+- D77 (2026-10-14): Full screen asks the browser to put the whole document full screen, not only the window, because dialogs are rendered in the page body and would be hidden behind a full screen element.
+- D78 (2026-10-14): A phone minimizes a video call to a bubble by scaling the same screen down, so it needs no second layout. The minimized timer on the bar only shows once the connection has started.
+- D79 (2026-10-14): Pop out to Document Picture-in-Picture is not built. Moving a live call and room screen into another document needs its styles, fonts and media elements to follow, and we have no device to check it on.
+- D80 (2026-10-14): The in call bar is gone. Its job (timer, mute, return, hang up) is the minimized window.

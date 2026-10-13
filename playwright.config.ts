@@ -46,7 +46,10 @@ export default defineConfig({
   fullyParallel: true,
   globalSetup: "./tests/browser/global-setup.ts",
   globalTeardown: "./tests/browser/global-teardown.ts",
-  retries: process.env.CI ? 1 : 0,
+  // Two workers and one retry: the tests share one hosted database and one server, and more than that made
+  // slow pages time out under load without anything being wrong.
+  workers: 2,
+  retries: 1,
   reporter: [["list"]],
   use: {
     baseURL: `http://localhost:${PORT}`,

@@ -49,8 +49,10 @@ test.describe("rooms", () => {
     await expect(dialog.getByText("Only people you invite", { exact: false })).toBeVisible();
     await dialog.getByRole("button", { name: "Start room" }).click();
 
-    await page.waitForURL(/\/app\/rooms\/[a-z0-9]+$/);
-    await expect(page.getByRole("heading", { name: "Late night gist" })).toBeVisible();
+    // The new room opens in the call window and the page stays where it was.
+    const win = page.getByTestId("call-window");
+    await expect(win.getByRole("heading", { name: "Late night gist" })).toBeVisible();
+    expect(page.url()).toMatch(/\/app\/rooms\/?(\?new=1)?$/);
     const row = await getDb().room.findFirstOrThrow({
       where: { title: "Late night gist" },
       include: { topic: true },
@@ -132,8 +134,9 @@ test.describe("rooms", () => {
     await signIn(context, guest);
     await page.goto(`/rooms/${room.slug}?invite=good-token-0001`);
     await page.waitForURL(/\/app\/rooms\//);
-    await expect(page.getByRole("heading", { name: "Closed door" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Join room" })).toBeVisible();
+    const win = page.getByTestId("call-window");
+    await expect(win.getByRole("heading", { name: "Closed door" })).toBeVisible();
+    await expect(win.getByRole("button", { name: "Join room" })).toBeVisible();
 
     await page.goto(`/rooms/${room.slug}?invite=dead-token-0002`);
     const dialog = page.getByRole("alertdialog");

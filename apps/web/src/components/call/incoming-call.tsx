@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Phone, PhoneOff, Video } from "lucide-react";
 import { useFeedback } from "@/components/feedback/feedback-provider";
 import { Avatar } from "@/components/ui/avatar";
@@ -10,6 +10,7 @@ import { ApiClientError } from "@/lib/api";
 import { callAction } from "@/lib/calls/api";
 import { startRingtone, stopRingtone } from "@/lib/calls/ringtone";
 import { useCallStore } from "@/lib/calls/store";
+import { openCall } from "@/lib/call-window/store";
 
 /**
  * The ring. Shows on every signed in screen while someone is calling, announces itself to screen readers,
@@ -19,7 +20,6 @@ export function IncomingCall() {
   const call = useCallStore((s) => s.incoming);
   const setIncoming = useCallStore((s) => s.setIncoming);
   const pathname = usePathname();
-  const router = useRouter();
   const { showError } = useFeedback();
   const [busy, setBusy] = useState(false);
 
@@ -52,7 +52,7 @@ export function IncomingCall() {
     try {
       await callAction(call.id, "accept");
       setIncoming(null);
-      router.push(`/app/call/${call.id}`);
+      openCall(call.id);
     } catch (e) {
       showError(e instanceof ApiClientError ? e.message : copy.loadError);
       setIncoming(null);

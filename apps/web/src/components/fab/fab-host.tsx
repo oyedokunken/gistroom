@@ -21,6 +21,7 @@ import { CallModal } from "@/components/fab/call-modal";
 import { JoinRoomModal } from "@/components/fab/join-room-modal";
 import { fab as copy } from "@/content/fab";
 import { cn } from "@/lib/cn";
+import { useCallWindow } from "@/lib/call-window/store";
 import { resolvePlace, useFabStore, type FabAction } from "@/lib/fab";
 import { FAB_CONFIG, FAB_ICON } from "@/lib/fab-config";
 
@@ -77,7 +78,9 @@ export function FabHost() {
     };
   }, [open]);
 
-  const hidden = HIDDEN_ON.some((re) => re.test(pathname));
+  const windowMode = useCallWindow((w) => w.state.mode);
+  // The call window takes this corner while it is showing, so the button steps aside.
+  const hidden = HIDDEN_ON.some((re) => re.test(pathname)) || windowMode !== "HIDDEN";
   const placeName = copy.places[place];
   const single = config.actions.length === 0;
 

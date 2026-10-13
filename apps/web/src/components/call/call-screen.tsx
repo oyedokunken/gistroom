@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEmbedded } from "@/components/call-window/embed";
+import { closeWindow } from "@/lib/call-window/store";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -129,6 +131,7 @@ export function CallScreen({
   );
   const elapsed = useElapsed(call?.answeredAt ?? null, status === "ACTIVE");
   const router = useRouter();
+  const embedded = useEmbedded();
   const nav = useMemo(() => ({ push: (path: string) => router.push(path) }), [router]);
 
   // The call screen that is open, so its ending is told even when there is no live connection (it rang out).
@@ -435,6 +438,7 @@ export function CallScreen({
           {call.conversationId ? (
             <Link
               href={`/app/chats/${call.conversationId}`}
+              onClick={() => embedded && closeWindow()}
               className={buttonStyles("accent", "min-h-12 px-6")}
             >
               {copy.backToChat}
@@ -442,6 +446,7 @@ export function CallScreen({
           ) : null}
           <Link
             href="/app/calls"
+            onClick={() => embedded && closeWindow()}
             className="inline-flex min-h-12 items-center rounded-full border-2 border-white/70 px-6 font-semibold text-white hover:bg-white/10"
           >
             {copy.backToCalls}
@@ -587,7 +592,7 @@ export function CallScreen({
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="fixed inset-0 z-[60] flex flex-col items-center gap-5 bg-ink-950 p-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] text-white md:p-8">
+    <div className="fixed inset-0 z-[60] flex flex-col items-center gap-5 bg-ink-950 p-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] text-white @md:p-8">
       {children}
     </div>
   );

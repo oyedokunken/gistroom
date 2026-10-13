@@ -37,3 +37,7 @@ A person registers for a scheduled room from the room page ("Remind me"). The re
 | Host cancels it              | the list                                                                       | cancelled notice                                | no                               | registrants only                           |
 
 Everything is idempotent through the dedupe keys `room:{roomId}:remind15:{userId}`, `room:{roomId}:live:{userId}`, `room:{roomId}:due:{hostId}`, `room:{roomId}:resched:{userId}:{time}` and `room:{roomId}:cancelled:{userId}`. `processRoomSchedule` reads the rooms, so a lost job loses nothing. The jobs (`room-remind`, `room-due`, `room-noshow`) only wake the web sweep through the realtime scheduler. The daily Vercel cron is the last net.
+
+## Rooms in the call window
+
+A plain click on a room anywhere (Discover, the room list, search, an invite card in a chat, a new room) opens it in the call window and leaves the page alone (`RoomLink`, `openRoom`). A modified click or a new tab goes to `/app/rooms/{slug}`, which opens the window over a quiet details page (`RoomEntry`). A room that has ended, a private room you are not in, or a bad link has no call to float, so it keeps its own page there.

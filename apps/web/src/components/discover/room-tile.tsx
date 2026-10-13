@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { RoomLink } from "@/components/call-window/room-link";
 import { CalendarClock, Lock, Mic, Users, Video } from "lucide-react";
 import { LANGUAGE_LABELS, type DiscoverRoom } from "@gistroom/shared";
 import { Avatar } from "@/components/ui/avatar";
@@ -24,8 +24,8 @@ export function RoomTile({ room }: { room: DiscoverRoom }) {
   const count = room.listeners;
   return (
     <li className="h-full">
-      <Link
-        href={`/app/rooms/${room.slug}`}
+      <RoomLink
+        slug={room.slug}
         className={cn(
           "group flex h-full flex-col gap-3 rounded-card border bg-surface p-5 transition-all",
           "hover:-translate-y-0.5 hover:shadow-lift focus-visible:-translate-y-0.5 focus-visible:shadow-lift motion-reduce:transition-none motion-reduce:hover:translate-y-0",
@@ -109,7 +109,7 @@ export function RoomTile({ room }: { room: DiscoverRoom }) {
             {copy.card.join}
           </span>
         </span>
-      </Link>
+      </RoomLink>
     </li>
   );
 }

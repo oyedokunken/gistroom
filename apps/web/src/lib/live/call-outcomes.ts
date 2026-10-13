@@ -3,6 +3,7 @@
 import type { CallDto } from "@gistroom/shared";
 import { session as copy } from "@/content/session";
 import { ApiClientError } from "@/lib/api";
+import { isStartCancelled, openCall } from "@/lib/call-window/store";
 import { startCallRequest } from "@/lib/calls/api";
 import { formatDuration } from "@/lib/chat/voice";
 import { clearSessionModal, showSessionModal, type SessionAction } from "@/lib/session/modals";
@@ -24,8 +25,9 @@ export async function callAgain(call: CallDto, nav: Nav): Promise<void> {
   if (!call.conversationId) return;
   try {
     const started = await startCallRequest(call.conversationId, call.media);
-    nav.push(`/app/call/${started.call.id}`);
+    openCall(started.call.id);
   } catch (e) {
+    if (isStartCancelled(e)) return;
     handleStartCallError(e, call.peer.name, nav, () => void callAgain(call, nav));
   }
 }

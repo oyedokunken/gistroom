@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { io, type Socket } from "socket.io-client";
 import type { CallDto, ConversationDto, ServerEvents } from "@gistroom/shared";
 import { useCallStore } from "@/lib/calls/store";
+import { openRoom } from "@/lib/call-window/store";
 import { useRoomStore } from "@/lib/rooms/store";
 import { session as sessionCopy } from "@/content/session";
 import { useLive } from "@/lib/live/live-session";
@@ -223,7 +224,7 @@ export function RealtimeProvider({ userId, children }: { userId: string; childre
             {
               id: "join",
               label: roomCopy.people.ringJoin,
-              run: () => router.push(`/app/rooms/${slug}`),
+              run: () => openRoom(slug),
             },
             {
               id: "later",

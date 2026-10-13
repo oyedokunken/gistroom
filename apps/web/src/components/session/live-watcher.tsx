@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { LIMITS } from "@gistroom/shared";
 import { session as copy } from "@/content/session";
 import { apiFetch } from "@/lib/api";
+import { openCall, openRoom } from "@/lib/call-window/store";
 import { useCallStore } from "@/lib/calls/store";
 import { showCallOutcome } from "@/lib/live/call-outcomes";
 import { live, onLiveEvent, useLive } from "@/lib/live/live-session";
@@ -54,13 +55,15 @@ export function LiveWatcher() {
       await live().hangUp();
     },
   });
-  const pathFor = () => (s.kind === "call" ? `/app/call/${s.refId}` : `/app/rooms/${s.refId}`);
   const rejoin = () => {
-    const path = pathFor();
-    const slug = s.kind === "room" ? s.refId : null;
+    const kind = s.kind;
+    const ref = s.refId;
+    const slug = kind === "room" ? ref : null;
     live().leave();
     if (slug) useRoomStore.getState().setJoin(slug, null);
-    router.push(path);
+    // The same call or room opens again in the window, on whatever page this is.
+    if (kind === "call" && ref) openCall(ref);
+    else if (slug) openRoom(slug);
   };
 
   // ----- Offline during a call or room, then disconnected after a minute -----
@@ -208,7 +211,7 @@ export function LiveWatcher() {
           {
             id: "signin",
             label: copy.modal.signIn,
-            run: () => router.push(`/login?next=${encodeURIComponent(pathFor())}`),
+            run: () => router.push(`/login?next=${encodeURIComponent(window.location.pathname)}`),
           },
           leaveAction(),
         ],

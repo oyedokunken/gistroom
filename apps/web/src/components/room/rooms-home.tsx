@@ -1,5 +1,6 @@
 "use client";
 
+import { RoomLink } from "@/components/call-window/room-link";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -23,8 +24,8 @@ function MyRoom({ room }: { room: RoomDto }) {
   const live = room.status === "LIVE";
   return (
     <li>
-      <Link
-        href={`/app/rooms/${room.slug}`}
+      <RoomLink
+        slug={room.slug}
         className="flex h-full flex-col gap-2 rounded-card border border-border bg-surface p-4 hover:shadow-lift"
       >
         <div className="flex flex-wrap items-center gap-2">
@@ -49,7 +50,7 @@ function MyRoom({ room }: { room: RoomDto }) {
           {room.myRole === "HOST" ? "You host this room. " : ""}
           {room.joined} in the room
         </p>
-      </Link>
+      </RoomLink>
     </li>
   );
 }

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { RoomScreen } from "@/components/room/room-screen";
+import { RoomEntry } from "@/components/call-window/room-entry";
 import { avatarUrl } from "@gistroom/db";
 import { getSessionContext } from "@/server/auth/session";
 
@@ -15,7 +15,7 @@ export default async function RoomPage({
 }) {
   const [{ slug }, query, ctx] = await Promise.all([params, searchParams, getSessionContext()]);
   return (
-    <RoomScreen
+    <RoomEntry
       slug={slug}
       invite={query.invite ?? null}
       meId={ctx?.user.id ?? ""}

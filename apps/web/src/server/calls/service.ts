@@ -82,6 +82,8 @@ async function join(row: CallRow, me: User): Promise<CallJoin> {
     identity: liveKitIdentity(me.id),
     name: me.name,
     room: row.livekitRoom,
+    // A call can go on for hours. The token covers it, so a late reconnect still works.
+    ttlSec: 6 * 3600,
   });
   return { call, token, url };
 }
@@ -326,6 +328,25 @@ export async function startCall(
     },
     include,
   });
+
+  // Pressing Call twice quickly can slip two calls past the checks above. The earlier one stays, the later one goes.
+  const earlier = busy
+    ? null
+    : await db.call.findFirst({
+        where: {
+          callerId: me.id,
+          calleeId: callee.id,
+          status: "RINGING",
+          id: { not: created.id },
+          createdAt: { lte: created.createdAt },
+        },
+        include,
+        orderBy: { createdAt: "asc" },
+      });
+  if (earlier) {
+    await db.call.delete({ where: { id: created.id } });
+    return { ...(await join(earlier, me)), merged: false };
+  }
 
   if (busy) {
     const entries = [logRow(created, "caller", "BUSY")].filter(

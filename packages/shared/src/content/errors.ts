@@ -86,7 +86,7 @@ export const errors = {
   uploadMismatch: "That file does not look like what its name says. Check it and try again.",
   uploadNotImage: "Pick a photo for your profile picture, up to 5 MB.",
   uploadMissing: "We could not find that upload. Try sending it again.",
-  chatUnavailable: "This chat is unavailable.",
+  chatUnavailable: "You can't send messages to this person.",
   editWindowClosed: "You can only edit a message in the first 15 minutes.",
   editNotAllowed: "You can only edit your own text messages.",
   messageTooLong: (max: number) => `Messages can be up to ${max} characters.`,

@@ -45,7 +45,7 @@ export const useRealtimeStore = create<RealtimeState>((set, get) => ({
     if (on) {
       timers.set(
         key,
-        setTimeout(() => get().setTyping(conversationId, userId, false), 6000),
+        setTimeout(() => get().setTyping(conversationId, userId, false), 5000),
       );
     }
   },

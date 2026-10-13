@@ -390,10 +390,17 @@ export async function joinRoom(
 
   // Opening a valid link adds you to the invite list once (D6).
   if (linkOk && link && !member) {
-    await db.roomInviteLink.update({
-      where: { id: link.id },
+    // Two people opening a one use link at once: only one claim can succeed, the database decides.
+    const claimed = await db.roomInviteLink.updateMany({
+      where: {
+        id: link.id,
+        revokedAt: null,
+        expiresAt: { gt: now },
+        ...(link.maxUses !== null ? { usedCount: { lt: link.maxUses } } : {}),
+      },
       data: { usedCount: { increment: 1 } },
     });
+    if (claimed.count === 0) throw denied("NOT_INVITED");
   }
 
   const wasIn = member?.state === "JOINED";
@@ -420,6 +427,25 @@ export async function joinRoom(
         : { joinedAt: member?.joinedAt && member.state === "LEFT" ? member.joinedAt : now }),
     },
   });
+  // Two people taking the last seat together both pass the check above. The database has the final say: the seats
+  // are counted in the order people came in, and whoever is past the limit steps back out.
+  if (!isHost && !wasIn) {
+    const seated = await db.roomMember.findMany({
+      where: { roomId: room.id, state: "JOINED" },
+      orderBy: [{ joinedAt: "asc" }, { id: "asc" }],
+      select: { userId: true },
+    });
+    const place = seated.findIndex((s) => s.userId === me.id);
+    if (place >= room.maxParticipants) {
+      await db.roomMember.update({
+        where: { roomId_userId: { roomId: room.id, userId: me.id } },
+        data: member
+          ? { state: member.state, leftAt: member.leftAt, graceUntil: member.graceUntil }
+          : { state: "LEFT", leftAt: now, graceUntil: null },
+      });
+      throw denied("FULL");
+    }
+  }
   void publish({ type: "room", roomId: room.id, change: "member", userId: me.id });
 
   const present = await joinedCount(room.id);
@@ -430,6 +456,8 @@ export async function joinRoom(
     identity: liveKitIdentity(me.id),
     name: me.name,
     room: room.livekitRoom,
+    // Covers the longest a room can run, so a reconnect late in a long room still has a valid token.
+    ttlSec: (LIMITS.ROOM_MAX_DURATION_HOURS + 1) * 3600,
     canPublishSources: publishSources(room, verdict.role),
   });
   return { room: await toDto(room, verdict.role), token, url, role: verdict.role };
@@ -617,6 +645,16 @@ export async function listMembers(me: User, slug: string): Promise<RoomMemberDto
     }));
 }
 
+/** A person who was removed or banned has their room chat taken off the screen for everyone. */
+async function hideMessagesOf(roomId: string, userId: string, actorId: string): Promise<void> {
+  const db = getDb();
+  const done = await db.roomMessage.updateMany({
+    where: { roomId, senderId: userId, deletedAt: null },
+    data: { deletedAt: new Date(), deletedById: actorId, body: "" },
+  });
+  if (done.count > 0) void publish({ type: "room", roomId, change: "chat-deleted", messageId: "" });
+}
+
 export async function moderate(me: User, slug: string, input: ModActionInput): Promise<void> {
   await enforce(policies.roomMod, me.id);
   const db = getDb();
@@ -673,6 +711,7 @@ export async function moderate(me: User, slug: string, input: ModActionInput): P
         where: { id: target.id },
         data: { state: "REMOVED", leftAt: new Date(), graceUntil: null },
       });
+      await hideMessagesOf(room.id, target.userId, me.id);
       void removeFromLiveKit(room.livekitRoom, identity);
       await log(room.id, me.id, "REMOVE", target.userId);
       void notify({
@@ -686,6 +725,7 @@ export async function moderate(me: User, slug: string, input: ModActionInput): P
         where: { id: target.id },
         data: { state: "BANNED", leftAt: new Date(), graceUntil: null },
       });
+      await hideMessagesOf(room.id, target.userId, me.id);
       void removeFromLiveKit(room.livekitRoom, identity);
       await log(room.id, me.id, "BAN", target.userId);
       void notify({

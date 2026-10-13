@@ -107,6 +107,22 @@ export interface NotificationDto {
   href: string;
 }
 
+/** What is true right now behind a notification, so its buttons never come from a stale payload. */
+export interface NotificationState {
+  friendRequest?: {
+    status: "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELLED";
+    user: PublicUser;
+    /** Set once the two people are friends, so Message opens the chat. */
+    conversationId: string | null;
+  };
+  room?: { slug: string; title: string; status: "SCHEDULED" | "LIVE" | "ENDED" };
+}
+
+export interface NotificationDetailDto {
+  notification: NotificationDto;
+  state: NotificationState;
+}
+
 export interface Page<T> {
   items: T[];
   nextCursor: string | null;

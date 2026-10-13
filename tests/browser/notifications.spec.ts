@@ -40,6 +40,8 @@ test.describe("notifications", () => {
     });
 
     await signIn(context, me);
+    // On a phone the detail is still a modal.
+    await page.setViewportSize({ width: 390, height: 800 });
     await page.goto("/app/notifications");
     await expect(page.getByRole("radio", { name: "Activity" })).toBeVisible();
     await expect(page.getByText("New friend request")).toBeVisible();
@@ -52,12 +54,13 @@ test.describe("notifications", () => {
     // The sender is shown, with a way to see their profile.
     await expect(dialog.getByRole("link", { name: "View profile" })).toBeVisible();
     await dialog.getByRole("button", { name: "Accept" }).click();
-    // After accepting, the button says so and cannot be pressed again, here or when the modal is opened again.
-    await expect(dialog.getByRole("button", { name: "Accepted" })).toBeDisabled();
+    // After accepting it says so and offers Message, here and when the modal is opened again.
+    await expect(dialog.getByText("You are now friends")).toBeVisible();
+    await expect(dialog.getByRole("link", { name: "Message" })).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);
     await page.getByRole("button", { name: /New friend request/ }).click();
-    await expect(page.getByRole("dialog").getByRole("button", { name: "Accepted" })).toBeDisabled();
+    await expect(page.getByRole("dialog").getByText("You are now friends")).toBeVisible();
     await expect(
       page.getByRole("dialog").getByRole("button", { name: "Accept", exact: true }),
     ).toHaveCount(0);

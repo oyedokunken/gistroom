@@ -4,6 +4,10 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ## [Unreleased]
 
+### Changed
+
+- Notifications page: from 768 px it is a two column master and detail view inside the full width page. The list (All, Unread, Activity, day groups, bulk select) sits on the left and the chosen notification shows on the right with its actions, scrolling on its own. The choice is in the address (`?n=`), arrow keys move through the list, an opened item is marked read after one second, and a deleted one says "This is no longer available". Buttons come from the current server state (`GET /api/notifications/[id]`), so an accepted request shows "You are now friends" and a Message button. Phones keep one column with the detail in a modal.
+
 ### Production migrations to run
 
 - `20261013160000_live_session_reliability`: heartbeats, rings, empty and long room tracking, and the LiveKit webhook event table.

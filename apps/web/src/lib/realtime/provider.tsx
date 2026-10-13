@@ -11,6 +11,9 @@ import { session as sessionCopy } from "@/content/session";
 import { useLive } from "@/lib/live/live-session";
 import { pushChip } from "@/lib/session/chips";
 import { sounds } from "@/lib/sound/sounds";
+import { roomCopy } from "@/content/rooms";
+import { roomApi } from "@/lib/rooms/api";
+import { clearSessionModal, showSessionModal } from "@/lib/session/modals";
 import { apiFetch } from "@/lib/api";
 import {
   advancePeerCursor,
@@ -197,6 +200,50 @@ export function RealtimeProvider({ userId, children }: { userId: string; childre
     });
     on("notification:new", ({ notification }) => {
       void queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      // A host or moderator is ringing me for a room. It rings like a call, for as long as a call does.
+      const payload = (notification.payload ?? {}) as Record<string, unknown>;
+      if (
+        notification.type === "ROOM_INVITE" &&
+        payload["ring"] === true &&
+        typeof payload["roomSlug"] === "string" &&
+        useLive.getState().kind === null
+      ) {
+        const slug = payload["roomSlug"];
+        const title = typeof payload["roomTitle"] === "string" ? payload["roomTitle"] : "a room";
+        const from = typeof payload["fromName"] === "string" ? payload["fromName"] : "A host";
+        sounds().startLoop("ringtone");
+        const timer = window.setTimeout(() => clearSessionModal(`room-ring:${slug}`), 45_000);
+        showSessionModal({
+          id: `room-ring:${slug}`,
+          priority: "info",
+          icon: "radio",
+          title: roomCopy.people.ringTitle(from),
+          body: roomCopy.people.ringBody(from, title),
+          actions: [
+            {
+              id: "join",
+              label: roomCopy.people.ringJoin,
+              run: () => router.push(`/app/rooms/${slug}`),
+            },
+            {
+              id: "later",
+              label: roomCopy.people.ringNotNow,
+              kind: "secondary",
+              run: () => void roomApi.declineRing(slug),
+            },
+            {
+              id: "stop",
+              label: roomCopy.people.ringStop,
+              kind: "secondary",
+              run: () => void roomApi.declineRing(slug, true),
+            },
+          ],
+          onClose: () => {
+            window.clearTimeout(timer);
+            sounds().stopLoop("ringtone");
+          },
+        });
+      }
       // Someone tried to call while I am on a call or in a room: a quiet chip, never a ring on top of the conversation.
       const busy = useLive.getState().kind !== null;
       const from = (notification.payload as { fromName?: unknown } | null)?.fromName;

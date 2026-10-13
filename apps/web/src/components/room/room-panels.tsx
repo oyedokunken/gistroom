@@ -62,6 +62,8 @@ import { ApiClientError, apiFetch } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { roomApi, type RoomView } from "@/lib/rooms/api";
 import { formatClock, formatExpiry, formatFull, formatUntil } from "@/lib/time";
+import { SignalBars } from "@/components/session/signal-bars";
+import { useLive } from "@/lib/live/live-session";
 
 const fail = (e: unknown) => (e instanceof ApiClientError ? e.message : copy.invite.loadError);
 
@@ -368,6 +370,19 @@ export function PeoplePanel({
     queryKey: ["room-members", room.slug],
     queryFn: () => roomApi.members(room.slug),
   });
+  const quality = useLive((s) => s.quality);
+  // People rung a moment ago whose phones may be quiet: shown under their name for this visit.
+  const [quiet, setQuiet] = useState<Set<string>>(new Set());
+
+  async function ring(m: RoomMemberDto) {
+    try {
+      const r = await roomApi.ring(room.slug, m.user.id);
+      if (r.mayNotSee) setQuiet((s) => new Set(s).add(m.user.id));
+      void queryClient.invalidateQueries({ queryKey: ["room-members", room.slug] });
+    } catch (e) {
+      showError(fail(e));
+    }
+  }
 
   async function act(m: RoomMemberDto, action: ModAction) {
     const name = m.user.name;
@@ -407,78 +422,130 @@ export function PeoplePanel({
         ) : members.isError ? (
           <p className="p-3 text-text-muted">{copy.invite.loadError}</p>
         ) : (
-          members.data.members.map((m) => {
-            const mine = m.user.id === meId;
-            const target = m.user.id === room.host.id ? "HOST" : m.role;
-            const menu = !mine && canActOn(role, target) && canDo(role, "MUTE");
-            const state = states[m.user.id];
-            return (
-              <li key={m.user.id} className="flex items-center gap-3 rounded-xl px-2 py-2">
-                <Avatar name={m.user.name} src={m.user.avatarUrl} size={40} />
-                <span className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
-                  <span className="max-w-full truncate font-semibold text-text">
-                    {m.user.name}
-                    {mine ? ` (${copy.stage.you})` : ""}
+          members.data.members
+            .filter((m) => m.state === "JOINED")
+            .map((m) => {
+              const mine = m.user.id === meId;
+              const target = m.user.id === room.host.id ? "HOST" : m.role;
+              const menu = !mine && canActOn(role, target) && canDo(role, "MUTE");
+              const state = states[m.user.id];
+              return (
+                <li key={m.user.id} className="flex items-center gap-3 rounded-xl px-2 py-2">
+                  <Avatar name={m.user.name} src={m.user.avatarUrl} size={40} />
+                  <span className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
+                    <span className="max-w-full truncate font-semibold text-text">
+                      {m.user.name}
+                      {mine ? ` (${copy.stage.you})` : ""}
+                    </span>
+                    <RoleBadge role={target} />
+                    {m.joinedAt ? (
+                      <span className="tabular text-xs text-text-muted">
+                        {copy.people.joinedAt(formatClock(new Date(m.joinedAt)))}
+                      </span>
+                    ) : null}
                   </span>
-                  <RoleBadge role={target} />
-                </span>
-                {state ? (
-                  <span className="flex shrink-0 items-center gap-2 text-text-muted">
-                    {state.mic ? (
-                      <Mic aria-label={copy.people.micOn} className="size-4" />
-                    ) : (
-                      <MicOff aria-label={copy.people.muted} className="size-4" />
-                    )}
-                    {state.cam ? (
-                      <Camera aria-label={copy.people.cameraOn} className="size-4" />
-                    ) : (
-                      <CameraOff aria-label={copy.people.cameraOff} className="size-4" />
-                    )}
-                  </span>
-                ) : null}
-                {menu ? (
-                  <DropdownMenu>
-                    <DropdownTrigger asChild>
-                      <IconButton label={copy.mod.menu(m.user.name)}>
-                        <EllipsisVertical aria-hidden className="size-5" />
-                      </IconButton>
-                    </DropdownTrigger>
-                    <DropdownContent align="end">
-                      <DropdownItem onSelect={() => void act(m, "MUTE")}>
-                        {copy.mod.mute}
-                      </DropdownItem>
-                      <DropdownItem onSelect={() => void act(m, "MUTE_VIDEO")}>
-                        {copy.mod.muteVideo}
-                      </DropdownItem>
-                      {canDo(role, "PROMOTE") && target === "MEMBER" ? (
-                        <DropdownItem onSelect={() => void act(m, "PROMOTE")}>
-                          {copy.mod.promote}
+                  <SignalBars
+                    quality={quality[`user_${m.user.id}`] ?? "unknown"}
+                    className="text-text-muted"
+                  />
+                  {state ? (
+                    <span className="flex shrink-0 items-center gap-2 text-text-muted">
+                      {state.mic ? (
+                        <Mic aria-label={copy.people.micOn} className="size-4" />
+                      ) : (
+                        <MicOff aria-label={copy.people.muted} className="size-4" />
+                      )}
+                      {state.cam ? (
+                        <Camera aria-label={copy.people.cameraOn} className="size-4" />
+                      ) : (
+                        <CameraOff aria-label={copy.people.cameraOff} className="size-4" />
+                      )}
+                    </span>
+                  ) : null}
+                  {menu ? (
+                    <DropdownMenu>
+                      <DropdownTrigger asChild>
+                        <IconButton label={copy.mod.menu(m.user.name)}>
+                          <EllipsisVertical aria-hidden className="size-5" />
+                        </IconButton>
+                      </DropdownTrigger>
+                      <DropdownContent align="end">
+                        <DropdownItem onSelect={() => void act(m, "MUTE")}>
+                          {copy.mod.mute}
                         </DropdownItem>
-                      ) : null}
-                      {canDo(role, "DEMOTE") && target === "MODERATOR" ? (
-                        <DropdownItem onSelect={() => void act(m, "DEMOTE")}>
-                          {copy.mod.demote}
+                        <DropdownItem onSelect={() => void act(m, "MUTE_VIDEO")}>
+                          {copy.mod.muteVideo}
                         </DropdownItem>
-                      ) : null}
-                      {canDo(role, "TRANSFER") ? (
-                        <DropdownItem onSelect={() => void act(m, "TRANSFER")}>
-                          {copy.mod.transfer}
+                        {canDo(role, "PROMOTE") && target === "MEMBER" ? (
+                          <DropdownItem onSelect={() => void act(m, "PROMOTE")}>
+                            {copy.mod.promote}
+                          </DropdownItem>
+                        ) : null}
+                        {canDo(role, "DEMOTE") && target === "MODERATOR" ? (
+                          <DropdownItem onSelect={() => void act(m, "DEMOTE")}>
+                            {copy.mod.demote}
+                          </DropdownItem>
+                        ) : null}
+                        {canDo(role, "TRANSFER") ? (
+                          <DropdownItem onSelect={() => void act(m, "TRANSFER")}>
+                            {copy.mod.transfer}
+                          </DropdownItem>
+                        ) : null}
+                        <DropdownSeparator />
+                        <DropdownItem danger onSelect={() => void act(m, "REMOVE")}>
+                          {copy.mod.remove}
                         </DropdownItem>
-                      ) : null}
-                      <DropdownSeparator />
-                      <DropdownItem danger onSelect={() => void act(m, "REMOVE")}>
-                        {copy.mod.remove}
-                      </DropdownItem>
-                      <DropdownItem danger onSelect={() => void act(m, "BAN")}>
-                        {copy.mod.ban}
-                      </DropdownItem>
-                    </DropdownContent>
-                  </DropdownMenu>
-                ) : null}
-              </li>
-            );
-          })
+                        <DropdownItem danger onSelect={() => void act(m, "BAN")}>
+                          {copy.mod.ban}
+                        </DropdownItem>
+                      </DropdownContent>
+                    </DropdownMenu>
+                  ) : null}
+                </li>
+              );
+            })
         )}
+        {members.data?.members.some((m) => m.state === "INVITED") ? (
+          <>
+            <li className="px-2 pb-1 pt-4 text-sm font-bold text-text">
+              {copy.people.invitedHeading}
+            </li>
+            {members.data.members
+              .filter((m) => m.state === "INVITED")
+              .map((m) => (
+                <li key={m.user.id} className="flex items-center gap-3 rounded-xl px-2 py-2">
+                  <Avatar name={m.user.name} src={m.user.avatarUrl} size={40} />
+                  <span className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
+                    <span className="max-w-full truncate font-semibold text-text">
+                      {m.user.name}
+                    </span>
+                    <span className="text-xs text-text-muted">
+                      {m.ringStatus === "RINGING"
+                        ? copy.people.ringing
+                        : m.ringStatus === "DECLINED"
+                          ? copy.people.declined
+                          : m.ringStatus === "NO_ANSWER"
+                            ? copy.people.noAnswer
+                            : copy.people.invited}
+                      {quiet.has(m.user.id) ? `. ${copy.people.mayNotSee}` : ""}
+                    </span>
+                  </span>
+                  {canDo(role, "INVITE") && room.status === "LIVE" ? (
+                    <Button
+                      variant="secondary"
+                      aria-label={copy.people.ringFor(m.user.name)}
+                      disabled={m.ringStatus === "RINGING"}
+                      onClick={() => void ring(m)}
+                    >
+                      {m.ringStatus === "DECLINED" || m.ringStatus === "NO_ANSWER"
+                        ? copy.people.ringAgain
+                        : copy.people.ring}
+                    </Button>
+                  ) : null}
+                </li>
+              ))}
+          </>
+        ) : null}
       </ul>
     </div>
   );

@@ -1197,9 +1197,12 @@ export async function listRoomMessages(
   if (!member || (member.state !== "JOINED" && member.state !== "LEFT")) throw notFound();
   if (room.status === "ENDED") return { items: [], nextCursor: null };
   const after = decodeCursor(cursor, isChatCursor);
+  // Someone who comes in late does not see what was said before they arrived.
+  const since = member.joinedAt ?? new Date(0);
   const rows = await db.roomMessage.findMany({
     where: {
       roomId: room.id,
+      createdAt: { gte: since },
       ...(after
         ? {
             OR: [

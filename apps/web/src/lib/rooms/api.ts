@@ -48,6 +48,10 @@ export const roomApi = {
   /** A quiet "still here" while you are in the room. A tab that stops saying so for 20 seconds counts as gone. */
   heartbeat: (slug: string) =>
     apiFetch<{ ok: true }>(`${base(slug)}/heartbeat`, { body: {} }).catch(() => undefined),
+  ring: (slug: string, userId: string) =>
+    apiFetch<{ status: "RINGING"; mayNotSee: boolean }>(`${base(slug)}/ring`, { body: { userId } }),
+  declineRing: (slug: string, noRing = false) =>
+    apiFetch<{ ok: true }>(`${base(slug)}/ring`, { method: "DELETE", body: { noRing } }),
   summary: (slug: string) => apiFetch<{ summary: RoomSummaryDto }>(`${base(slug)}/summary`),
   past: () => apiFetch<{ rooms: RoomSummaryDto[] }>("/api/rooms/past"),
   moderate: (

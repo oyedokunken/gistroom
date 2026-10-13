@@ -176,7 +176,9 @@ describe.skipIf(!testDbEnabled)("live reliability", () => {
     expect(await m.rooms.cancelNoShowRooms()).toBe(1);
     expect((await m.db.room.findUnique({ where: { slug: room.slug } }))?.status).toBe("ENDED");
     await new Promise((r) => setTimeout(r, 1500));
-    expect(await m.db.notification.count({ where: { userId: guest.id, type: "SYSTEM" } })).toBe(1);
+    expect(
+      await m.db.notification.count({ where: { userId: guest.id, type: "ROOM_CANCELLED" } }),
+    ).toBe(1);
     // Done once.
     expect(await m.rooms.cancelNoShowRooms()).toBe(0);
   });

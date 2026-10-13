@@ -36,7 +36,14 @@ export function createScheduler(deps: SchedulerDeps) {
           const payload = (job.payload ?? {}) as { notificationId?: string };
           if (job.kind === "notify" && payload.notificationId) {
             await delivery.deliverNotification(payload.notificationId);
-          } else if (job.kind === "call-timeout" || job.kind === "room-empty") {
+          } else if (
+            job.kind === "call-timeout" ||
+            job.kind === "room-empty" ||
+            job.kind === "room-remind" ||
+            job.kind === "room-due" ||
+            job.kind === "room-noshow"
+          ) {
+            // The web sweep looks at the rooms themselves, so a job only has to wake it at the right moment.
             await deps.expireCalls?.();
           } else {
             log.warn({ kind: job.kind }, "no handler for scheduled job");

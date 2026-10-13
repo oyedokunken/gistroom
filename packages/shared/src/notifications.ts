@@ -9,12 +9,30 @@ export const NOTIFICATION_TYPES: readonly NotificationType[] = [
   "CALL_MISSED",
   "ROOM_INVITE",
   "ROOM_STARTING",
+  "ROOM_LIVE_NOW",
   "ROOM_ROLE_CHANGED",
   "ROOM_ENDED",
   "SECURITY_NEW_DEVICE",
   "REPORT_UPDATE",
   "SYSTEM",
 ];
+
+/**
+ * Whose switches a type follows. Moved, due and cancelled notices share the "Room reminders" switch, and the host's
+ * registration count shares the invite switch. Types not listed use their own.
+ */
+export function prefKey(type: NotificationType): NotificationType {
+  switch (type) {
+    case "ROOM_RESCHEDULED":
+    case "ROOM_CANCELLED":
+    case "ROOM_DUE_HOST":
+      return "ROOM_STARTING";
+    case "ROOM_REGISTRATIONS":
+      return "ROOM_INVITE";
+    default:
+      return type;
+  }
+}
 
 export interface ChannelSwitches {
   inApp: boolean;
@@ -32,7 +50,8 @@ export function defaultSwitches(type: NotificationType): ChannelSwitches {
       type === "CALL_MISSED" ||
       type === "SECURITY_NEW_DEVICE" ||
       type === "ROOM_INVITE" ||
-      type === "ROOM_STARTING",
+      type === "ROOM_STARTING" ||
+      type === "ROOM_LIVE_NOW",
   };
 }
 
@@ -104,13 +123,16 @@ export function channelsFor(input: {
   timeZone: string;
   now: Date;
 }): ChannelSwitches {
-  const sw = input.prefs.switches[input.type] ?? defaultSwitches(input.type);
+  const key = prefKey(input.type);
+  const sw = input.prefs.switches[key] ?? defaultSwitches(key);
   const quiet = inQuietHours(
     input.now,
     input.timeZone,
     input.prefs.quietStart,
     input.prefs.quietEnd,
   );
+  // The host's count of registrations is a line in the list and nothing more.
+  if (input.type === "ROOM_REGISTRATIONS") return { inApp: sw.inApp, push: false, email: false };
   return { inApp: sw.inApp, push: sw.push && !quiet, email: sw.email && !quiet };
 }
 
@@ -128,6 +150,11 @@ export function notificationHref(type: NotificationType, payload: Record<string,
       return "/app/calls";
     case "ROOM_INVITE":
     case "ROOM_STARTING":
+    case "ROOM_LIVE_NOW":
+    case "ROOM_DUE_HOST":
+    case "ROOM_RESCHEDULED":
+    case "ROOM_CANCELLED":
+    case "ROOM_REGISTRATIONS":
     case "ROOM_ROLE_CHANGED":
     case "ROOM_ENDED":
       return str("roomSlug") ? `/app/rooms/${str("roomSlug")}` : "/app/rooms";
@@ -355,16 +382,67 @@ export function notificationCopy(
         url,
       };
     case "ROOM_STARTING":
+      // Older rows carried live: true. New ones use ROOM_LIVE_NOW.
+      if (payload["live"] === true) {
+        return {
+          kind: "ROOM_STARTING",
+          title: pushCopy.roomLiveTitle,
+          body: pushCopy.roomLiveBody(s("roomTitle", "Your room")),
+          ref: s("roomId", id),
+          url,
+        };
+      }
       return {
         kind: "ROOM_STARTING",
-        title: payload["live"] === true ? pushCopy.roomLiveTitle : pushCopy.roomStartingTitle,
-        body:
-          payload["live"] === true
-            ? pushCopy.roomLiveBody(s("roomTitle", "Your room"))
-            : pushCopy.roomStartingBody(s("roomTitle", "Your room")),
+        title: pushCopy.roomReminderTitle(s("roomTitle", "Your room")),
+        body: pushCopy.roomReminderBody,
         ref: s("roomId", id),
         url,
       };
+    case "ROOM_LIVE_NOW":
+      return {
+        kind: "ROOM_STARTING",
+        title: pushCopy.roomLiveNowTitle(s("roomTitle", "Your room")),
+        body: pushCopy.roomLiveNowBody,
+        ref: s("roomId", id),
+        url,
+      };
+    case "ROOM_DUE_HOST":
+      return {
+        kind: "ROOM_STARTING",
+        title: pushCopy.roomDueHostTitle,
+        body: pushCopy.roomDueHostBody(s("roomTitle", "Your room")),
+        ref: s("roomId", id),
+        url,
+      };
+    case "ROOM_RESCHEDULED":
+      return {
+        kind: "GENERIC",
+        title: pushCopy.roomRescheduledTitle(s("roomTitle", "Your room")),
+        body: pushCopy.roomRescheduledBody(s("when", "at the new time")),
+        ref: s("roomId", id),
+        url,
+      };
+    case "ROOM_CANCELLED":
+      return {
+        kind: "GENERIC",
+        title: pushCopy.roomCancelledTitle(s("roomTitle", "The room")),
+        body: pushCopy.roomCancelledBody,
+        ref: s("roomId", id),
+        url,
+      };
+    case "ROOM_REGISTRATIONS": {
+      const names = Array.isArray(payload["names"])
+        ? (payload["names"] as unknown[]).filter((v): v is string => typeof v === "string")
+        : [];
+      return {
+        kind: "GENERIC",
+        title: pushCopy.roomRegistrationsTitle(s("roomTitle", "your room")),
+        body: pushCopy.roomRegistrationsBody(names, n("count", names.length)),
+        ref: s("roomId", id),
+        url,
+      };
+    }
     case "ROOM_ROLE_CHANGED": {
       const role = s("role", "moderator").toLowerCase();
       const room = s("roomTitle", "the room");

@@ -25,6 +25,12 @@ export const LIMITS = {
   ROOM_RING_COOLDOWN_SEC: 30,
   ROOM_RING_PER_ROOM: 3,
   ROOM_RING_WINDOW_MIN: 10,
+  // Rooms, schedule
+  ROOM_REMINDER_LEAD_MIN: 15,
+  /** A reminder that is more than this late is dropped in favour of "live now", or nothing. */
+  ROOM_REMINDER_LATE_MIN: 10,
+  /** A scheduled room whose host has not started it this long after its time is cancelled. */
+  ROOM_SCHEDULE_GRACE_MIN: 30,
   /** Above this many people, join and leave notices become a single count chip. */
   ROOM_CHIP_CROWD: 24,
   /** Join and leave sounds only play in rooms this small. */

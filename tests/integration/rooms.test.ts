@@ -83,10 +83,10 @@ describe.skipIf(!testDbEnabled)("rooms", () => {
     expect((await m.setGoing(guest, room.slug, true)).going).toBe(true);
 
     await m.startRoom(host, room.slug);
-    await new Promise((r) => setTimeout(r, 300));
-    const rows = await m.db.notification.findMany({ where: { type: "ROOM_STARTING" } });
+    await new Promise((r) => setTimeout(r, 1500));
+    const rows = await m.db.notification.findMany({ where: { type: "ROOM_LIVE_NOW" } });
     expect(rows.map((r) => r.userId)).toEqual([guest.id]);
-    expect(rows[0]?.payload).toMatchObject({ live: true, roomSlug: room.slug });
+    expect(rows[0]?.payload).toMatchObject({ roomSlug: room.slug });
     expect(await m.db.notification.count({ where: { userId: other.id } })).toBe(0);
 
     // Taking yourself off the list works on a public room.

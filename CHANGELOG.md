@@ -4,11 +4,18 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ## [Unreleased]
 
+### Added
+
+- Registering for a scheduled room now sends a confirmation (an Activity line and an email with an .ics calendar file and an Add to calendar link), tells the host with one aggregated line per room, reminds registrants 15 minutes before in app, by push and by email, says "live now" when the host starts it, nudges the host at the scheduled time, cancels a room whose host never came after 30 minutes, and tells registrants about a new time or a cancellation. New email templates: room-registration-confirmed, room-live-now, room-rescheduled, room-cancelled, and a fuller room-starting-soon. New settings switches: Room reminders and Room is live.
+- `GET /api/rooms/[slug]/calendar` returns the .ics for a scheduled room, and the host can move a scheduled room with the settings call (`scheduledFor`).
+
 ### Changed
 
 - Notifications page: from 768 px it is a two column master and detail view inside the full width page. The list (All, Unread, Activity, day groups, bulk select) sits on the left and the chosen notification shows on the right with its actions, scrolling on its own. The choice is in the address (`?n=`), arrow keys move through the list, an opened item is marked read after one second, and a deleted one says "This is no longer available". Buttons come from the current server state (`GET /api/notifications/[id]`), so an accepted request shows "You are now friends" and a Message button. Phones keep one column with the detail in a modal.
 
 ### Production migrations to run
+
+- `20261014090000_room_registration`: `RoomMember.registeredAt`, filled in for people who put their own name down before.
 
 - `20261013160000_live_session_reliability`: heartbeats, rings, empty and long room tracking, and the LiveKit webhook event table.
 - `20261013170000_call_ended_by`: who ended a call.

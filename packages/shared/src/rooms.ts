@@ -47,6 +47,8 @@ export const roomSettingsSchema = z
       .refine((n) => (SLOW_MODE_OPTIONS as readonly number[]).includes(n)),
     membersCanShare: z.boolean(),
     unmuteLocked: z.boolean(),
+    /** A new start time for a room that has not started. */
+    scheduledFor: z.string().datetime(),
   })
   .partial()
   .refine((v) => Object.keys(v).length > 0);

@@ -20,3 +20,20 @@ Group calls created on the fly or scheduled, public or private, 32 participants,
 ## Scheduled rooms and Remind me
 
 Only the host can start a scheduled room. Everyone else sees a lobby with the host, time and topic. Remind me adds them to the member list as invited (public rooms only, private rooms use their own list), and the lobby then says they are on the list. When the host starts the room, each person on the list gets one ROOM_STARTING notice with `live: true`, in the app and as a push, and their lobby turns into a Join button. The 15 minute reminder still goes to the same people. Take me off the list removes the row again.
+
+## Registration, reminders and schedule changes
+
+A person registers for a scheduled room from the room page ("Remind me"). The registration is `RoomMember.registeredAt`. Registering twice does nothing, a private room only takes people who were invited, and a block in either direction stops it.
+
+| When                         | Who                                                                            | In app                                          | Push                             | Email                                      |
+| ---------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------- | -------------------------------- | ------------------------------------------ |
+| Registered                   | the person                                                                     | Activity line                                   | no                               | confirmation with .ics and Add to calendar |
+| Registered                   | the host                                                                       | one row per room, "Ada and 4 others registered" | no                               | no                                         |
+| 15 minutes before            | registrants (not those who registered with under 15 minutes left) and the host | yes                                             | yes, high urgency, 15 minute TTL | "{title} starts in 15 minutes"             |
+| Host starts it               | registrants not already inside                                                 | yes                                             | yes                              | "{title} is live now"                      |
+| Time reached, not started    | the host                                                                       | "Your room is due to start now."                | yes                              | no                                         |
+| 30 minutes late, not started | the list                                                                       | cancelled notice                                | no                               | registrants only                           |
+| Host moves it                | registrants                                                                    | new time                                        | yes                              | new time with a fresh .ics                 |
+| Host cancels it              | the list                                                                       | cancelled notice                                | no                               | registrants only                           |
+
+Everything is idempotent through the dedupe keys `room:{roomId}:remind15:{userId}`, `room:{roomId}:live:{userId}`, `room:{roomId}:due:{hostId}`, `room:{roomId}:resched:{userId}:{time}` and `room:{roomId}:cancelled:{userId}`. `processRoomSchedule` reads the rooms, so a lost job loses nothing. The jobs (`room-remind`, `room-due`, `room-noshow`) only wake the web sweep through the realtime scheduler. The daily Vercel cron is the last net.

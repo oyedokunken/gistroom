@@ -1,14 +1,12 @@
 import { getDb, type User } from "@gistroom/db";
 import { TOPICS, channelsFor, defaultPrefs } from "@gistroom/shared";
-import { loadPrefs, notify } from "../notifications/service";
+import { loadPrefs } from "../notifications/service";
 import { sendTemplate } from "./send";
 
 /**
  * Email that follows a notification. Each one honours the person's own switches and quiet hours, and a failure
  * never blocks the thing that caused it (Section 19). Security mail does not live here.
  */
-
-const REMINDER_LEAD_MS = 15 * 60_000;
 
 /** "Today, 7:30 PM" in the person's own zone, 12 hour with AM or PM. */
 export function whenText(date: Date, timeZone: string, now = new Date()): string {
@@ -42,6 +40,7 @@ export function whenText(date: Date, timeZone: string, now = new Date()): string
 async function recipient(
   userId: string,
   type: Parameters<typeof channelsFor>[0]["type"],
+  opts: { ignoreQuiet?: boolean } = {},
 ): Promise<{ email: string; name: string; timezone: string } | null> {
   const user = await getDb().user.findUnique({
     where: { id: userId },
@@ -49,7 +48,9 @@ async function recipient(
   });
   // Seeded test people have invented addresses. They are never emailed.
   if (!user || user.status !== "ACTIVE" || user.isSeed) return null;
-  const prefs = await loadPrefs(userId).catch(() => defaultPrefs);
+  const loaded = await loadPrefs(userId).catch(() => defaultPrefs);
+  // Quiet hours hold back alerts. A room email is read when the person wants to, so it still goes.
+  const prefs = opts.ignoreQuiet ? { ...loaded, quietStart: null, quietEnd: null } : loaded;
   const channels = channelsFor({ type, prefs, timeZone: user.timezone, now: new Date() });
   return channels.email ? { email: user.email, name: user.name, timezone: user.timezone } : null;
 }
@@ -128,51 +129,78 @@ export async function emailWelcome(user: User, topicSlugs: string[]) {
   }).catch(() => undefined);
 }
 
+export interface RoomMailFacts {
+  id: string;
+  slug: string;
+  title: string;
+  topicName: string | null;
+  hostName: string;
+  scheduledFor: Date | null;
+}
+
+export type RoomMailKind = "registered" | "reminder" | "live" | "rescheduled" | "cancelled";
+
 /**
- * Scheduled rooms that start within 15 minutes: one in-app notice and one email to the host and the people on the
- * list, once each. Safe to run often because the dedupe key keeps it to one.
+ * One room email for one person. Each follows their Room reminders switch (the live one follows Room is live) and a
+ * failure never blocks the thing that caused it. Returns true when a mail was handed over.
  */
-export async function sendRoomReminders(now = new Date()): Promise<number> {
-  const db = getDb();
-  const due = await db.room.findMany({
-    where: {
-      status: "SCHEDULED",
-      scheduledFor: { gt: now, lte: new Date(now.getTime() + REMINDER_LEAD_MS) },
-    },
-    include: {
-      host: true,
-      topic: { select: { name: true } },
-      members: {
-        where: { state: { in: ["INVITED", "JOINED", "LEFT"] } },
-        select: { userId: true },
-      },
-    },
-    take: 50,
+export async function emailRoom(
+  kind: RoomMailKind,
+  userId: string,
+  room: RoomMailFacts,
+  extra: { reason?: "NO_START" | "HOST_CANCELLED"; now?: Date } = {},
+): Promise<boolean> {
+  const to = await recipient(userId, kind === "live" ? "ROOM_LIVE_NOW" : "ROOM_STARTING", {
+    ignoreQuiet: true,
   });
-  let sent = 0;
-  for (const room of due) {
-    const ids = new Set([room.hostId, ...room.members.map((m) => m.userId)]);
-    for (const userId of ids) {
-      const row = await notify({
-        userId,
-        type: "ROOM_STARTING",
-        payload: { roomId: room.id, roomSlug: room.slug, roomTitle: room.title },
-        dedupeKey: `room-starting:${room.id}`,
-      }).catch(() => null);
-      if (!row) continue;
-      sent += 1;
-      const to = await recipient(userId, "ROOM_STARTING");
-      if (to && room.scheduledFor) {
-        await sendTemplate("room-starting-soon", to.email, {
-          to: to.name,
-          title: room.title,
-          when: whenText(room.scheduledFor, to.timezone, now).replace(/^Today, /, ""),
-          path: `/app/rooms/${room.slug}`,
-        }).catch(() => undefined);
-      }
+  if (!to) return false;
+  const now = extra.now ?? new Date();
+  const when = room.scheduledFor ? whenText(room.scheduledFor, to.timezone, now) : "";
+  const path = `/app/rooms/${room.slug}`;
+  const base = {
+    to: to.name,
+    title: room.title,
+    host: room.hostName,
+    topic: room.topicName,
+    path,
+  };
+  try {
+    if (kind === "registered" && room.scheduledFor) {
+      await sendTemplate("room-registration-confirmed", to.email, {
+        ...base,
+        when,
+        startsAt: room.scheduledFor.toISOString(),
+        slug: room.slug,
+      });
+    } else if (kind === "reminder") {
+      await sendTemplate("room-starting-soon", to.email, {
+        ...base,
+        when: when.replace(/^Today, /, ""),
+      });
+    } else if (kind === "live") {
+      await sendTemplate("room-live-now", to.email, { ...base, when });
+    } else if (kind === "rescheduled" && room.scheduledFor) {
+      await sendTemplate("room-rescheduled", to.email, {
+        ...base,
+        when,
+        startsAt: room.scheduledFor.toISOString(),
+        slug: room.slug,
+      });
+    } else if (kind === "cancelled") {
+      await sendTemplate("room-cancelled", to.email, {
+        to: to.name,
+        title: room.title,
+        host: room.hostName,
+        path: "/app/rooms",
+        reason: extra.reason ?? "NO_START",
+      });
+    } else {
+      return false;
     }
+    return true;
+  } catch {
+    return false;
   }
-  return sent;
 }
 
 /** One email a day to people who switched on email for friend requests, listing the ones still waiting. */

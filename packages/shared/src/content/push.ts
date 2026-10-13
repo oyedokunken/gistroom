@@ -19,6 +19,21 @@ export const pushCopy = {
   plainRoomRing: "A room is ringing you",
   roomStartingTitle: "Room starting soon",
   roomStartingBody: (title: string) => `${title} starts in a few minutes.`,
+  roomReminderTitle: (title: string) => `${title} starts in 15 minutes`,
+  roomReminderBody: "Get ready to join.",
+  roomLiveNowTitle: (title: string) => `${title} is live now`,
+  roomLiveNowBody: "Tap to join.",
+  roomDueHostTitle: "Your room is due to start now.",
+  roomDueHostBody: (title: string) => `${title} is waiting for you to start it.`,
+  roomRescheduledTitle: (title: string) => `${title} has a new time`,
+  roomRescheduledBody: (when: string) => `It now starts ${when}.`,
+  roomCancelledTitle: (title: string) => `${title} didn't start`,
+  roomCancelledBody: "We'll let you know if it's rescheduled.",
+  roomRegistrationsTitle: (title: string) => `New registrations for ${title}`,
+  roomRegistrationsBody: (names: string[], count: number) =>
+    count <= 1
+      ? `${names[0] ?? "Someone"} registered.`
+      : `${names[0] ?? "Someone"} and ${count - 1} ${count === 2 ? "other" : "others"} registered.`,
   roomLiveTitle: "Room is live",
   roomLiveBody: (title: string) => `${title} just started. Come in.`,
   roleChangedTitle: "Your role changed",

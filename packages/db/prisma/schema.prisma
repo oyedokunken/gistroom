@@ -663,26 +663,28 @@ model Room {
 }
 
 model RoomMember {
-  id          String          @id @default(cuid(2))
-  roomId      String
-  userId      String
-  role        RoomRole        @default(MEMBER)
-  state       RoomMemberState @default(INVITED)
-  invitedById String?
-  joinedAt    DateTime?
-  leftAt      DateTime?
-  graceUntil  DateTime?
+  id           String          @id @default(cuid(2))
+  roomId       String
+  userId       String
+  role         RoomRole        @default(MEMBER)
+  state        RoomMemberState @default(INVITED)
+  invitedById  String?
+  joinedAt     DateTime?
+  leftAt       DateTime?
+  graceUntil   DateTime?
   /// The last "still here" from this person's tab. Silent for 20 seconds counts as left.
-  heartbeatAt DateTime?
+  heartbeatAt  DateTime?
   /// Ringing an invited person: RINGING, DECLINED or NO_ANSWER. Null when they were never rung.
-  ringStatus  String?
-  ringedAt    DateTime?
+  ringStatus   String?
+  ringedAt     DateTime?
   /// The person asked not to be rung for this room.
-  noRing      Boolean         @default(false)
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  room        Room            @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  noRing       Boolean         @default(false)
+  /// When the person put their name down for a scheduled room. Null for people who were only invited.
+  registeredAt DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  room         Room            @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([roomId, userId])
   @@index([userId, state])

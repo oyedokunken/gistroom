@@ -52,6 +52,16 @@ import { publish } from "../realtime";
 import { accessFor, assertCanInteract, sendMessage } from "../chat/service";
 import { ensureConversation } from "../friends/service";
 import { recordActivity } from "../notifications/activity";
+import {
+  cancelNoShowRooms as cancelNoShowRoomsImpl,
+  clearRoomJobs,
+  ensureRoomJobs,
+  notifyCancelled,
+  notifyLive,
+  notifyRescheduled,
+  onRegistered,
+  onUnregistered,
+} from "./registration";
 import { emailRoomEnded, emailRoomInvite } from "../mail/notify-email";
 import { isUniqueViolation } from "../db-errors";
 
@@ -218,6 +228,7 @@ export async function createRoom(me: User, input: CreateRoomInput): Promise<Room
         },
         include: { host: true, topic: { select: { slug: true, name: true } } },
       });
+      if (scheduledFor) await ensureRoomJobs(room);
       void recordActivity({
         userId: me.id,
         kind: "room-started",
@@ -243,19 +254,9 @@ export async function startRoom(me: User, slug: string): Promise<RoomDto> {
     include: { host: true, topic: { select: { slug: true, name: true } } },
   });
   void publish({ type: "room", roomId: room.id, change: "started" });
-  // Everyone who said they are coming hears it now. The dedupe key keeps it to one notice each.
-  const waiting = await getDb().roomMember.findMany({
-    where: { roomId: room.id, state: "INVITED", userId: { not: me.id } },
-    select: { userId: true },
-  });
-  for (const w of waiting) {
-    void notify({
-      userId: w.userId,
-      type: "ROOM_STARTING",
-      payload: { roomId: room.id, roomSlug: room.slug, roomTitle: room.title, live: true },
-      dedupeKey: `room-live:${room.id}`,
-    }).catch(() => null);
-  }
+  // The people who registered hear it now, if they are not already inside. Never at the scheduled time alone.
+  void notifyLive(updated);
+  void clearRoomJobs(room.id);
   return toDto(updated, "HOST");
 }
 
@@ -277,16 +278,42 @@ export async function setGoing(me: User, slug: string, going: boolean): Promise<
   if (going) {
     if (room.visibility === "PRIVATE" && !member) throw denied("NOT_INVITED");
     if (member?.state === "BANNED") throw denied("BANNED");
-    if (!member) {
+    // Registering is for a room that has not started. Once it is live the person just joins.
+    if (room.status === "SCHEDULED" && (!member || member.state === "INVITED")) {
+      // A second tap changes nothing: no second notice, no second email.
+      if (!member?.registeredAt) {
+        const now = new Date();
+        if (member) {
+          await db.roomMember.update({ where: { id: member.id }, data: { registeredAt: now } });
+        } else {
+          await db.roomMember.create({
+            data: {
+              roomId: room.id,
+              userId: me.id,
+              role: "MEMBER",
+              state: "INVITED",
+              registeredAt: now,
+            },
+          });
+        }
+        void onRegistered(room, me);
+      }
+    } else if (!member) {
       await db.roomMember.create({
         data: { roomId: room.id, userId: me.id, role: "MEMBER", state: "INVITED" },
       });
     }
-  } else if (member?.state === "INVITED" && room.visibility === "PUBLIC") {
-    await db.roomMember.delete({ where: { id: member.id } });
+  } else if (member?.state === "INVITED" && member.registeredAt) {
+    // Someone who only put their own name down leaves the list. Someone who was invited stays invited.
+    if (room.visibility === "PUBLIC" && member.invitedById === null) {
+      await db.roomMember.delete({ where: { id: member.id } });
+    } else {
+      await db.roomMember.update({ where: { id: member.id }, data: { registeredAt: null } });
+    }
+    void onUnregistered(room, me.id);
   }
   const now = await memberOf(room.id, me.id);
-  return toDto(room, now?.role ?? null, now?.state === "INVITED");
+  return toDto(room, now?.role ?? null, Boolean(now?.registeredAt));
 }
 
 // ---------- Viewing ----------
@@ -321,7 +348,7 @@ export async function viewRoom(
     return { state: "NOT_INVITED" };
   }
   if (room.status === "ENDED") return { state: "ENDED" };
-  const going = !isHost && member?.state === "INVITED";
+  const going = !isHost && Boolean(member?.registeredAt);
   const now = new Date();
   const holdsSeat =
     room.status === "LIVE" &&
@@ -524,6 +551,16 @@ async function finishRoom(room: Room, actorId: string | null): Promise<void> {
     data: { status: "ENDED", endedAt: now },
   });
   if (claimed.count === 0) return;
+  if (room.status === "SCHEDULED") {
+    // It never started, so nobody was in it. The people on its list are told it was cancelled.
+    const full = await db.room.findUniqueOrThrow({
+      where: { id: room.id },
+      include: { host: true, topic: { select: { slug: true, name: true } } },
+    });
+    if (actorId) await log(room.id, actorId, "END");
+    await notifyCancelled(full, "HOST_CANCELLED");
+    return;
+  }
   const members = await db.roomMember.findMany({ where: { roomId: room.id } });
   const attended = members.filter((m) => m.joinedAt !== null);
   if (attended.length > 0) {
@@ -825,6 +862,22 @@ export async function updateSettings(
   if (input.slowModeSec !== undefined) data.slowModeSec = input.slowModeSec;
   if (input.membersCanShare !== undefined) data.membersCanShare = input.membersCanShare;
   if (input.unmuteLocked !== undefined) data.unmuteLocked = input.unmuteLocked;
+  let moved = false;
+  if (input.scheduledFor !== undefined) {
+    // Only the host moves a room, and only before it starts.
+    if (room.status !== "SCHEDULED" || role !== "HOST") throw forbidden(errors.roomNotAllowed);
+    const next = new Date(input.scheduledFor);
+    const now = Date.now();
+    if (next.getTime() <= now + 60_000 || next.getTime() > now + 30 * 86_400_000) {
+      throw new AppError(400, "INVALID", errors.roomScheduleBad, {
+        fields: { scheduledFor: errors.roomScheduleBad },
+      });
+    }
+    if (next.getTime() !== room.scheduledFor?.getTime()) {
+      data.scheduledFor = next;
+      moved = true;
+    }
+  }
   if (input.topicSlug !== undefined) {
     if (input.topicSlug === null) data.topicId = null;
     else {
@@ -846,6 +899,7 @@ export async function updateSettings(
   if (input.unmuteLocked !== undefined || input.cameraAllowed !== undefined) {
     await applyPublishRules(updated);
   }
+  if (moved) void notifyRescheduled(updated);
   await log(room.id, me.id, "SETTINGS", null, { changed: Object.keys(input) });
   void publish({ type: "room", roomId: room.id, change: "settings" });
   return toDto(updated, role);
@@ -1631,37 +1685,7 @@ export async function reconcileLiveRooms(
 }
 
 /** A scheduled room whose host never came is cancelled after a grace period, and the people on its list are told. */
-export async function cancelNoShowRooms(now = new Date(), graceMin = 30): Promise<number> {
-  const db = getDb();
-  const rooms = await db.room.findMany({
-    where: {
-      status: "SCHEDULED",
-      scheduledFor: { lt: new Date(now.getTime() - graceMin * 60_000) },
-    },
-    include: { members: true },
-    take: 100,
-  });
-  for (const room of rooms) {
-    const claimed = await db.room.updateMany({
-      where: { id: room.id, status: "SCHEDULED" },
-      data: { status: "ENDED", endedAt: now },
-    });
-    if (claimed.count === 0) continue;
-    for (const m of room.members) {
-      void notify({
-        userId: m.userId,
-        type: "SYSTEM",
-        payload: {
-          title: "A room was cancelled",
-          body: `${room.title} did not start, so it was cancelled.`,
-        },
-        dedupeKey: `room-noshow:${room.id}`,
-      }).catch(() => null);
-    }
-    void publish({ type: "room", roomId: room.id, change: "ended" });
-  }
-  return rooms.length;
-}
+export const cancelNoShowRooms = cancelNoShowRoomsImpl;
 
 /**
  * Ring someone who is invited and not inside yet. It is a call style alert: an in-app ring and a high urgency push.

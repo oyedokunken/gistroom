@@ -89,6 +89,14 @@ export type NotificationType =
   | "CALL_MISSED"
   | "ROOM_INVITE"
   | "ROOM_STARTING"
+  /** A room you put your name down for is live now. */
+  | "ROOM_LIVE_NOW"
+  /** Your room is due to start and has not. Sent to the host only. */
+  | "ROOM_DUE_HOST"
+  | "ROOM_RESCHEDULED"
+  | "ROOM_CANCELLED"
+  /** One row per room for the host: "Ada and 4 others registered". In the app only. */
+  | "ROOM_REGISTRATIONS"
   | "ROOM_ROLE_CHANGED"
   | "ROOM_ENDED"
   | "SECURITY_NEW_DEVICE"

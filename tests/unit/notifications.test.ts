@@ -134,7 +134,13 @@ describe("quiet hours", () => {
 
 describe("preferences", () => {
   it("enables email only where a missed message costs something", () => {
-    const on = ["CALL_MISSED", "SECURITY_NEW_DEVICE", "ROOM_INVITE", "ROOM_STARTING"];
+    const on = [
+      "CALL_MISSED",
+      "SECURITY_NEW_DEVICE",
+      "ROOM_INVITE",
+      "ROOM_STARTING",
+      "ROOM_LIVE_NOW",
+    ];
     for (const t of NOTIFICATION_TYPES) {
       expect(defaultSwitches(t).email).toBe(on.includes(t));
     }

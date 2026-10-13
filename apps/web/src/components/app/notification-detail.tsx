@@ -36,6 +36,11 @@ export const ICONS: Record<NotificationType, LucideIcon> = {
   CALL_MISSED: PhoneMissed,
   ROOM_INVITE: DoorOpen,
   ROOM_STARTING: Clock,
+  ROOM_LIVE_NOW: DoorOpen,
+  ROOM_DUE_HOST: Clock,
+  ROOM_RESCHEDULED: Clock,
+  ROOM_CANCELLED: DoorOpen,
+  ROOM_REGISTRATIONS: UserPlus,
   ROOM_ROLE_CHANGED: ShieldCheck,
   ROOM_ENDED: DoorOpen,
   SECURITY_NEW_DEVICE: ShieldCheck,
@@ -171,7 +176,13 @@ export function DetailActions({
       </div>
     );
   }
-  if (n.type === "ROOM_INVITE" || n.type === "ROOM_STARTING") {
+  if (
+    n.type === "ROOM_INVITE" ||
+    n.type === "ROOM_STARTING" ||
+    n.type === "ROOM_LIVE_NOW" ||
+    n.type === "ROOM_DUE_HOST" ||
+    n.type === "ROOM_RESCHEDULED"
+  ) {
     // A room that already ended has nothing to join. Its summary is the useful door.
     const ended = state.room?.status === "ENDED";
     return (

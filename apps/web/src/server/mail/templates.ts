@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { LIMITS } from "@gistroom/shared";
+import type { MailAttachment } from "./transport";
+import { buildIcs } from "./ics";
 import { button, codeBlock, escapeHtml, heading, paragraph, renderLayout } from "./layout";
 
 export interface RenderContext {
@@ -10,6 +12,7 @@ export interface Rendered {
   subject: string;
   html: string;
   text: string;
+  attachments?: MailAttachment[];
 }
 
 export interface Template<S extends z.ZodTypeAny> {
@@ -39,6 +42,8 @@ interface NoticeConfig<S extends z.ZodTypeAny> {
   manage?: boolean;
   /** Extra HTML and text lines for lists, for example suggested rooms. Values are escaped by the template. */
   list?: (p: z.infer<S>) => { label: string; path: string; note?: string }[];
+  /** Files that travel with the mail, for example a calendar entry. */
+  attachments?: (p: z.infer<S>) => MailAttachment[];
 }
 
 export const MANAGE_PATH = "/app/settings/notifications";
@@ -94,6 +99,7 @@ function notice<S extends z.ZodTypeAny>(c: NoticeConfig<S>): Template<S> {
         subject,
         html: renderLayout({ appUrl, title: subject, preheader: c.preheader(p), bodyHtml }),
         text,
+        ...(c.attachments ? { attachments: c.attachments(p) } : {}),
       };
     },
   };
@@ -108,6 +114,16 @@ const otpAfter = () => [
 
 const nameProps = z.object({ name: z.string().min(1).max(60) });
 const firstName = (name: string) => name.trim().split(/\s+/)[0] ?? name;
+
+/** What every room mail says about the room: who is asking, which room, when, who hosts and where it lives. */
+const roomDetailProps = z.object({
+  to: z.string().min(1).max(60),
+  title: z.string().min(1).max(80),
+  when: z.string().max(80),
+  host: z.string().min(1).max(60),
+  topic: z.string().max(80).nullable(),
+  path: z.string().startsWith("/app/"),
+});
 
 export const templates = {
   "verify-otp": notice({
@@ -305,25 +321,155 @@ export const templates = {
     manage: true,
     check: (p) => p.title,
   }),
-  "room-starting-soon": notice({
-    id: "room-starting-soon",
-    schema: z.object({
-      to: z.string().min(1).max(60),
-      title: z.string().min(1).max(80),
-      when: z.string().max(80),
-      path: z.string().startsWith("/app/"),
+  "room-registration-confirmed": notice({
+    id: "room-registration-confirmed",
+    schema: roomDetailProps.extend({
+      startsAt: z.string().min(10).max(40),
+      slug: z.string().min(4).max(64),
     }),
     sample: {
       to: "Tunde Bello",
       title: "Match day gist",
+      when: "Sat, 17 Oct, 7:30 PM",
+      host: "Ada Okafor",
+      topic: "Football",
+      path: "/app/rooms/abc123",
+      startsAt: "2026-10-17T18:30:00.000Z",
+      slug: "abc123",
+    },
+    subject: (p) => `You're registered for ${p.title}`,
+    preheader: (p) => `${p.title} starts ${p.when}.`,
+    heading: (p) => `${firstName(p.to)}, you're registered`,
+    paragraphs: (p) => [
+      `${p.title}, hosted by ${p.host}${p.topic ? `, on ${p.topic}` : ""}, starts ${p.when}.`,
+      "We will remind you 15 minutes before and when it goes live.",
+    ],
+    list: (p) => [{ label: "Add to calendar", path: `/api/rooms/${p.slug}/calendar` }],
+    action: (p) => ({ label: "View room", path: p.path }),
+    attachments: (p) => [
+      {
+        filename: "gistroom-room.ics",
+        contentType: "text/calendar; charset=utf-8; method=PUBLISH",
+        content: buildIcs({
+          uid: p.slug,
+          title: p.title,
+          description: `Hosted by ${p.host} on Gistroom.`,
+          startsAt: new Date(p.startsAt),
+          url: `${process.env.APP_URL ?? "http://localhost:3000"}${p.path}`,
+        }),
+      },
+    ],
+    manage: true,
+    check: (p) => p.title,
+  }),
+  "room-starting-soon": notice({
+    id: "room-starting-soon",
+    schema: roomDetailProps,
+    sample: {
+      to: "Tunde Bello",
+      title: "Match day gist",
       when: "7:30 PM",
+      host: "Ada Okafor",
+      topic: "Football",
       path: "/app/rooms/abc123",
     },
-    subject: (p) => `${p.title} starts at ${p.when}`,
-    preheader: () => "Your room starts in 15 minutes.",
+    subject: (p) => `${p.title} starts in 15 minutes`,
+    preheader: (p) => `Starts at ${p.when}, hosted by ${p.host}.`,
     heading: (p) => `${firstName(p.to)}, ${p.title} starts soon`,
-    paragraphs: (p) => [`The room starts at ${p.when}, in about 15 minutes.`],
-    action: (p) => ({ label: "Open the room", path: p.path }),
+    paragraphs: (p) => [
+      `Hosted by ${p.host}${p.topic ? `, on ${p.topic}` : ""}. It starts at ${p.when}, in about 15 minutes.`,
+    ],
+    action: (p) => ({ label: "Join room", path: p.path }),
+    manage: true,
+    check: (p) => p.title,
+  }),
+  "room-live-now": notice({
+    id: "room-live-now",
+    schema: roomDetailProps,
+    sample: {
+      to: "Tunde Bello",
+      title: "Match day gist",
+      when: "7:30 PM",
+      host: "Ada Okafor",
+      topic: "Football",
+      path: "/app/rooms/abc123",
+    },
+    subject: (p) => `${p.title} is live now`,
+    preheader: (p) => `${p.host} just started the room.`,
+    heading: (p) => `${firstName(p.to)}, ${p.title} is live`,
+    paragraphs: (p) => [`${p.host} just started the room. Come in and join the talk.`],
+    action: (p) => ({ label: "Join room", path: p.path }),
+    manage: true,
+    check: (p) => p.title,
+  }),
+  "room-rescheduled": notice({
+    id: "room-rescheduled",
+    schema: roomDetailProps.extend({
+      startsAt: z.string().min(10).max(40),
+      slug: z.string().min(4).max(64),
+    }),
+    sample: {
+      to: "Tunde Bello",
+      title: "Match day gist",
+      when: "Sun, 18 Oct, 5:00 PM",
+      host: "Ada Okafor",
+      topic: "Football",
+      path: "/app/rooms/abc123",
+      startsAt: "2026-10-18T16:00:00.000Z",
+      slug: "abc123",
+    },
+    subject: (p) => `${p.title} has a new time`,
+    preheader: (p) => `It now starts ${p.when}.`,
+    heading: (p) => `${firstName(p.to)}, ${p.title} moved`,
+    paragraphs: (p) => [
+      `${p.host} changed the time. The room now starts ${p.when}. Your reminders moved with it.`,
+    ],
+    list: (p) => [{ label: "Add to calendar", path: `/api/rooms/${p.slug}/calendar` }],
+    action: (p) => ({ label: "View room", path: p.path }),
+    attachments: (p) => [
+      {
+        filename: "gistroom-room.ics",
+        contentType: "text/calendar; charset=utf-8; method=PUBLISH",
+        content: buildIcs({
+          uid: p.slug,
+          title: p.title,
+          description: `Hosted by ${p.host} on Gistroom.`,
+          startsAt: new Date(p.startsAt),
+          sequence: 1,
+          url: `${process.env.APP_URL ?? "http://localhost:3000"}${p.path}`,
+        }),
+      },
+    ],
+    manage: true,
+    check: (p) => p.title,
+  }),
+  "room-cancelled": notice({
+    id: "room-cancelled",
+    schema: z.object({
+      to: z.string().min(1).max(60),
+      title: z.string().min(1).max(80),
+      host: z.string().min(1).max(60),
+      path: z.string().startsWith("/app/"),
+      reason: z.enum(["NO_START", "HOST_CANCELLED"]),
+    }),
+    sample: {
+      to: "Tunde Bello",
+      title: "Match day gist",
+      host: "Ada Okafor",
+      path: "/app/rooms",
+      reason: "NO_START",
+    },
+    subject: (p) =>
+      p.reason === "NO_START" ? `${p.title} didn't start` : `${p.title} was cancelled`,
+    preheader: () => "We will let you know if it is rescheduled.",
+    heading: (p) => `${firstName(p.to)}, ${p.title} didn't start`,
+    paragraphs: (p) => [
+      p.reason === "NO_START"
+        ? `${p.host} did not start the room, so it was cancelled.`
+        : `${p.host} cancelled the room.`,
+      "We'll let you know if it's rescheduled.",
+    ],
+    action: (p) => ({ label: "Browse live rooms", path: p.path }),
     manage: true,
     check: (p) => p.title,
   }),

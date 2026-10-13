@@ -61,3 +61,10 @@ Decision log. Newest at the bottom. Defaults D1 to D13 live in CLAUDE.md Section
 - D67 (2026-10-13): LiveKit tokens last 9 hours for rooms and 6 hours for calls, so a reconnect late in a long session still works.
 - D68 (2026-10-13): Sound settings and the join and leave notice setting live on the device in local storage. Quiet hours come from the notification settings.
 - D69 (2026-10-13): Joining a room that has ended shows the ended page itself (with the summary for people who were in it) and not a dialog on top of it.
+
+- D70 (2026-10-14): Registering for a room is `RoomMember.registeredAt` on an INVITED row, not a new table, because the pair is already unique there. People who were invited but never registered get no reminders, only people who put their name down (and the host).
+- D71 (2026-10-14): The 15 minute reminder keeps the existing ROOM_STARTING type (settings label "Room reminders") and "live now" is a new ROOM_LIVE_NOW type ("Room is live"). Moved, cancelled and due notices follow the Room reminders switch (`prefKey`). The registration confirmation is an ACTIVITY line (kind room-registered), not its own type.
+- D72 (2026-10-14): The reminder windows are read from the rooms, not from the jobs. Jobs (three nudges before, two at the time, two after the grace) only wake the web sweep through the realtime scheduler, and the daily cron is the last net. A reminder more than `ROOM_REMINDER_LATE_MIN` (10) late is dropped, because "live now" or nothing is better than a stale ring.
+- D73 (2026-10-14): Quiet hours and Do Not Disturb hold back push for room notices. The in app list and room emails still arrive, since an email is read when the person chooses.
+- D74 (2026-10-14): The host's reminder email shows the host's name but not their picture. Email clients block most remote images and Graphik cannot load there, so the plain name is the reliable part.
+- D75 (2026-10-14): Moving a scheduled room is an API call (`scheduledFor` in the settings call, host only). There is no date picker for it in the room screen yet.

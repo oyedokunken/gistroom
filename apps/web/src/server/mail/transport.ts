@@ -18,11 +18,18 @@ export interface MailConfig {
   captureDir: string;
 }
 
+export interface MailAttachment {
+  filename: string;
+  content: string;
+  contentType: string;
+}
+
 export interface MailMessage {
   to: string;
   subject: string;
   html: string;
   text: string;
+  attachments?: MailAttachment[];
 }
 
 export class MailBlockedError extends Error {
@@ -112,5 +119,6 @@ export async function deliver(message: MailMessage, cfg: MailConfig): Promise<vo
     subject: message.subject,
     html: message.html,
     text: message.text,
+    attachments: message.attachments,
   });
 }

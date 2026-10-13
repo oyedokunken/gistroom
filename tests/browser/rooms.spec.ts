@@ -136,10 +136,9 @@ test.describe("rooms", () => {
     await expect(page.getByRole("button", { name: "Join room" })).toBeVisible();
 
     await page.goto(`/rooms/${room.slug}?invite=dead-token-0002`);
-    await expect(
-      page.getByRole("heading", { name: "This invite link is no longer valid" }),
-    ).toBeVisible();
-    await expect(page.getByText("Ask the host for a new one.")).toBeVisible();
+    const dialog = page.getByRole("alertdialog");
+    await expect(dialog).toContainText("This link was turned off");
+    await expect(dialog).toContainText("Ask the host for a new link.");
     await expect(page.getByText("Closed door")).toHaveCount(0);
 
     const anon = await browser.newContext();
@@ -160,9 +159,7 @@ test.describe("rooms", () => {
     await signIn(context, guest);
     await page.goto(`/app/rooms/${room.slug}`);
     await page.getByRole("button", { name: "Join room" }).click();
-    await expect(
-      page.getByRole("heading", { name: "This room is locked right now" }),
-    ).toBeVisible();
+    await expect(page.getByRole("alertdialog")).toContainText("This room is locked");
   });
 
   test("notes: an empty note list offers Add note, and the counter shows with the input only", async ({

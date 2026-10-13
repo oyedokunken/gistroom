@@ -261,13 +261,6 @@ export function RoomScreen({
         body: sessionCopy.room.notInvitedBody,
       };
     }
-    if (view.data?.state === "ENDED" || block === "ENDED") {
-      return {
-        id: "room-ended",
-        title: sessionCopy.room.endedTitle,
-        body: sessionCopy.room.endedBody,
-      };
-    }
     if (block === "FULL")
       return {
         id: "room-full",

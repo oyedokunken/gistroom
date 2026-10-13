@@ -52,6 +52,12 @@ import { roomApi } from "@/lib/rooms/api";
 import { useRoomStore } from "@/lib/rooms/store";
 import { stageColumns, stageRows } from "@/lib/rooms/grid";
 import { useRoomLiveKit } from "@/lib/rooms/use-room-livekit";
+import { session as sessionCopy } from "@/content/session";
+import { showRoomEnded } from "@/lib/live/room-outcomes";
+import { unsupportedReason } from "@/lib/session/browser";
+import { showSessionModal } from "@/lib/session/modals";
+import { loadPrejoin, type PrejoinPrefs } from "@/lib/session/prefs";
+import { PreJoin } from "./pre-join";
 import { formatFull } from "@/lib/time";
 import { ParticipantTile } from "./participant-tile";
 import { EndedRoom } from "./room-summary";
@@ -66,7 +72,8 @@ import {
 } from "./room-panels";
 
 type Panel = "chat" | "people" | "notes" | "invite" | "settings" | "log" | null;
-type Block = "FULL" | "LOCKED" | "NOT_INVITED" | "ENDED" | "NOT_STARTED" | null;
+type Block =
+  "FULL" | "LOCKED" | "NOT_INVITED" | "ENDED" | "NOT_STARTED" | "BANNED" | "REMOVED" | null;
 
 const LOCK_EXPLAINED_KEY = "gr_lock_explained";
 const NO_REACTIONS: readonly never[] = [];
@@ -77,6 +84,8 @@ function blockFor(e: unknown): Block {
   if (e.message === errors.roomLocked) return "LOCKED";
   if (e.message === errors.roomEnded) return "ENDED";
   if (e.message === errors.roomNotStarted) return "NOT_STARTED";
+  if (e.message === errors.roomBanned) return "BANNED";
+  if (e.message === errors.roomRemoved) return "REMOVED";
   if (e.status === 403) return "NOT_INVITED";
   return null;
 }
@@ -112,11 +121,15 @@ export function RoomScreen({
   slug,
   invite,
   meId,
+  meName,
+  meAvatar,
   dataSaver,
 }: {
   slug: string;
   invite: string | null;
   meId: string;
+  meName: string;
+  meAvatar: string | null;
   dataSaver: boolean;
 }) {
   const router = useRouter();
@@ -127,6 +140,9 @@ export function RoomScreen({
   const join = useRoomStore((s) => s.joins[slug]) ?? null;
   const setJoin = (value: RoomJoin | null) => useRoomStore.getState().setJoin(slug, value);
   const [joining, setJoining] = useState(false);
+  // What was chosen on the check screen, or last time. Read when the connection starts.
+  const [prejoin, setPrejoin] = useState<PrejoinPrefs>(() => loadPrejoin());
+  const autoTried = useRef(false);
   const [reminding, setReminding] = useState(false);
   const [block, setBlock] = useState<Block>(null);
   const [panel, setPanel] = useState<Panel>(null);
@@ -165,7 +181,11 @@ export function RoomScreen({
     url: join?.url ?? null,
     token: join?.token ?? null,
     lowData: dataSaver,
-    startMuted: Boolean(room?.settings.joinMuted) && (join?.role ?? "MEMBER") === "MEMBER",
+    startMuted:
+      (Boolean(room?.settings.joinMuted) && (join?.role ?? "MEMBER") === "MEMBER") || prejoin.muted,
+    startWithVideo: !prejoin.cameraOff && (room?.settings.cameraAllowed ?? true),
+    micId: prejoin.micId,
+    camId: prejoin.camId,
   });
 
   const myMember = members.data?.members.find((m) => m.user.id === meId);
@@ -193,13 +213,139 @@ export function RoomScreen({
     // lk.leave is stable. Only the two flags matter.
   }, [ended, kicked]);
 
+  // After a reload or a short drop the seat is still yours, so the screen takes it back by itself.
+  useEffect(() => {
+    if (autoTried.current || join || joining || !room?.rejoin || block) return;
+    autoTried.current = true;
+    void enter();
+    // Tried once per visit.
+  }, [room?.rejoin, join, joining, block]);
+
+  // People who said "do not ask again" go straight in when the browser already allows the microphone.
+  useEffect(() => {
+    if (autoTried.current || join || joining || block || !room || room.status !== "LIVE") return;
+    if (!prejoin.skip) return;
+    autoTried.current = true;
+    void (async () => {
+      try {
+        const status = await navigator.permissions.query({ name: "microphone" as PermissionName });
+        if (status.state === "granted") await enter(prejoin);
+        else autoTried.current = false;
+      } catch {
+        autoTried.current = false;
+      }
+    })();
+  }, [prejoin.skip, room?.status, join, joining, block]);
+
+  // Why a room cannot be joined is said in a dialog with a way forward, and the page behind stays quiet.
+  const denied: { id: string; title: string; body: string } | null = (() => {
+    if (view.data?.state === "LINK_INVALID") {
+      const expired = view.data.reason === "EXPIRED" || view.data.reason === "USED_UP";
+      return {
+        id: expired ? "link-expired" : "link-revoked",
+        title: expired ? sessionCopy.room.linkExpiredTitle : sessionCopy.room.linkRevokedTitle,
+        body: expired ? sessionCopy.room.linkExpiredBody : sessionCopy.room.linkRevokedBody,
+      };
+    }
+    if (view.data?.state === "NOT_INVITED" || block === "NOT_INVITED") {
+      return {
+        id: "room-not-invited",
+        title: sessionCopy.room.notInvitedTitle,
+        body: sessionCopy.room.notInvitedBody,
+      };
+    }
+    if (view.data?.state === "ENDED" || block === "ENDED") {
+      return {
+        id: "room-ended",
+        title: sessionCopy.room.endedTitle,
+        body: sessionCopy.room.endedBody,
+      };
+    }
+    if (block === "FULL")
+      return {
+        id: "room-full",
+        title: sessionCopy.room.fullTitle,
+        body: sessionCopy.room.fullBody,
+      };
+    if (block === "LOCKED")
+      return {
+        id: "room-locked",
+        title: sessionCopy.room.lockedTitle,
+        body: sessionCopy.room.lockedBody,
+      };
+    if (block === "BANNED")
+      return {
+        id: "room-banned",
+        title: sessionCopy.room.bannedTitle,
+        body: sessionCopy.room.bannedBody,
+      };
+    if (block === "REMOVED")
+      return {
+        id: "room-removed-join",
+        title: sessionCopy.room.removedTitle,
+        body: sessionCopy.room.removedBody,
+      };
+    return null;
+  })();
+  useEffect(() => {
+    if (!denied) return;
+    showSessionModal({
+      id: `join-denied:${slug}:${denied.id}`,
+      priority: "ended",
+      icon: "lock",
+      title: denied.title,
+      body: denied.body,
+      actions: [
+        {
+          id: "browse",
+          label: sessionCopy.modal.browseRooms,
+          run: () => router.push("/app/rooms"),
+        },
+        { id: "close", label: sessionCopy.modal.close, kind: "secondary" },
+      ],
+    });
+  }, [denied?.id]);
+
+  // A browser that cannot run rooms is told before anyone tries to join.
+  useEffect(() => {
+    if (join || !room || room.status !== "LIVE") return;
+    if (
+      unsupportedReason(
+        navigator.userAgent,
+        Boolean(navigator.mediaDevices?.getUserMedia),
+        "RTCPeerConnection" in window,
+      )
+    ) {
+      showSessionModal({
+        id: "unsupported-browser",
+        priority: "blocked",
+        icon: "external",
+        title: sessionCopy.unsupported.title,
+        body: sessionCopy.unsupported.body,
+        steps: sessionCopy.unsupported.steps,
+        actions: [
+          {
+            id: "copy",
+            label: sessionCopy.unsupported.copy,
+            closes: false,
+            run: async () => {
+              await navigator.clipboard?.writeText(window.location.href).catch(() => undefined);
+            },
+          },
+          { id: "close", label: sessionCopy.modal.close, kind: "secondary" },
+        ],
+      });
+    }
+  }, [room?.status, join]);
+
   // One seat per person: a newer connection replaced this one.
   useEffect(() => {
     if (lk.replaced) setJoin(null);
     // setJoin only writes to the store
   }, [lk.replaced]);
 
-  async function enter() {
+  async function enter(prefs?: PrejoinPrefs) {
+    if (prefs) setPrejoin(prefs);
     setJoining(true);
     try {
       setJoin(await roomApi.join(slug, invite));
@@ -237,6 +383,7 @@ export function RoomScreen({
 
   async function finishLeaving() {
     lk.leave();
+    setJoin(null);
     await roomApi.session(slug, "leave").catch(() => undefined);
     router.push("/app/rooms");
   }
@@ -269,14 +416,17 @@ export function RoomScreen({
     setLeaveOpen(false);
     const ok = await confirm({
       title: copy.stage.endTitle,
-      message: copy.stage.endBody,
+      message: `${copy.stage.endBody} ${copy.stage.endPeople(lk.participants.length || room?.joined || 0)}`,
       confirmLabel: copy.stage.end,
       destructive: true,
     });
     if (!ok) return;
     try {
+      useRoomStore.getState().markSelfEnded(slug);
       await roomApi.session(slug, "end");
       lk.leave();
+      setJoin(null);
+      void showRoomEnded(slug, { push: (p) => router.push(p) });
       router.push("/app/rooms");
     } catch (e) {
       showError(e instanceof ApiClientError ? e.message : copy.stage.failed);
@@ -498,14 +648,18 @@ export function RoomScreen({
               {room.going ? copy.stage.notGoing : copy.stage.remindMe}
             </Button>
           </div>
-        ) : (
-          <Button
-            className="min-h-12 px-10"
-            loading={joining}
-            onClick={() => void (scheduled ? startNow() : enter())}
-          >
-            {joining ? copy.stage.joining : scheduled ? copy.stage.start : copy.stage.join}
+        ) : scheduled ? (
+          <Button className="min-h-12 px-10" loading={joining} onClick={() => void startNow()}>
+            {joining ? copy.stage.joining : copy.stage.start}
           </Button>
+        ) : (
+          <PreJoin
+            name={meName}
+            avatarUrl={meAvatar}
+            joining={joining}
+            allowCamera={room.settings.cameraAllowed || role !== "MEMBER"}
+            onJoin={(prefs) => void enter(prefs)}
+          />
         )}
       </div>
     );

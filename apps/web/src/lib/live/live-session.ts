@@ -111,6 +111,9 @@ export interface JoinOptions {
   startWithVideo?: boolean;
   lowData?: boolean;
   startMuted?: boolean;
+  /** The microphone and camera chosen on the check screen. */
+  micId?: string | null;
+  camId?: string | null;
   /** Ends the call or leaves the room on the server. Used by the in-call bar. */
   hangUp?: () => Promise<void>;
   /** Sends a quiet "still here" to the server, so a crashed tab is noticed. */
@@ -275,6 +278,8 @@ export class LiveSession {
       this.holdScreenAwake();
       this.installUnload();
       try {
+        if (opts.micId) await room.switchActiveDevice("audioinput", opts.micId).catch(() => false);
+        if (opts.camId) await room.switchActiveDevice("videoinput", opts.camId).catch(() => false);
         if (this.wantMic) await room.localParticipant.setMicrophoneEnabled(true);
       } catch (e) {
         this.wantMic = false;

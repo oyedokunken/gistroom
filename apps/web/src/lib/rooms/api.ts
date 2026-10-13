@@ -14,7 +14,7 @@ import { apiFetch } from "@/lib/api";
 export type RoomView =
   | { state: "OK"; room: RoomDto }
   | { state: "NOT_INVITED" }
-  | { state: "LINK_INVALID" }
+  | { state: "LINK_INVALID"; reason?: "REVOKED" | "EXPIRED" | "USED_UP" | "UNKNOWN" }
   | { state: "ENDED" }
   | { state: "MISSING" };
 

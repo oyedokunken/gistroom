@@ -294,7 +294,7 @@ export async function setGoing(me: User, slug: string, going: boolean): Promise<
 export type RoomView =
   | { state: "OK"; room: RoomDto }
   | { state: "NOT_INVITED" }
-  | { state: "LINK_INVALID" }
+  | { state: "LINK_INVALID"; reason?: "REVOKED" | "EXPIRED" | "USED_UP" | "UNKNOWN" }
   | { state: "ENDED" }
   | { state: "MISSING" };
 
@@ -314,7 +314,9 @@ export async function viewRoom(
   const isHost = me?.id === room.hostId;
   const inRoom = Boolean(member && member.state !== "REMOVED" && member.state !== "BANNED");
   const linkOk = linkToken ? await linkValid(room.id, linkToken) : false;
-  if (linkToken && !linkOk && !isHost && !inRoom) return { state: "LINK_INVALID" };
+  if (linkToken && !linkOk && !isHost && !inRoom) {
+    return { state: "LINK_INVALID", reason: await linkReason(room.id, linkToken) };
+  }
   if (room.visibility === "PRIVATE" && !isHost && !inRoom && !linkOk) {
     return { state: "NOT_INVITED" };
   }
@@ -329,6 +331,17 @@ export async function viewRoom(
     state: "OK",
     room: await toDto(room, isHost ? "HOST" : (member?.role ?? null), going, Boolean(holdsSeat)),
   };
+}
+
+/** Why a link no longer works, so the person is told "turned off" or "expired" and not left guessing. */
+async function linkReason(
+  roomId: string,
+  token: string,
+): Promise<"REVOKED" | "EXPIRED" | "USED_UP" | "UNKNOWN"> {
+  const link = await getDb().roomInviteLink.findUnique({ where: { tokenHash: hash(token) } });
+  if (!link || link.roomId !== roomId) return "UNKNOWN";
+  const state = linkState({ ...link, now: new Date() });
+  return state === "OK" ? "UNKNOWN" : state;
 }
 
 async function linkValid(roomId: string, token: string): Promise<boolean> {

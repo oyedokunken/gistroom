@@ -37,13 +37,16 @@ export function useRoomLiveKit(args: {
   url: string | null;
   token: string | null;
   lowData: boolean;
-  /** The room asked everyone to arrive muted. */
+  /** The room asked everyone to arrive muted, or the person chose to. */
   startMuted?: boolean;
+  startWithVideo?: boolean;
+  micId?: string | null;
+  camId?: string | null;
   hangUp: () => Promise<void>;
   heartbeat: () => void;
   beacon: () => void;
 }): RoomLiveKit {
-  const { slug, title, url, token, lowData, startMuted } = args;
+  const { slug, title, url, token, lowData, startMuted, startWithVideo, micId, camId } = args;
   const latest = useRef(args);
   latest.current = args;
   const store = useLive();
@@ -59,6 +62,9 @@ export function useRoomLiveKit(args: {
       token,
       lowData,
       startMuted,
+      startWithVideo,
+      micId,
+      camId,
       hangUp: () => latest.current.hangUp(),
       heartbeat: () => latest.current.heartbeat(),
       beacon: () => latest.current.beacon(),

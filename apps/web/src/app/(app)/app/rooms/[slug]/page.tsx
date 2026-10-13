@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { RoomScreen } from "@/components/room/room-screen";
+import { avatarUrl } from "@gistroom/db";
 import { getSessionContext } from "@/server/auth/session";
 
 // Room pages stay out of search results (Section 12.2).
@@ -18,6 +19,8 @@ export default async function RoomPage({
       slug={slug}
       invite={query.invite ?? null}
       meId={ctx?.user.id ?? ""}
+      meName={ctx?.user.name ?? ""}
+      meAvatar={ctx?.user.avatarPath ? avatarUrl(ctx.user.avatarPath) : null}
       dataSaver={ctx?.user.dataSaver ?? true}
     />
   );

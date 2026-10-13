@@ -58,6 +58,8 @@ export const roomCopy = {
     endBody:
       "Everyone is disconnected and the room closes. Room chat is deleted. A summary stays for the people who were here.",
     start: "Start now",
+    endPeople: (n: number) =>
+      n === 1 ? "1 person is in the room now." : `${n} people are in the room now.`,
     remindMe: "Remind me",
     goingTitle: "You are on the list",
     goingBody: "We will tell you the moment the host starts this room.",

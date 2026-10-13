@@ -8,6 +8,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   BellRing,
   Camera,
+  ChevronLeft,
+  ChevronRight,
   CameraOff,
   Lock,
   LockOpen,
@@ -58,6 +60,9 @@ import { unsupportedReason } from "@/lib/session/browser";
 import { showSessionModal } from "@/lib/session/modals";
 import { loadPrejoin, type PrejoinPrefs } from "@/lib/session/prefs";
 import { PreJoin } from "./pre-join";
+import { DevicePicker } from "@/components/session/device-picker";
+import { SignalBars } from "@/components/session/signal-bars";
+import { useLive } from "@/lib/live/live-session";
 import { formatFull } from "@/lib/time";
 import { ParticipantTile } from "./participant-tile";
 import { EndedRoom } from "./room-summary";
@@ -76,6 +81,8 @@ type Block =
   "FULL" | "LOCKED" | "NOT_INVITED" | "ENDED" | "NOT_STARTED" | "BANNED" | "REMOVED" | null;
 
 const LOCK_EXPLAINED_KEY = "gr_lock_explained";
+/** How many people one page of the stage shows. More than this and a pager appears. */
+const TILES_PER_PAGE = 16;
 const NO_REACTIONS: readonly never[] = [];
 
 function blockFor(e: unknown): Block {
@@ -521,6 +528,37 @@ export function RoomScreen({
     // version bumps on every track change, which is when these flags move.
   }, [people, lk.version]);
 
+  // Big rooms show a page of people at a time. The people speaking come first, so they are never on a hidden page.
+  const [page, setPage] = useState(0);
+  const [mirror, setMirror] = useState(true);
+  const quality = useLive((s) => s.quality);
+  const localQuality = useLive((s) => s.localQuality);
+  const ordered = useMemo(() => {
+    const rank = (identity: string, local: boolean) =>
+      local ? 0 : lk.speaking.has(identity) ? 1 : 2;
+    return [...people].sort(
+      (a, b) => rank(a.p.identity, a.p.isLocal) - rank(b.p.identity, b.p.isLocal),
+    );
+  }, [people, lk.speaking]);
+  const pages = Math.max(1, Math.ceil(ordered.length / TILES_PER_PAGE));
+  const safePage = Math.min(page, pages - 1);
+  const visible = ordered.slice(safePage * TILES_PER_PAGE, (safePage + 1) * TILES_PER_PAGE);
+
+  // M mutes and unmutes, V turns the camera on and off, when you are not typing.
+  useEffect(() => {
+    if (!inRoom) return;
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (el && (/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) || el.isContentEditable)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key.toLowerCase() === "m") void toggleMic();
+      if (e.key.toLowerCase() === "v") void toggleCamera();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // The handlers read the latest state through the live session.
+  }, [inRoom]);
+
   // The stage grid follows the screen and the number of people, so tiles are as big as they can be.
   const [viewportWidth, setViewportWidth] = useState(1024);
   useEffect(() => {
@@ -706,6 +744,7 @@ export function RoomScreen({
           <h1 className="truncate text-lg font-bold">{room.title}</h1>
           <p className="tabular flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/70">
             <span>{copy.stage.people(count)}</span>
+            <SignalBars quality={localQuality} showLabel />
             {room.locked ? (
               <span className="inline-flex items-center gap-1">
                 <Lock aria-hidden className="size-3.5" />
@@ -749,54 +788,59 @@ export function RoomScreen({
         ) : null}
       </header>
 
-      {lk.reconnecting ? (
-        <p
-          role="status"
-          className="bg-yellow-400 px-4 py-2 text-center text-sm font-semibold text-ink-950"
-        >
-          {copy.stage.reconnecting}
-        </p>
-      ) : null}
-      {lk.failed ? (
-        <p role="alert" className="bg-danger-600 px-4 py-2 text-center text-sm font-semibold">
-          {copy.stage.failed}
-        </p>
-      ) : null}
-      {lk.micBlocked ? (
-        <p
-          role="alert"
-          className="bg-yellow-400 px-4 py-2 text-center text-sm font-semibold text-ink-950"
-        >
-          {copy.stage.micBlocked}
-        </p>
-      ) : null}
-
       <div className="flex min-h-0 flex-1">
-        <ul
-          className={cn(
-            "grid min-h-0 flex-1 gap-3 overflow-y-auto p-3 sm:p-4",
-            people.length <= 1 && "mx-auto w-full max-w-4xl",
-          )}
-          style={{
-            gridTemplateColumns: `repeat(${stageColumns(people.length, viewportWidth)}, minmax(0, 1fr))`,
-            gridTemplateRows: `repeat(${stageRows(people.length, stageColumns(people.length, viewportWidth))}, minmax(10rem, 1fr))`,
-          }}
-        >
-          {people.map(({ p, id, role: r, avatarUrl }) => (
-            <ParticipantTile
-              key={p.identity}
-              participant={p}
-              speaking={lk.speaking.has(p.identity)}
-              roleLabel={
-                r === "HOST" ? copy.stage.host : r === "MODERATOR" ? copy.stage.moderator : null
-              }
-              version={lk.version}
-              avatarUrl={avatarUrl}
-              reactions={floating.filter((f) => f.userId === id)}
-              onReactionDone={(rid) => dropReaction(slug, rid)}
-            />
-          ))}
-        </ul>
+        <div className="relative flex min-h-0 flex-1 flex-col">
+          <ul
+            className={cn(
+              "grid min-h-0 flex-1 gap-3 overflow-y-auto p-3 sm:p-4",
+              people.length <= 1 && "mx-auto w-full max-w-4xl",
+            )}
+            style={{
+              gridTemplateColumns: `repeat(${stageColumns(visible.length, viewportWidth)}, minmax(0, 1fr))`,
+              gridTemplateRows: `repeat(${stageRows(visible.length, stageColumns(visible.length, viewportWidth))}, minmax(10rem, 1fr))`,
+            }}
+          >
+            {visible.map(({ p, id, role: r, avatarUrl }) => (
+              <ParticipantTile
+                key={p.identity}
+                participant={p}
+                quality={quality[p.identity] ?? "unknown"}
+                mirror={mirror}
+                speaking={lk.speaking.has(p.identity)}
+                roleLabel={
+                  r === "HOST" ? copy.stage.host : r === "MODERATOR" ? copy.stage.moderator : null
+                }
+                version={lk.version}
+                avatarUrl={avatarUrl}
+                reactions={floating.filter((f) => f.userId === id)}
+                onReactionDone={(rid) => dropReaction(slug, rid)}
+              />
+            ))}
+          </ul>
+          {pages > 1 ? (
+            <div className="flex items-center justify-center gap-3 pb-2 text-sm text-white/80">
+              <button
+                type="button"
+                aria-label={sessionCopy.controls.prev}
+                disabled={page === 0}
+                onClick={() => setPage((n) => Math.max(0, n - 1))}
+                className="flex size-11 items-center justify-center rounded-full bg-white/10 disabled:opacity-40"
+              >
+                <ChevronLeft aria-hidden className="size-5" />
+              </button>
+              <span className="tabular">{sessionCopy.controls.page(page + 1, pages)}</span>
+              <button
+                type="button"
+                aria-label={sessionCopy.controls.next}
+                disabled={page >= pages - 1}
+                onClick={() => setPage((n) => Math.min(pages - 1, n + 1))}
+                className="flex size-11 items-center justify-center rounded-full bg-white/10 disabled:opacity-40"
+              >
+                <ChevronRight aria-hidden className="size-5" />
+              </button>
+            </div>
+          ) : null}
+        </div>
 
         {panel ? (
           <aside
@@ -854,6 +898,7 @@ export function RoomScreen({
             <CameraOff aria-hidden className="size-6" />
           )}
         </Round>
+        <DevicePicker mirror={mirror} onMirror={setMirror} />
         {room.settings.reactionsOn ? (
           <Popover>
             <PopoverTrigger asChild>

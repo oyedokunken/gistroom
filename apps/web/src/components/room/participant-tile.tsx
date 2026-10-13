@@ -2,7 +2,9 @@
 
 import { useEffect, useRef } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { CameraOff, MicOff } from "lucide-react";
+import { CameraOff, MicOff, Volume2 } from "lucide-react";
+import { SignalBars } from "@/components/session/signal-bars";
+import type { QualityLabel } from "@/lib/live/live-session";
 import type { Participant } from "livekit-client";
 import { Avatar } from "@/components/ui/avatar";
 import { roomCopy } from "@/content/rooms";
@@ -21,6 +23,8 @@ export function ParticipantTile({
   avatarUrl,
   reactions,
   onReactionDone,
+  quality = "unknown",
+  mirror = false,
 }: {
   participant: Participant;
   speaking: boolean;
@@ -29,6 +33,9 @@ export function ParticipantTile({
   avatarUrl: string | null;
   reactions: readonly FloatingReaction[];
   onReactionDone: (id: string) => void;
+  quality?: QualityLabel;
+  /** Flip your own picture like a mirror. */
+  mirror?: boolean;
 }) {
   const video = useRef<HTMLVideoElement>(null);
   const reduced = useReducedMotion();
@@ -63,7 +70,11 @@ export function ParticipantTile({
         playsInline
         muted={participant.isLocal}
         aria-label={name}
-        className={cn("absolute inset-0 size-full object-cover", hasVideo ? "block" : "hidden")}
+        className={cn(
+          "absolute inset-0 size-full object-cover",
+          hasVideo ? "block" : "hidden",
+          mirror && participant.isLocal && "-scale-x-100",
+        )}
       />
       {hasVideo ? null : <Avatar name={name} src={avatarUrl} size={96} speaking={speaking} />}
 
@@ -106,8 +117,12 @@ export function ParticipantTile({
               {roleLabel}
             </span>
           ) : null}
+          <SignalBars quality={quality} />
           {speaking ? (
-            <span className="text-xs font-semibold">{roomCopy.stage.speaking}</span>
+            <span className="flex items-center gap-1 text-xs font-semibold">
+              <Volume2 aria-hidden className="size-3.5" />
+              {roomCopy.stage.speaking}
+            </span>
           ) : null}
         </span>
       </div>

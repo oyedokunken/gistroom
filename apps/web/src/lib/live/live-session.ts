@@ -606,6 +606,26 @@ export class LiveSession {
     if (next) await room.switchActiveDevice("videoinput", next.deviceId);
   }
 
+  /** The microphones, cameras or speakers this device has, for the picker. Empty when there is no connection. */
+  async devices(kind: MediaDeviceKind): Promise<{ id: string; label: string }[]> {
+    const lk = this.lk;
+    if (!lk) return [];
+    try {
+      const list = await lk.Room.getLocalDevices(kind);
+      return list.map((d, i) => ({ id: d.deviceId, label: d.label || `Device ${i + 1}` }));
+    } catch {
+      return [];
+    }
+  }
+
+  activeDevice(kind: MediaDeviceKind): string | undefined {
+    return this.room?.getActiveDevice(kind);
+  }
+
+  async switchDevice(kind: MediaDeviceKind, id: string): Promise<void> {
+    await this.room?.switchActiveDevice(kind, id).catch(() => false);
+  }
+
   /** Joins again with the details of the last try, after "Can't connect right now". */
   async retry(): Promise<void> {
     const opts = this.opts;

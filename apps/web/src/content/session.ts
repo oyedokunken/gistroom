@@ -197,6 +197,7 @@ export const session = {
     cameraOn: "Turn camera on",
     cameraOff: "Turn camera off",
     mutedHint: "You're muted",
+    you: "You",
     devices: "Devices and mirror",
     microphone: "Microphone",
     camera: "Camera",

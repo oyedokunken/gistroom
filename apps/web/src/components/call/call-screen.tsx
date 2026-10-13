@@ -24,13 +24,15 @@ import { callCopy as copy } from "@/content/calls";
 import { ApiClientError } from "@/lib/api";
 import { callAction, callHeartbeat, fetchCall } from "@/lib/calls/api";
 import { session as sessionCopy } from "@/content/session";
+import { DevicePicker } from "@/components/session/device-picker";
+import { SignalBars } from "@/components/session/signal-bars";
 import { showCallOutcome } from "@/lib/live/call-outcomes";
 import { showSessionModal } from "@/lib/session/modals";
 import { sounds } from "@/lib/sound/sounds";
 import { startRingtone, stopRingtone } from "@/lib/calls/ringtone";
 import { useCallStore } from "@/lib/calls/store";
 import { useLiveKit } from "@/lib/calls/use-livekit";
-import { onLiveEvent } from "@/lib/live/live-session";
+import { onLiveEvent, useLive } from "@/lib/live/live-session";
 import { formatDuration } from "@/lib/chat/voice";
 import { cn } from "@/lib/cn";
 
@@ -74,7 +76,13 @@ export function CallScreen({
   const incoming = call?.direction === "INCOMING";
   const ringingIn = incoming && status === "RINGING";
 
-  const startWithVideo = call?.media === "VIDEO" && !dataSaver;
+  // What to arrive with. Set while it rings, so answering is one tap.
+  const [answerMuted, setAnswerMuted] = useState(false);
+  const [answerCamOff, setAnswerCamOff] = useState(false);
+  const [mirror, setMirror] = useState(true);
+  const peerQuality = useLive((s) => s.quality[`user_${call?.peer.id ?? ""}`] ?? "unknown");
+  const myQuality = useLive((s) => s.localQuality);
+  const startWithVideo = call?.media === "VIDEO" && !dataSaver && !answerCamOff;
   const reduced = useReducedMotion();
   const [floating, setFloating] = useState<{ id: string; emoji: string; left: number }[]>([]);
   const float = (emoji: string) =>
@@ -93,8 +101,23 @@ export function CallScreen({
     url: finished ? null : (join?.url ?? null),
     token: finished ? null : (join?.token ?? null),
     startWithVideo,
+    startMuted: answerMuted,
     lowData: dataSaver,
   });
+
+  // M mutes and unmutes, V turns the camera on and off, when the call is on and you are not typing.
+  useEffect(() => {
+    if (status !== "ACTIVE") return;
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (el && (/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) || el.isContentEditable)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key.toLowerCase() === "m") void lk.toggleMic();
+      if (e.key.toLowerCase() === "v") void toggleCamera();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [status]);
   // The other person's reactions arrive over the call itself.
   useEffect(
     () =>
@@ -308,6 +331,23 @@ export function CallScreen({
             ) : null}
           </span>
           <h1 className="text-3xl font-bold tracking-tight">{peer.name}</h1>
+          {status === "ACTIVE" ? (
+            <p className="flex items-center gap-4 text-sm text-white/80">
+              <span className="flex items-center gap-1">
+                {sessionCopy.controls.you}
+                <SignalBars quality={myQuality} showLabel />
+              </span>
+              <span className="flex items-center gap-1">
+                {peer.name}
+                <SignalBars quality={peerQuality} showLabel />
+              </span>
+            </p>
+          ) : null}
+          {status === "ACTIVE" && peerQuality === "poor" ? (
+            <p role="status" className="text-sm font-semibold text-yellow-400">
+              {sessionCopy.signal.peerWeak(peer.name)}
+            </p>
+          ) : null}
           <p
             role="status"
             aria-live="polite"
@@ -355,6 +395,7 @@ export function CallScreen({
           className={cn(
             "absolute bottom-2 right-2 z-20 h-32 w-24 rounded-card bg-ink-700 object-cover shadow-lift md:h-44 md:w-32",
             lk.state.camOn ? "block" : "hidden",
+            mirror && "-scale-x-100",
           )}
         />
       </div>
@@ -411,6 +452,36 @@ export function CallScreen({
           {ringingIn ? (
             <>
               <RoundButton
+                label={answerMuted ? sessionCopy.controls.unmute : sessionCopy.controls.mute}
+                pressed={answerMuted}
+                onClick={() => setAnswerMuted((v) => !v)}
+              >
+                {answerMuted ? (
+                  <MicOff aria-hidden className="size-6" />
+                ) : (
+                  <Mic aria-hidden className="size-6" />
+                )}
+              </RoundButton>
+              {call?.media === "VIDEO" ? (
+                <RoundButton
+                  label={
+                    answerCamOff ? sessionCopy.controls.cameraOn : sessionCopy.controls.cameraOff
+                  }
+                  pressed={answerCamOff}
+                  onClick={() => setAnswerCamOff((v) => !v)}
+                >
+                  {answerCamOff ? (
+                    <CameraOff aria-hidden className="size-6" />
+                  ) : (
+                    <Camera aria-hidden className="size-6" />
+                  )}
+                </RoundButton>
+              ) : null}
+            </>
+          ) : null}
+          {ringingIn ? (
+            <>
+              <RoundButton
                 label={copy.decline}
                 tone="danger"
                 disabled={acting}
@@ -453,6 +524,11 @@ export function CallScreen({
                   <CameraOff aria-hidden className="size-6" />
                 )}
               </RoundButton>
+              <DevicePicker
+                mirror={mirror}
+                onMirror={setMirror}
+                className="flex size-16 items-center justify-center rounded-full bg-white/15 text-white transition-colors hover:bg-white/25"
+              />
               <Popover>
                 <PopoverTrigger asChild>
                   <button

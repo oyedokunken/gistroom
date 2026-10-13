@@ -31,12 +31,14 @@ export function useLiveKit(args: {
   startWithVideo: boolean;
   /** Hold video at 360p when data saver is on. */
   lowData: boolean;
+  /** Arrive with the microphone off. */
+  startMuted?: boolean;
   /** Ends the call on the server, for the in-call bar. */
   hangUp: () => Promise<void>;
   heartbeat: () => void;
   beacon: () => void;
 }) {
-  const { callId, title, url, token, startWithVideo, lowData } = args;
+  const { callId, title, url, token, startWithVideo, lowData, startMuted } = args;
   const latest = useRef(args);
   latest.current = args;
   const store = useLive();
@@ -52,6 +54,7 @@ export function useLiveKit(args: {
       token,
       startWithVideo,
       lowData,
+      startMuted,
       hangUp: () => latest.current.hangUp(),
       heartbeat: () => latest.current.heartbeat(),
       beacon: () => latest.current.beacon(),

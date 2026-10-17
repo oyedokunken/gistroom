@@ -1,9 +1,13 @@
 import { expect as baseExpect, test } from "@playwright/test";
-import { createRoom, createUser, dbAvailable, signIn } from "./auth-helpers";
+import { createRoom, createUser, signIn } from "./auth-helpers";
+import { requireTestDb } from "../helpers/require-test-db";
 
 // These need a real LiveKit project behind the test server, so they run nightly and before a release:
 //   set E2E_LIVE=1 and the LIVEKIT_* values in .env, then run: npx playwright test --grep @live
-test.skip(!dbAvailable || process.env.E2E_LIVE !== "1", "needs TEST_DATABASE_URL and E2E_LIVE=1");
+test.skip(
+  !requireTestDb() || process.env.E2E_LIVE !== "1",
+  "needs TEST_DATABASE_URL and E2E_LIVE=1",
+);
 const expect = baseExpect.configure({ timeout: 30_000 });
 
 test.use({

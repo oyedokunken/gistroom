@@ -1,6 +1,7 @@
 import { createHash, createHmac } from "node:crypto";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { prepareTestEnv, resetTestDb, testDbEnabled } from "../helpers/db";
+import { requireTestDb } from "../helpers/require-test-db";
 
 prepareTestEnv();
 // Nothing listens here, so LiveKit and realtime calls fail fast and the database logic is what gets tested.
@@ -22,7 +23,7 @@ async function load() {
   return { rooms, calls, friends, webhook, db: db.getDb() };
 }
 
-describe.skipIf(!testDbEnabled)("live reliability", () => {
+describe.skipIf(!requireTestDb())("live reliability", () => {
   let m: Awaited<ReturnType<typeof load>>;
   beforeAll(async () => {
     m = await load();

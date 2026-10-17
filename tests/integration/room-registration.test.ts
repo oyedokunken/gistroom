@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { prepareTestEnv, resetTestDb, testDbEnabled } from "../helpers/db";
+import { requireTestDb } from "../helpers/require-test-db";
 
 prepareTestEnv();
 if (testDbEnabled) {
@@ -23,7 +24,7 @@ const MIN = 60_000;
 /** The notices are sent in the background, so give them a moment. */
 const settle = () => new Promise((r) => setTimeout(r, 1500));
 
-describe.skipIf(!testDbEnabled)("room registration and reminders", () => {
+describe.skipIf(!requireTestDb())("room registration and reminders", () => {
   let m: Awaited<ReturnType<typeof load>>;
   beforeAll(async () => {
     m = await load();

@@ -1,9 +1,10 @@
 import { createHash } from "node:crypto";
 import { expect as baseExpect, test } from "@playwright/test";
 import { getDb } from "@gistroom/db";
-import { befriend, createRoom, createUser, dbAvailable, signIn } from "./auth-helpers";
+import { befriend, createRoom, createUser, signIn } from "./auth-helpers";
+import { requireTestDb } from "../helpers/require-test-db";
 
-test.skip(!dbAvailable, "needs TEST_DATABASE_URL");
+test.skip(!requireTestDb(), "needs TEST_DATABASE_URL");
 const expect = baseExpect.configure({ timeout: 20_000 });
 
 const sha = (v: string) => createHash("sha256").update(v).digest("hex");

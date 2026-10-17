@@ -1,8 +1,9 @@
 import { expect as baseExpect, test } from "@playwright/test";
 import { getDb } from "@gistroom/db";
-import { createUser, dbAvailable, signIn, type E2eUser } from "./auth-helpers";
+import { createUser, signIn, type E2eUser } from "./auth-helpers";
+import { requireTestDb } from "../helpers/require-test-db";
 
-test.skip(!dbAvailable, "needs TEST_DATABASE_URL");
+test.skip(!requireTestDb(), "needs TEST_DATABASE_URL");
 const expect = baseExpect.configure({ timeout: 20_000 });
 
 async function seed(me: E2eUser, count: number) {

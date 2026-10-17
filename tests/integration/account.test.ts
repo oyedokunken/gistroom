@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { prepareTestEnv, resetTestDb, testDbEnabled } from "../helpers/db";
+import { prepareTestEnv, resetTestDb } from "../helpers/db";
+import { requireTestDb } from "../helpers/require-test-db";
 
 prepareTestEnv();
 
@@ -22,7 +23,7 @@ function lastCode(captured: { to: string; text: string }[], to: string): string 
 
 const PASSWORD = "a long enough passphrase";
 
-describe.skipIf(!testDbEnabled)("account settings", () => {
+describe.skipIf(!requireTestDb())("account settings", () => {
   let m: Awaited<ReturnType<typeof load>>;
   beforeAll(async () => {
     m = await load();

@@ -1,7 +1,8 @@
 import { expect as baseExpect, test } from "@playwright/test";
-import { createRoom, createUser, dbAvailable, signIn } from "./auth-helpers";
+import { createRoom, createUser, signIn } from "./auth-helpers";
+import { requireTestDb } from "../helpers/require-test-db";
 
-test.skip(!dbAvailable, "needs TEST_DATABASE_URL");
+test.skip(!requireTestDb(), "needs TEST_DATABASE_URL");
 const expect = baseExpect.configure({ timeout: 25_000 });
 
 test.describe("connection states", () => {

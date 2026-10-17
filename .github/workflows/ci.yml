@@ -12,35 +12,162 @@ concurrency:
 permissions:
   contents: read
 
+# Every job runs the same checks as `npm run verify`, split so they run in parallel. The jobs that need a database
+# use a throwaway Postgres service container with throwaway credentials. CI=true makes tests/helpers/require-test-db.ts
+# throw when the database is missing, so a suite can never skip itself and report a green run.
+env:
+  HUSKY: "0"
+  SKIP_ENV_VALIDATION: "true"
+  # Placeholders so Prisma can generate the client in jobs that never connect.
+  DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+  DIRECT_URL: postgresql://ci:ci@localhost:5432/ci
+  DATABASE_SCHEMA: gistroom_test
+
 jobs:
-  verify:
+  static:
+    name: Lint, types and audit
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    env:
-      HUSKY: "0"
-      SKIP_ENV_VALIDATION: "true"
-      # Placeholders so Prisma can generate the client. Tests that need a real database
-      # read DATABASE_URL from repository secrets once integration tests exist (Phase 1).
-      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
-      DIRECT_URL: postgresql://ci:ci@localhost:5432/ci
-      DATABASE_SCHEMA: gistroom_test
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
-
       - uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: npm
-
-      - name: Install
-        run: npm ci
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
-
-      - name: Verify
-        run: npm run verify
-
+      - run: npm ci
+      - run: npm run lint:copy
+      - run: npm run lint:ui
+      - run: npm run lint:font
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run lint:graphics
       # Fails on unreviewed high advisories. Reviewed exceptions live in scripts/audit.mjs (D21).
       - name: Audit dependencies
         run: npm run audit
+
+  unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run generate -w @gistroom/db
+      - run: npm run test:unit
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run generate -w @gistroom/db
+      - run: npm run build
+
+  database:
+    name: Integration and socket tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: gistroom_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d gistroom_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/gistroom_ci
+      DIRECT_URL: postgresql://ci:ci@localhost:5432/gistroom_ci
+      TEST_DATABASE_URL: postgresql://ci:ci@localhost:5432/gistroom_ci
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run generate -w @gistroom/db
+      # The extensions go in public, as on the hosted database. The migrations then build the gistroom_test schema.
+      - name: Prepare the test schema
+        run: |
+          psql "$DIRECT_URL" -c "CREATE EXTENSION IF NOT EXISTS citext; CREATE EXTENSION IF NOT EXISTS pg_trgm;"
+          npm run db:migrate
+      - run: npm run test:integration
+      - run: npm run test:socket
+
+  browser:
+    name: Browser, accessibility and responsive tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: gistroom_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d gistroom_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/gistroom_ci
+      DIRECT_URL: postgresql://ci:ci@localhost:5432/gistroom_ci
+      TEST_DATABASE_URL: postgresql://ci:ci@localhost:5432/gistroom_ci
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run generate -w @gistroom/db
+      - name: Prepare the test schema
+        run: |
+          psql "$DIRECT_URL" -c "CREATE EXTENSION IF NOT EXISTS citext; CREATE EXTENSION IF NOT EXISTS pg_trgm;"
+          npm run db:migrate
+
+      - name: Read the Playwright version
+        id: playwright
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+      # Downloads are skipped on a cache hit. The system libraries are always installed.
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      # One build serves the browser, accessibility and responsive specs (test:browser, test:a11y and test:responsive
+      # each rebuild, which this avoids).
+      - run: npm run e2e:build
+      - name: Run browser, accessibility and responsive specs
+        run: npx playwright test
+      - name: Keep Playwright traces from failures
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: test-results
+          if-no-files-found: ignore
+          retention-days: 7

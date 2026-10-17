@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { prepareTestEnv, resetTestDb, testDbEnabled, testEmail } from "../helpers/db";
+import { prepareTestEnv, resetTestDb, testEmail } from "../helpers/db";
+import { requireTestDb } from "../helpers/require-test-db";
 
 prepareTestEnv();
 
@@ -30,7 +31,7 @@ function lastCode(captured: { to: string; text: string }[], to: string): string 
 
 const PASSWORD = "a long enough passphrase";
 
-describe.skipIf(!testDbEnabled)("sign up and password sign in", () => {
+describe.skipIf(!requireTestDb())("sign up and password sign in", () => {
   let m: Awaited<ReturnType<typeof load>>;
   beforeAll(async () => {
     m = await load();
@@ -181,7 +182,7 @@ describe.skipIf(!testDbEnabled)("sign up and password sign in", () => {
   });
 });
 
-describe.skipIf(!testDbEnabled)("google sign in", () => {
+describe.skipIf(!requireTestDb())("google sign in", () => {
   let m: Awaited<ReturnType<typeof load>>;
   beforeAll(async () => {
     m = await load();

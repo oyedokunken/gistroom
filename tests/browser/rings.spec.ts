@@ -1,15 +1,9 @@
 import { expect as baseExpect, test, type Page } from "@playwright/test";
 import { getDb } from "@gistroom/db";
-import {
-  befriend,
-  createRoom,
-  createUser,
-  dbAvailable,
-  signIn,
-  type E2eUser,
-} from "./auth-helpers";
+import { befriend, createRoom, createUser, signIn, type E2eUser } from "./auth-helpers";
+import { requireTestDb } from "../helpers/require-test-db";
 
-test.skip(!dbAvailable, "needs TEST_DATABASE_URL");
+test.skip(!requireTestDb(), "needs TEST_DATABASE_URL");
 const expect = baseExpect.configure({ timeout: 25_000 });
 
 // There is no realtime service behind the test server, so the ring window finds rings by asking the server, which is the

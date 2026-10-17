@@ -1,7 +1,8 @@
 import { expect as baseExpect, test, type Page } from "@playwright/test";
-import { befriend, createRoom, createUser, dbAvailable, signIn } from "./auth-helpers";
+import { befriend, createRoom, createUser, signIn } from "./auth-helpers";
+import { requireTestDb } from "../helpers/require-test-db";
 
-test.skip(!dbAvailable, "needs TEST_DATABASE_URL");
+test.skip(!requireTestDb(), "needs TEST_DATABASE_URL");
 const expect = baseExpect.configure({ timeout: 25_000 });
 
 // The test server has no real LiveKit behind it, so these check the window itself: where it is, how it moves and what

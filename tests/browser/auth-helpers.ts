@@ -26,6 +26,9 @@ export const BASE = "http://localhost:3217";
 export const dbAvailable = requireTestDb();
 
 export const E2E_PASSWORD = "e2e-long-passphrase-123";
+// Every e2e person has the same password, and hashing is deliberately slow and memory hungry, so it is done once.
+let e2ePasswordHash: Promise<string> | undefined;
+const passwordHashForE2e = () => (e2ePasswordHash ??= hashPassword(E2E_PASSWORD));
 const PREFIX = "e2e_";
 
 export async function prepareDb(): Promise<void> {
@@ -97,7 +100,7 @@ export async function createUser(
     data: {
       email,
       emailVerifiedAt: new Date(),
-      passwordHash: await hashPassword(E2E_PASSWORD),
+      passwordHash: await passwordHashForE2e(),
       name: extra.name ?? `E2E ${key}`,
       username: (extra.username ?? `e2e_${key}_${suffix}`).slice(0, 20).toLowerCase(),
       onboardedAt: new Date(),

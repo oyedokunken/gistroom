@@ -11,8 +11,13 @@ const scrypt = promisify<string, Buffer, number, ScryptOptions, Buffer>(scryptCa
 /**
  * scrypt from Node itself: no native build, nothing to install on Windows or Vercel, and it is memory hard.
  * The parameters live in the stored string, so they can be raised later and old hashes still verify.
+ *
+ * Today's cost is the first OWASP password storage option: N = 2^17, r = 8, p = 1. That needs 128 * N * r bytes,
+ * about 128 MiB, for each hash while it runs, so maxmem is set explicitly (Node refuses anything over its 32 MiB
+ * default). Hashes made with the earlier N = 2^14 still verify and are upgraded after the next good sign in.
  */
-const PARAMS = { N: 16384, r: 8, p: 1 } as const;
+export const PARAMS = { N: 131_072, r: 8, p: 1 } as const;
+const MAXMEM = 256 * 1024 * 1024;
 const KEY_LEN = 64;
 const PREFIX = "scrypt";
 
@@ -24,7 +29,7 @@ export async function hashPassword(password: string): Promise<string> {
   const salt = randomBytes(16);
   const hash = await scrypt(password.normalize("NFKC"), salt, KEY_LEN, {
     ...PARAMS,
-    maxmem: 64 * 1024 * 1024,
+    maxmem: MAXMEM,
   });
   return pack(PARAMS.N, PARAMS.r, PARAMS.p, salt, hash);
 }
@@ -36,19 +41,14 @@ export async function verifyPassword(password: string, stored: string): Promise<
   const N = Number(n);
   const R = Number(r);
   const P = Number(p);
-  if (![N, R, P].every((v) => Number.isInteger(v) && v > 0) || N > 1 << 20) return false;
+  if (![N, R, P].every((v) => Number.isInteger(v) && v > 0) || N > PARAMS.N) return false;
   const expected = Buffer.from(hashB64, "base64url");
   try {
     const actual = await scrypt(
       password.normalize("NFKC"),
       Buffer.from(saltB64, "base64url"),
       expected.length,
-      {
-        N,
-        r: R,
-        p: P,
-        maxmem: 256 * 1024 * 1024,
-      },
+      { N, r: R, p: P, maxmem: MAXMEM },
     );
     return actual.length === expected.length && timingSafeEqual(actual, expected);
   } catch {

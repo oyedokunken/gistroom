@@ -69,14 +69,11 @@ import { formatFull } from "@/lib/time";
 import { ParticipantTile } from "./participant-tile";
 import { EndedRoom } from "./room-summary";
 import { NotesPanel } from "@/components/notes/notes-panel";
-import {
-  ChatPanel,
-  InvitePanel,
-  LogPanel,
-  PeoplePanel,
-  SettingsPanel,
-  type PersonState,
-} from "./room-panels";
+import { ChatPanel } from "./panels/chat-panel";
+import { InvitePanel } from "./panels/invite-panel";
+import { LogPanel, PeoplePanel } from "./panels/people-panel";
+import { SettingsPanel } from "./panels/settings-panel";
+import { type PersonState } from "./panels/shared";
 
 type Panel = "chat" | "people" | "notes" | "invite" | "settings" | "log" | null;
 type Block =

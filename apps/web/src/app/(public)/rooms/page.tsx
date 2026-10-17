@@ -3,7 +3,7 @@ import { Mic } from "lucide-react";
 import { RoomMock } from "@/components/mock/screens";
 import { PublicPage } from "@/components/public/public-page";
 import { RoomsExplorer } from "@/components/public/rooms-explorer";
-import { TopicCardsMarquee } from "@/components/landing/home-sections";
+import { TopicCardsMarquee } from "@/components/landing/topics-sections";
 import {
   Band,
   Bento,

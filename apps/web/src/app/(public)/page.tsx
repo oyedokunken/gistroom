@@ -2,19 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Bell, Mic, MoonStar, PhoneCall } from "lucide-react";
 import { Hero } from "@/components/landing/hero";
+import { CallsSwitch, Everywhere } from "@/components/landing/calls-sections";
+import { ChatBento } from "@/components/landing/chat-bento";
+import { DataSlider, FinalCta, SafeByDesign } from "@/components/landing/closing-sections";
+import { HowItWorks } from "@/components/landing/how-it-works";
 import {
-  CallsSwitch,
-  ChatBento,
-  DataSlider,
-  Everywhere,
-  FinalCta,
-  HowItWorks,
   RoomSearchBox,
-  SafeByDesign,
   TopicCardsMarquee,
   TopicsStrip,
-  TryRoom,
-} from "@/components/landing/home-sections";
+} from "@/components/landing/topics-sections";
+import { TryRoom } from "@/components/landing/try-room";
 import { AlertsMock } from "@/components/mock/screens";
 import { CardIcon } from "@/components/public/card-icon";
 import { Faq } from "@/components/public/faq";

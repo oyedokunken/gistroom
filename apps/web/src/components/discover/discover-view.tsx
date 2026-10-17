@@ -13,7 +13,7 @@ import {
   type DiscoverSort,
 } from "@gistroom/shared";
 import { PersonActions } from "@/components/friends/person-actions";
-import { TopicCardsMarquee } from "@/components/landing/home-sections";
+import { TopicCardsMarquee } from "@/components/landing/topics-sections";
 import { Avatar } from "@/components/ui/avatar";
 import { Button, buttonStyles } from "@/components/ui/button";
 import { Input } from "@/components/ui/field";

@@ -1,5 +1,5 @@
 import { roomChatEditSchema, roomChatSchema } from "@gistroom/shared";
-import { api, assertSameOrigin, json, parseJson } from "@/server/http";
+import { api, json, parseJson } from "@/server/http";
 import { requireOnboarded } from "@/server/auth/session";
 import {
   deleteRoomMessage,
@@ -27,7 +27,6 @@ export const POST = api(async (request, ctx: { params: Promise<{ slug: string }>
 
 /** Edits your own message for a short while. */
 export const PATCH = api(async (request, ctx: { params: Promise<{ slug: string }> }) => {
-  assertSameOrigin(request);
   const { user } = await requireOnboarded();
   const { id, body } = await parseJson(request, roomChatEditSchema);
   await editRoomMessage(user, (await ctx.params).slug, id, body);
@@ -36,7 +35,6 @@ export const PATCH = api(async (request, ctx: { params: Promise<{ slug: string }
 
 /** Moderators and the host delete a message with ?id=. */
 export const DELETE = api(async (request, ctx: { params: Promise<{ slug: string }> }) => {
-  assertSameOrigin(request);
   const { user } = await requireOnboarded();
   const id = new URL(request.url).searchParams.get("id") ?? "";
   await deleteRoomMessage(user, (await ctx.params).slug, id);

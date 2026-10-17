@@ -47,5 +47,7 @@ async function run(request: Request): Promise<Response> {
   });
 }
 
-export const POST = api(run);
+// Called by the realtime scheduler and the Vercel cron with a bearer secret, never by a browser, so there is no
+// Origin to check. run() answers 401 without a valid secret before it does any work.
+export const POST = api(run, { csrf: "none" });
 export const GET = api(run);

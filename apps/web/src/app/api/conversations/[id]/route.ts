@@ -1,5 +1,5 @@
 import { conversationPatchSchema } from "@gistroom/shared";
-import { api, assertSameOrigin, json, parseJson } from "@/server/http";
+import { api, json, parseJson } from "@/server/http";
 import { requireOnboarded } from "@/server/auth/session";
 import { clearChat, getConversation, setArchived, setMuted } from "@/server/chat/service";
 
@@ -27,7 +27,6 @@ export const PATCH = api(async (request, ctx: { params: Promise<{ id: string }> 
 
 /** Delete chat: clear for me and remove from my list (Section 9.3). */
 export const DELETE = api(async (request, ctx: { params: Promise<{ id: string }> }) => {
-  assertSameOrigin(request);
   const { user } = await requireOnboarded();
   await clearChat(user, (await ctx.params).id);
   return json({ ok: true });

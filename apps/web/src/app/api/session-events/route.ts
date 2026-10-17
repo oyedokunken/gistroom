@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { api, assertSameOrigin, json, parseJson } from "@/server/http";
+import { api, json, parseJson } from "@/server/http";
 import { requireUser } from "@/server/auth/session";
 import { logger } from "@/server/logger";
 import { enforce, policies } from "@/server/rate-limit";
@@ -17,7 +17,6 @@ const schema = z.object({
 
 /** Logs that a person saw a call or room dialog, with its reason code. It helps find what goes wrong on real networks. */
 export const POST = api(async (request) => {
-  assertSameOrigin(request);
   const { user } = await requireUser();
   await enforce(policies.sessionEvent, user.id);
   const { code, kind } = await parseJson(request, schema);

@@ -50,12 +50,28 @@ export function fieldErrors(error: ZodError): Record<string, string> {
   return out;
 }
 
-/** Wrap a route handler. Known errors keep their message, unknown ones are logged by status only. */
+export interface ApiOptions {
+  /**
+   * "origin" (the default) runs the same-origin check on every mutating method, with or without a body.
+   * "none" skips it and is only for routes that are called by a server, not a browser, and that verify their own
+   * credential before doing anything: the LiveKit webhook (signature) and the sweep (bearer secret). Every route
+   * that opts out is listed in tests/unit/route-csrf.test.ts, which also proves it rejects an unauthenticated call.
+   */
+  csrf?: "origin" | "none";
+}
+
+/**
+ * Wrap a route handler. Mutating requests (POST, PUT, PATCH, DELETE) must pass the same-origin check (Section 6.2)
+ * unless the route opts out. Known errors keep their message, unknown ones are logged by status only.
+ */
 export function api<Args extends unknown[]>(
   handler: (request: Request, ...args: Args) => Promise<Response>,
+  options: ApiOptions = {},
 ): (request: Request, ...args: Args) => Promise<Response> {
+  const csrf = options.csrf ?? "origin";
   return async (request, ...args) => {
     try {
+      if (csrf === "origin") assertSameOrigin(request);
       return await handler(request, ...args);
     } catch (error) {
       if (error instanceof AppError) return errorResponse(error);
@@ -79,9 +95,15 @@ export function api<Args extends unknown[]>(
 
 const MUTATING = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
-/** CSRF defence: SameSite=Lax plus an Origin check on every mutating route (Section 6.2). */
+/**
+ * CSRF defence: SameSite=Lax plus an Origin check on every mutating request (Section 6.2). Called by api(), not by
+ * route handlers. A browser that says the request is cross-site is refused even before the Origin header is read.
+ */
 export function assertSameOrigin(request: Request): void {
   if (!MUTATING.has(request.method)) return;
+  if (request.headers.get("sec-fetch-site") === "cross-site") {
+    throw new AppError(403, "ORIGIN", errors.originMismatch);
+  }
   const origin = request.headers.get("origin");
   const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
   if (!isAllowedOrigin(origin, getAppUrl()) && !isOriginOnHost(origin, host)) {
@@ -93,7 +115,6 @@ export async function parseJson<S extends ZodTypeAny>(
   request: Request,
   schema: S,
 ): Promise<z.infer<S>> {
-  assertSameOrigin(request);
   let body: unknown;
   try {
     body = await request.json();

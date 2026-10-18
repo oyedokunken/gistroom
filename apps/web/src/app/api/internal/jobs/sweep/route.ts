@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { api, json } from "@/server/http";
 import { getEnv } from "@/server/env";
+import { purgeRateLimits } from "@/server/rate-limit";
 import { expireDueCalls, reconcileStuckCalls } from "@/server/calls/service";
 import { sendFriendDigests } from "@/server/mail/notify-email";
 import { sweepSessions, sweepSubscriptions } from "@/server/auth/sweep";
@@ -41,6 +42,7 @@ async function run(request: Request): Promise<Response> {
     expiredRings: await expireRings(),
     purgedRoomChat: await purgeEndedRoomChat(),
     purgedActivity: await purgeExpiredActivity(),
+    purgedRateLimits: await purgeRateLimits(),
     sessions: await sweepSessions(),
     subscriptions: await sweepSubscriptions(),
     friendDigests: new Date().getUTCHours() === 7 ? await sendFriendDigests() : 0,

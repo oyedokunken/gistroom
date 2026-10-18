@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { prepareTestEnv, resetTestDb, testEmail } from "../helpers/db";
 import { requireTestDb } from "../helpers/require-test-db";
+import { waitForWindowRoom } from "../helpers/rate-window";
 
 prepareTestEnv();
 
@@ -92,12 +93,14 @@ describe.skipIf(!requireTestDb())("sign up and password sign in", () => {
   });
 
   it("locks password attempts for one email after eight tries", async () => {
+    // The limit counts in a fixed 15 minute window, so the nine attempts must land in one.
+    await waitForWindowRoom(900, 60_000);
     const email = testEmail("d");
     await signUpAndSetPassword(email, "10.0.0.4");
     for (let i = 0; i < 8; i += 1)
       await m.login(email, `wrong ${i}`, `10.0.1.${i}`).catch(() => undefined);
     await expect(m.login(email, PASSWORD, "10.0.2.1")).rejects.toMatchObject({ status: 429 });
-  });
+  }, 180_000);
 
   it("does not let a sign up take over a finished account", async () => {
     const email = testEmail("e");

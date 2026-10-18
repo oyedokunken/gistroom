@@ -2,6 +2,7 @@ import { createHash, createHmac } from "node:crypto";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { prepareTestEnv, resetTestDb, testDbEnabled } from "../helpers/db";
 import { requireTestDb } from "../helpers/require-test-db";
+import { waitForWindowRoom } from "../helpers/rate-window";
 
 prepareTestEnv();
 // Nothing listens here, so LiveKit and realtime calls fail fast and the database logic is what gets tested.
@@ -185,6 +186,9 @@ describe.skipIf(!requireTestDb())("live reliability", () => {
   });
 
   it("rings an invited friend, once every 30 seconds and three times per room", async () => {
+    // Both limits count in fixed windows. Start where the whole sequence fits inside one window of each.
+    await waitForWindowRoom(30, 20_000);
+    await waitForWindowRoom(600, 40_000);
     const host = await person("h7");
     const friends = await Promise.all(["a7", "b7", "c7", "d7"].map(person));
     for (const f of friends) await befriend(host, f);
@@ -208,7 +212,7 @@ describe.skipIf(!requireTestDb())("live reliability", () => {
     await expect(m.rooms.ringMember(host, room.slug, friends[3]!.id)).rejects.toMatchObject({
       status: 429,
     });
-  });
+  }, 180_000);
 
   it("turns an unanswered ring into No answer, and lets a person decline or stop rings", async () => {
     const host = await person("h8");

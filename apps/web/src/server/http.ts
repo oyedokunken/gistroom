@@ -124,9 +124,39 @@ export async function parseJson<S extends ZodTypeAny>(
   return schema.parse(body);
 }
 
+/** Who a limit is counted against when no trusted proxy tells us. One shared key, never a header a caller can write. */
+export const UNTRUSTED_CLIENT = "untrusted";
+
+/**
+ * Forwarded headers only say who the caller is when a proxy we trust wrote them. Vercel always overwrites
+ * x-forwarded-for with the real address, so on Vercel (VERCEL is set) its first entry is the client. Another proxy that
+ * also overwrites the header can opt in with TRUST_PROXY=true, and TRUST_PROXY=false switches trust off. Anywhere else
+ * a caller can send any value they like, and the rate limiter would let them take a new identity on every request.
+ */
+export function trustsForwardedHeaders(
+  env: Record<string, string | undefined> = process.env,
+): boolean {
+  if (env.TRUST_PROXY === "true") return true;
+  if (env.TRUST_PROXY === "false") return false;
+  return Boolean(env.VERCEL);
+}
+
+/**
+ * The address a rate limit is counted against. Route handlers cannot see the socket address (Next copies a header the
+ * caller sent into x-forwarded-for and only fills it from the socket when it is missing), so without a trusted proxy
+ * every caller shares one key. That is stricter, not weaker: nobody can dodge a limit by changing a header.
+ */
+export function clientIpFrom(
+  h: Pick<Headers, "get">,
+  env: Record<string, string | undefined> = process.env,
+): string {
+  if (!trustsForwardedHeaders(env)) return UNTRUSTED_CLIENT;
+  const forwarded = h.get("x-forwarded-for")?.split(",")[0]?.trim();
+  return forwarded || h.get("x-real-ip")?.trim() || "unknown";
+}
+
 export async function clientIp(): Promise<string> {
-  const h = await headers();
-  return h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? h.get("x-real-ip") ?? "unknown";
+  return clientIpFrom(await headers());
 }
 
 export async function userAgent(): Promise<string> {

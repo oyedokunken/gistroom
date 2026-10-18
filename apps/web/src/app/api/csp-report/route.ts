@@ -1,3 +1,5 @@
+import { clientIpFrom } from "@/server/http";
+
 const WINDOW_MS = 60_000;
 const MAX_PER_WINDOW = 30;
 const hits = new Map<string, { count: number; resetAt: number }>();
@@ -16,7 +18,7 @@ function allowed(ip: string): boolean {
 }
 
 export async function POST(request: Request) {
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const ip = clientIpFrom(request.headers);
   if (!allowed(ip)) return new Response(null, { status: 429 });
   // Reports are accepted and dropped for now. Structured logging arrives with the shared logger.
   const text = await request.text();

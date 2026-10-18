@@ -40,6 +40,8 @@
     "db:studio": "npm run studio -w packages/db",
     "prepare": "husky || exit 0",
     "storage:setup": "node scripts/setup-storage.mjs",
+    "storage:check": "node scripts/check-storage.mjs",
+    "storage:migrate-media": "tsx scripts/migrate-media-bucket.ts",
     "e2e:build": "npm run build:e2e -w apps/web",
     "db:seed:reference": "tsx scripts/seed.ts --reference",
     "seed:demo": "node scripts/assert-safe-db.mjs tsx ../../scripts/seed.ts",

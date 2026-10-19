@@ -18,11 +18,11 @@ export default defineConfig({
       // Floors just under the measured numbers (D90), so a drop fails CI. The whole tree includes UI components that only
       // browser tests exercise, so the server, shared and realtime code carry their own, higher floors.
       thresholds: {
-        lines: 30,
-        statements: 29,
-        branches: 25,
-        functions: 24,
-        "apps/web/src/server/**": { lines: 72, statements: 69, branches: 57, functions: 72 },
+        lines: 32,
+        statements: 31,
+        branches: 27,
+        functions: 25,
+        "apps/web/src/server/**": { lines: 79, statements: 76, branches: 63, functions: 78 },
         "packages/shared/src/**": { lines: 87, statements: 86, branches: 81, functions: 82 },
         "apps/realtime/src/**": { lines: 62, statements: 59, branches: 49, functions: 54 },
       },

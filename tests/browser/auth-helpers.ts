@@ -1,19 +1,9 @@
 import { createHash, randomBytes } from "node:crypto";
 import type { BrowserContext } from "@playwright/test";
 import { getDb, type User } from "@gistroom/db";
+import { hashE2ePassword } from "../helpers/e2e-password";
 import { requireTestDb } from "../helpers/require-test-db";
 import { seedReference } from "../../packages/db/src/seed/reference";
-
-// The web app is not an ES module package, so on Node 20 the named export is only reachable through default.
-async function hashPassword(password: string): Promise<string> {
-  const mod = (await import("../../apps/web/src/server/auth/password")) as {
-    hashPassword?: (p: string) => Promise<string>;
-    default?: { hashPassword: (p: string) => Promise<string> };
-  };
-  const fn = mod.hashPassword ?? mod.default?.hashPassword;
-  if (!fn) throw new Error("hashPassword is not available");
-  return fn(password);
-}
 
 // The same token rules as apps/web/src/server/auth/tokens.ts, repeated here so the test loader needs nothing from the server.
 const SESSION_COOKIE = "gr_session";
@@ -28,7 +18,7 @@ export const dbAvailable = requireTestDb();
 export const E2E_PASSWORD = "e2e-long-passphrase-123";
 // Every e2e person has the same password, and hashing is deliberately slow and memory hungry, so it is done once.
 let e2ePasswordHash: Promise<string> | undefined;
-const passwordHashForE2e = () => (e2ePasswordHash ??= hashPassword(E2E_PASSWORD));
+const passwordHashForE2e = () => (e2ePasswordHash ??= hashE2ePassword(E2E_PASSWORD));
 const PREFIX = "e2e_";
 
 export async function prepareDb(): Promise<void> {

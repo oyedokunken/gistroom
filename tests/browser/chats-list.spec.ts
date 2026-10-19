@@ -61,11 +61,16 @@ test.describe("chats list", () => {
           };
         });
 
-      // Hover again on each try: the bar can be replaced while the page settles, which drops the hover.
+      // The bar can be replaced while the page settles, which drops the hover. If the hover is not showing, move away and
+      // hover again, then give the colour transition time to finish before reading it.
+      await bar.hover();
       await expect
         .poll(async () => {
+          const now = (await colours()).bg;
+          if (now === YELLOW) return now;
           await page.mouse.move(5, 5);
           await bar.hover();
+          await page.waitForTimeout(500);
           return (await colours()).bg;
         })
         .toBe(YELLOW);

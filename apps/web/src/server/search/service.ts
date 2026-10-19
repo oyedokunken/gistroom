@@ -11,7 +11,7 @@ const PER_GROUP = 5;
  * public rooms by title or topic, and their private notes. Notes are only ever searched for the viewer.
  */
 export async function searchEverything(me: User, raw: string): Promise<SearchResults> {
-  const q = raw.trim().replace(/^@+/, "").toLowerCase();
+  const q = raw.replace(/\0/g, "").trim().replace(/^@+/, "").toLowerCase();
   const db = getDb();
 
   const [people, rooms, chatRows, noteRows] = await Promise.all([

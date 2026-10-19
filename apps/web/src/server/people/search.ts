@@ -38,14 +38,16 @@ export async function searchPeople(
   viewerInternal = false,
 ): Promise<SearchPage> {
   const db = getDb();
-  const q = query.trim().toLowerCase();
+  // Postgres refuses text with a NUL byte, so one in a query would be a server error instead of no results.
+  const q = query.replace(/\0/g, "").trim().toLowerCase();
   const like = `%${escapeLike(q)}%`;
   const prefix = `${escapeLike(q)}%`;
   const hidden = await blockedIdsOf(viewerId);
+  // The score is rounded to 6 places in SQL so the value in a cursor reads back exactly, ties included.
   const after = decodeCursor(cursor, isCursor);
 
   const cursorSql = after
-    ? Prisma.sql`AND (score < ${after.score} OR (score = ${after.score} AND id > ${after.id}))`
+    ? Prisma.sql`AND (score < ${after.score}::float8 OR (score = ${after.score}::float8 AND id > ${after.id}))`
     : Prisma.empty;
   const hiddenSql =
     hidden.length > 0 ? Prisma.sql`AND u."id" NOT IN (${Prisma.join(hidden)})` : Prisma.empty;
@@ -53,8 +55,8 @@ export async function searchPeople(
   const rows = await db.$queryRaw<Row[]>(Prisma.sql`
     SELECT id, score FROM (
       SELECT u."id" AS id,
-        (GREATEST(similarity(lower(u."name"), ${q}), similarity(u."username", ${q}))
-          + CASE WHEN u."username" LIKE ${prefix} OR lower(u."name") LIKE ${prefix} THEN 0.5 ELSE 0 END)::float8 AS score
+        ROUND((GREATEST(similarity(lower(u."name"), ${q}), similarity(u."username", ${q}))
+          + CASE WHEN u."username" LIKE ${prefix} OR lower(u."name") LIKE ${prefix} THEN 0.5 ELSE 0 END)::numeric, 6)::float8 AS score
       FROM "User" u
       WHERE u."status" = 'ACTIVE'
         AND u."discoverable" = true

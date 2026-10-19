@@ -173,7 +173,7 @@ describe("real routes refuse cross-origin and missing-Origin mutations", () => {
       expect(cross.status).toBe(403);
       const missing = await handler(new Request(url, { method }), ctx(params));
       expect(missing.status).toBe(403);
-    });
+    }, 60_000);
   }
 });
 
@@ -207,7 +207,7 @@ describe("routes that opt out verify their own credential", () => {
     expect((await post()).status).toBe(401);
     expect((await post({ authorization: "Bearer wrong" })).status).toBe(401);
     expect((await post({ origin: "https://evil.example" })).status).toBe(401);
-  });
+  }, 60_000);
 
   it("the LiveKit webhook rejects an unsigned and a wrongly signed delivery", async () => {
     const { POST } = await load("livekit/webhook/route");
@@ -222,5 +222,5 @@ describe("routes that opt out verify their own credential", () => {
       );
     expect((await post()).status).toBe(401);
     expect((await post({ authorization: "not.a.token" })).status).toBe(401);
-  });
+  }, 60_000);
 });

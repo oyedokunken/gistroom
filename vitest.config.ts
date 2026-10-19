@@ -10,11 +10,35 @@ const dbEnv = testUrl ? { TEST_DATABASE_URL: testUrl, DATABASE_SCHEMA: "gistroom
 export default defineConfig({
   resolve: { alias: { "@": path.resolve(import.meta.dirname, "apps/web/src") } },
   test: {
+    coverage: {
+      provider: "v8",
+      // Write the report even when a test fails, so a failure never hides the numbers.
+      reportOnFailure: true,
+      reportsDirectory: "coverage",
+      // Floors just under the measured numbers (D90), so a drop fails CI. The whole tree includes UI components that only
+      // browser tests exercise, so the server, shared and realtime code carry their own, higher floors.
+      thresholds: {
+        lines: 30,
+        statements: 29,
+        branches: 25,
+        functions: 24,
+        "apps/web/src/server/**": { lines: 72, statements: 69, branches: 57, functions: 72 },
+        "packages/shared/src/**": { lines: 87, statements: 86, branches: 81, functions: 82 },
+        "apps/realtime/src/**": { lines: 62, statements: 59, branches: 49, functions: 54 },
+      },
+      reporter: ["text-summary", "json-summary", "lcov", "html"],
+      // All application source, so a file no test touches counts as uncovered instead of vanishing from the report.
+      include: ["apps/*/src/**/*.{ts,tsx}", "packages/*/src/**/*.{ts,tsx}"],
+      exclude: ["**/generated/**", "**/*.test.{ts,tsx}", "**/*.d.ts", "**/node_modules/**"],
+    },
     projects: [
       {
         oxc: { jsx: { runtime: "automatic" } },
         test: {
           name: "unit",
+          // Coverage instrumentation makes the first import of a big module slow, so the default 5 seconds is not enough.
+          testTimeout: 30_000,
+          hookTimeout: 30_000,
           include: [
             "tests/unit/**/*.test.{ts,tsx}",
             "packages/**/src/**/*.test.ts",

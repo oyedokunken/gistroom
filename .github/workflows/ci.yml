@@ -74,7 +74,7 @@ jobs:
       - run: npm run build
 
   database:
-    name: Integration and socket tests
+    name: Integration, socket tests and coverage
     runs-on: ubuntu-latest
     timeout-minutes: 30
     services:
@@ -108,8 +108,17 @@ jobs:
         run: |
           psql "$DIRECT_URL" -c "CREATE EXTENSION IF NOT EXISTS citext; CREATE EXTENSION IF NOT EXISTS pg_trgm;"
           npm run db:migrate
-      - run: npm run test:integration
-      - run: npm run test:socket
+      # Runs the unit, integration and socket projects together with v8 coverage. The floors in vitest.config.ts fail the job on a drop.
+      - name: Integration and socket tests with coverage
+        run: npm run test:coverage
+      - name: Keep the coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage
+          if-no-files-found: ignore
+          retention-days: 14
 
   browser:
     name: Browser, accessibility and responsive tests

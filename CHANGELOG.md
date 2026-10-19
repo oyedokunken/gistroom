@@ -6,6 +6,10 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ### Added
 
+- Security hardening from the audit: chat media is only signed or opened while its bucket is private and separate from avatars (D39 resolved in code, with `npm run storage:check` and `npm run storage:migrate-media`), the same origin check now runs inside every mutating route, scrypt moved to N=2^17 with old hashes upgraded at sign in, forwarded client addresses are trusted only on Vercel or with `TRUST_PROXY=true`, a search containing a NUL byte no longer returns a server error, search paging no longer skips tied results, the profile time zone must be a real zone, and pressing Call twice at once can no longer start two calls (the checks and the insert are one serializable transaction).
+- CI now runs the integration, socket and browser suites against a Postgres service container and fails instead of skipping, with v8 coverage floors and the report kept as an artifact. `npm run test:coverage` runs the same locally.
+- Operations notes in the README: keepalive limits, database pooling, the fixed window limiter, scrypt cost and the open Phase 7 load check.
+
 - `npm run db:migrate:prod` applies migrations to the production `public` schema, and the release checklists now require it before a push that ships a migration.
 
 - The ring window. Incoming calls and rooms that ring you use one card in one place, top right (a heads-up card on a phone), whatever page you are on. A video call offers Answer with video, Answer with audio only and Decline. A room ring shows the room, its topic and language, the host and how many are inside, and updates when the room fills, locks or ends. Up to three stack. The countdown follows the server's clock and a reload brings the ring back with the right time left. `GET /api/rings/active` lists what is ringing, and `room:ring`, `ring:cancelled`, `ring:answered_elsewhere` and `ring:expired` are new hint events.
@@ -17,6 +21,9 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ### Changed
 
+- `npm run verify:quick` runs its stages side by side with ESLint, Prettier and TypeScript caches, about 35 seconds with warm caches instead of about 212.
+- The rooms service, the room screen, the room panels and the landing sections are split into focused files with no change in behavior.
+- The daily sweep also removes expired rate limit windows.
 - Notifications page: from 768 px it is a two column master and detail view inside the full width page. The list (All, Unread, Activity, day groups, bulk select) sits on the left and the chosen notification shows on the right with its actions, scrolling on its own. The choice is in the address (`?n=`), arrow keys move through the list, an opened item is marked read after one second, and a deleted one says "This is no longer available". Buttons come from the current server state (`GET /api/notifications/[id]`), so an accepted request shows "You are now friends" and a Message button. Phones keep one column with the detail in a modal.
 
 ### Production migrations to run

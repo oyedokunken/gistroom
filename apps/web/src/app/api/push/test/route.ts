@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { getDb } from "@gistroom/db";
-import { api, assertSameOrigin, json } from "@/server/http";
+import { api, json } from "@/server/http";
 import { requireOnboarded } from "@/server/auth/session";
 import { DEVICE_COOKIE } from "@/server/auth/tokens";
 import { getEnv } from "@/server/env";
@@ -10,8 +10,7 @@ import { enforce, policies } from "@/server/rate-limit";
  * Sends one real push to this device and says plainly what happened. Unlike the old test button it does not go
  * to every device, and it does not pretend: if the push service refuses, the answer says so.
  */
-export const POST = api(async (request) => {
-  assertSameOrigin(request);
+export const POST = api(async () => {
   const { user } = await requireOnboarded();
   await enforce(policies.pushTest, user.id);
   const deviceId = (await cookies()).get(DEVICE_COOKIE)?.value ?? null;

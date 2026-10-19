@@ -78,6 +78,11 @@ export async function login(email: string, password: string, ip: string): Promis
   const stored = user?.passwordHash ?? (await dummyHash());
   const ok = await verifyPassword(password, stored);
   if (!user || !user.passwordHash || !ok || user.status === "DELETED") {
+    // A hash made with older, cheaper settings verifies faster than the dummy hash used for unknown emails. Spend the
+    // difference here so a wrong password on such an account still takes about as long as an unknown email.
+    if (user?.passwordHash && !ok && needsRehash(user.passwordHash)) {
+      await verifyPassword(password, await dummyHash());
+    }
     throw new AppError(
       401,
       "UNAUTHORIZED",

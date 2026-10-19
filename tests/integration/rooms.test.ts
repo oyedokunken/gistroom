@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { prepareTestEnv, resetTestDb, testDbEnabled } from "../helpers/db";
+import { requireTestDb } from "../helpers/require-test-db";
 
 prepareTestEnv();
 // Nothing listens here, so LiveKit and realtime calls fail fast and the rooms logic is what gets tested.
@@ -18,7 +19,7 @@ async function load() {
   return { ...rooms, db: db.getDb() };
 }
 
-describe.skipIf(!testDbEnabled)("rooms", () => {
+describe.skipIf(!requireTestDb())("rooms", () => {
   let m: Awaited<ReturnType<typeof load>>;
   beforeAll(async () => {
     m = await load();

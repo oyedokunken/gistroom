@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { prepareTestEnv, resetTestDb, testDbEnabled } from "../helpers/db";
+import { prepareTestEnv, resetTestDb } from "../helpers/db";
+import { requireTestDb } from "../helpers/require-test-db";
 
 prepareTestEnv();
 
@@ -19,7 +20,7 @@ const DAY = 86_400_000;
 const ago = (days: number) => new Date(Date.now() - days * DAY);
 const ahead = (days: number) => new Date(Date.now() + days * DAY);
 
-describe.skipIf(!testDbEnabled)("sessions and alerts", () => {
+describe.skipIf(!requireTestDb())("sessions and alerts", () => {
   let m: Awaited<ReturnType<typeof load>>;
   beforeAll(async () => {
     m = await load();

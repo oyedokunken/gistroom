@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { prepareTestEnv, resetTestDb, testDbEnabled } from "../helpers/db";
+import { requireTestDb } from "../helpers/require-test-db";
 
 prepareTestEnv();
 if (testDbEnabled) {
@@ -21,7 +22,7 @@ async function load() {
 
 const SEC = 1000;
 
-describe.skipIf(!testDbEnabled)("active rings", () => {
+describe.skipIf(!requireTestDb())("active rings", () => {
   let m: Awaited<ReturnType<typeof load>>;
   beforeAll(async () => {
     m = await load();

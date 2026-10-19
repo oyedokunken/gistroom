@@ -1,7 +1,7 @@
 import { getDb, toPublicUser } from "@gistroom/db";
 import type { NotificationDetailDto, NotificationState } from "@gistroom/shared";
 import { dmKeyFor } from "@/server/cursor";
-import { api, assertSameOrigin, json, notFound } from "@/server/http";
+import { api, json, notFound } from "@/server/http";
 import { requireOnboarded } from "@/server/auth/session";
 import { toNotificationDto } from "@/server/notifications/service";
 import { publish } from "@/server/realtime";
@@ -56,7 +56,6 @@ export const GET = api(async (_request, ctx: { params: Promise<{ id: string }> }
 });
 
 export const DELETE = api(async (request, ctx: { params: Promise<{ id: string }> }) => {
-  assertSameOrigin(request);
   const { user } = await requireOnboarded();
   const r = await getDb().notification.deleteMany({
     where: { id: (await ctx.params).id, userId: user.id },

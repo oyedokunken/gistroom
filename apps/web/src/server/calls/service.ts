@@ -19,6 +19,7 @@ import {
 } from "@gistroom/shared";
 import { toPublicUser } from "@gistroom/db";
 import { decodeCursor, encodeCursor } from "../cursor";
+import { isSerializationFailure } from "../db-errors";
 import { AppError, conflict, notFound } from "../http";
 import { mintJoin } from "../livekit";
 import { notify } from "../notifications/service";
@@ -292,42 +293,57 @@ export async function startCall(
     return { ...joined, merged: true };
   }
 
-  const mine = await db.call.findFirst({
-    where: {
-      status: { in: ["RINGING", "ACTIVE"] },
-      OR: [{ callerId: me.id }, { calleeId: me.id }],
-      NOT: { status: "RINGING", ringExpiresAt: { lte: new Date() } },
-    },
-  });
-  if (mine) throw conflict(errors.callAlready);
+  // The checks and the insert run as one serializable transaction. Two presses of Call at the same moment can no longer
+  // both pass the "already calling" check: the database refuses one of them, and that person is told a call is on.
+  let started;
+  try {
+    started = await db.$transaction(
+      async (tx) => {
+        const mine = await tx.call.findFirst({
+          where: {
+            status: { in: ["RINGING", "ACTIVE"] },
+            OR: [{ callerId: me.id }, { calleeId: me.id }],
+            NOT: { status: "RINGING", ringExpiresAt: { lte: new Date() } },
+          },
+        });
+        if (mine) throw conflict(errors.callAlready);
 
-  const now = new Date();
-  const onCall = await db.call.findFirst({
-    where: {
-      status: "ACTIVE",
-      OR: [{ callerId: callee.id }, { calleeId: callee.id }],
-    },
-  });
-  // Someone sitting in a live room cannot answer either. The caller is told, and the person sees a missed call.
-  const inRoom = onCall
-    ? null
-    : await db.roomMember.findFirst({
-        where: { userId: callee.id, state: "JOINED", room: { status: "LIVE" } },
-        select: { id: true },
-      });
-  const busy = onCall ?? inRoom;
-  const created = await db.call.create({
-    data: {
-      callerId: me.id,
-      calleeId: callee.id,
-      initialMedia: input.media,
-      status: busy ? "BUSY" : "RINGING",
-      livekitRoom: `call_${randomUUID()}`,
-      ringExpiresAt: ringExpiry(now),
-      ...(busy ? { endedAt: now, endReason: "busy" } : {}),
-    },
-    include,
-  });
+        const now = new Date();
+        const onCall = await tx.call.findFirst({
+          where: {
+            status: "ACTIVE",
+            OR: [{ callerId: callee.id }, { calleeId: callee.id }],
+          },
+        });
+        // Someone sitting in a live room cannot answer either. The caller is told, and the person sees a missed call.
+        const inRoom = onCall
+          ? null
+          : await tx.roomMember.findFirst({
+              where: { userId: callee.id, state: "JOINED", room: { status: "LIVE" } },
+              select: { id: true },
+            });
+        const busy = onCall ?? inRoom;
+        const created = await tx.call.create({
+          data: {
+            callerId: me.id,
+            calleeId: callee.id,
+            initialMedia: input.media,
+            status: busy ? "BUSY" : "RINGING",
+            livekitRoom: `call_${randomUUID()}`,
+            ringExpiresAt: ringExpiry(now),
+            ...(busy ? { endedAt: now, endReason: "busy" } : {}),
+          },
+          include,
+        });
+        return { created, busy, inRoom };
+      },
+      { isolationLevel: "Serializable" },
+    );
+  } catch (error) {
+    if (isSerializationFailure(error)) throw conflict(errors.callAlready);
+    throw error;
+  }
+  const { created, busy, inRoom } = started;
 
   // Pressing Call twice quickly can slip two calls past the checks above. The earlier one stays, the later one goes.
   const earlier = busy

@@ -1,7 +1,7 @@
 import { getDb } from "@gistroom/db";
 import { LIMITS, type NotificationDto, type Page } from "@gistroom/shared";
 import { decodeCursor, encodeCursor } from "@/server/cursor";
-import { api, assertSameOrigin, json } from "@/server/http";
+import { api, json } from "@/server/http";
 import { requireOnboarded } from "@/server/auth/session";
 import { toNotificationDto } from "@/server/notifications/service";
 import { publish } from "@/server/realtime";
@@ -58,7 +58,6 @@ export const GET = api(async (request) => {
 
 /** Clear all of them (Section 9.7), or just the ones with ?ids=a,b,c. Activity is cleared with ?tab=activity. */
 export const DELETE = api(async (request) => {
-  assertSameOrigin(request);
   const { user } = await requireOnboarded();
   const params = new URL(request.url).searchParams;
   const ids = (params.get("ids") ?? "").split(",").filter(Boolean).slice(0, 100);

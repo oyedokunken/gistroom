@@ -50,12 +50,28 @@ export function fieldErrors(error: ZodError): Record<string, string> {
   return out;
 }
 
-/** Wrap a route handler. Known errors keep their message, unknown ones are logged by status only. */
+export interface ApiOptions {
+  /**
+   * "origin" (the default) runs the same-origin check on every mutating method, with or without a body.
+   * "none" skips it and is only for routes that are called by a server, not a browser, and that verify their own
+   * credential before doing anything: the LiveKit webhook (signature) and the sweep (bearer secret). Every route
+   * that opts out is listed in tests/unit/route-csrf.test.ts, which also proves it rejects an unauthenticated call.
+   */
+  csrf?: "origin" | "none";
+}
+
+/**
+ * Wrap a route handler. Mutating requests (POST, PUT, PATCH, DELETE) must pass the same-origin check (Section 6.2)
+ * unless the route opts out. Known errors keep their message, unknown ones are logged by status only.
+ */
 export function api<Args extends unknown[]>(
   handler: (request: Request, ...args: Args) => Promise<Response>,
+  options: ApiOptions = {},
 ): (request: Request, ...args: Args) => Promise<Response> {
+  const csrf = options.csrf ?? "origin";
   return async (request, ...args) => {
     try {
+      if (csrf === "origin") assertSameOrigin(request);
       return await handler(request, ...args);
     } catch (error) {
       if (error instanceof AppError) return errorResponse(error);
@@ -79,9 +95,15 @@ export function api<Args extends unknown[]>(
 
 const MUTATING = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
-/** CSRF defence: SameSite=Lax plus an Origin check on every mutating route (Section 6.2). */
+/**
+ * CSRF defence: SameSite=Lax plus an Origin check on every mutating request (Section 6.2). Called by api(), not by
+ * route handlers. A browser that says the request is cross-site is refused even before the Origin header is read.
+ */
 export function assertSameOrigin(request: Request): void {
   if (!MUTATING.has(request.method)) return;
+  if (request.headers.get("sec-fetch-site") === "cross-site") {
+    throw new AppError(403, "ORIGIN", errors.originMismatch);
+  }
   const origin = request.headers.get("origin");
   const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
   if (!isAllowedOrigin(origin, getAppUrl()) && !isOriginOnHost(origin, host)) {
@@ -93,7 +115,6 @@ export async function parseJson<S extends ZodTypeAny>(
   request: Request,
   schema: S,
 ): Promise<z.infer<S>> {
-  assertSameOrigin(request);
   let body: unknown;
   try {
     body = await request.json();
@@ -103,9 +124,39 @@ export async function parseJson<S extends ZodTypeAny>(
   return schema.parse(body);
 }
 
+/** Who a limit is counted against when no trusted proxy tells us. One shared key, never a header a caller can write. */
+export const UNTRUSTED_CLIENT = "untrusted";
+
+/**
+ * Forwarded headers only say who the caller is when a proxy we trust wrote them. Vercel always overwrites
+ * x-forwarded-for with the real address, so on Vercel (VERCEL is set) its first entry is the client. Another proxy that
+ * also overwrites the header can opt in with TRUST_PROXY=true, and TRUST_PROXY=false switches trust off. Anywhere else
+ * a caller can send any value they like, and the rate limiter would let them take a new identity on every request.
+ */
+export function trustsForwardedHeaders(
+  env: Record<string, string | undefined> = process.env,
+): boolean {
+  if (env.TRUST_PROXY === "true") return true;
+  if (env.TRUST_PROXY === "false") return false;
+  return Boolean(env.VERCEL);
+}
+
+/**
+ * The address a rate limit is counted against. Route handlers cannot see the socket address (Next copies a header the
+ * caller sent into x-forwarded-for and only fills it from the socket when it is missing), so without a trusted proxy
+ * every caller shares one key. That is stricter, not weaker: nobody can dodge a limit by changing a header.
+ */
+export function clientIpFrom(
+  h: Pick<Headers, "get">,
+  env: Record<string, string | undefined> = process.env,
+): string {
+  if (!trustsForwardedHeaders(env)) return UNTRUSTED_CLIENT;
+  const forwarded = h.get("x-forwarded-for")?.split(",")[0]?.trim();
+  return forwarded || h.get("x-real-ip")?.trim() || "unknown";
+}
+
 export async function clientIp(): Promise<string> {
-  const h = await headers();
-  return h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? h.get("x-real-ip") ?? "unknown";
+  return clientIpFrom(await headers());
 }
 
 export async function userAgent(): Promise<string> {

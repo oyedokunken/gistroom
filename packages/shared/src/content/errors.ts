@@ -79,6 +79,7 @@ export const errors = {
   callAlready: "You are already in a call.",
   callOver: "That call is over.",
   uploadsOff: "File uploads are not switched on yet. Try again later.",
+  mediaUnavailable: "This file can't be opened right now. Try again later.",
   uploadType:
     "That file type is not allowed. Send a photo, video, voice note, PDF, Word, Excel, PowerPoint, text or CSV file.",
   uploadTooBig: "That file is too big. Try a smaller one.",

@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { api, json } from "@/server/http";
 import { getEnv } from "@/server/env";
+import { purgeRateLimits } from "@/server/rate-limit";
 import { expireDueCalls, reconcileStuckCalls } from "@/server/calls/service";
 import { sendFriendDigests } from "@/server/mail/notify-email";
 import { sweepSessions, sweepSubscriptions } from "@/server/auth/sweep";
@@ -41,11 +42,14 @@ async function run(request: Request): Promise<Response> {
     expiredRings: await expireRings(),
     purgedRoomChat: await purgeEndedRoomChat(),
     purgedActivity: await purgeExpiredActivity(),
+    purgedRateLimits: await purgeRateLimits(),
     sessions: await sweepSessions(),
     subscriptions: await sweepSubscriptions(),
     friendDigests: new Date().getUTCHours() === 7 ? await sendFriendDigests() : 0,
   });
 }
 
-export const POST = api(run);
+// Called by the realtime scheduler and the Vercel cron with a bearer secret, never by a browser, so there is no
+// Origin to check. run() answers 401 without a valid secret before it does any work.
+export const POST = api(run, { csrf: "none" });
 export const GET = api(run);

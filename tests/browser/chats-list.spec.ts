@@ -1,8 +1,9 @@
 import { expect as baseExpect, test } from "@playwright/test";
 import { getDb } from "@gistroom/db";
-import { befriend, createUser, dbAvailable, signIn } from "./auth-helpers";
+import { befriend, createUser, signIn } from "./auth-helpers";
+import { requireTestDb } from "../helpers/require-test-db";
 
-test.skip(!dbAvailable, "needs TEST_DATABASE_URL");
+test.skip(!requireTestDb(), "needs TEST_DATABASE_URL");
 const expect = baseExpect.configure({ timeout: 20_000 });
 
 const YELLOW = "rgb(255, 194, 14)";
@@ -60,8 +61,19 @@ test.describe("chats list", () => {
           };
         });
 
+      // The bar can be replaced while the page settles, which drops the hover. If the hover is not showing, move away and
+      // hover again, then give the colour transition time to finish before reading it.
       await bar.hover();
-      await expect.poll(async () => (await colours()).bg).toBe(YELLOW);
+      await expect
+        .poll(async () => {
+          const now = (await colours()).bg;
+          if (now === YELLOW) return now;
+          await page.mouse.move(5, 5);
+          await bar.hover();
+          await page.waitForTimeout(500);
+          return (await colours()).bg;
+        })
+        .toBe(YELLOW);
       let c = await colours();
       expect(c.text).toBe(INK);
       expect(c.icon).toBe(INK);

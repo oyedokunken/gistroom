@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { inviteLinkSchema, roomForwardSchema, roomInviteFriendsSchema } from "@gistroom/shared";
-import { api, assertSameOrigin, json, parseJson } from "@/server/http";
+import { api, json, parseJson } from "@/server/http";
 import { requireOnboarded } from "@/server/auth/session";
 import {
   createInviteLink,
@@ -49,7 +49,6 @@ export const POST = api(async (request, ctx: { params: Promise<{ slug: string }>
 });
 
 export const DELETE = api(async (request, ctx: { params: Promise<{ slug: string }> }) => {
-  assertSameOrigin(request);
   const { user } = await requireOnboarded();
   const id = new URL(request.url).searchParams.get("linkId") ?? "";
   await revokeInviteLink(user, (await ctx.params).slug, id);

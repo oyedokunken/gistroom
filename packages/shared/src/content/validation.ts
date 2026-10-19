@@ -7,6 +7,7 @@ export const validation = {
   emailTooLong: "That email address is too long.",
   codeInvalid: "Enter the 6 digit code from your email.",
   nameRequired: "Enter your name.",
+  timezoneUnknown: "Pick a time zone from the list.",
   nameTooLong: (max: number) => `Use ${max} characters or fewer.`,
   usernameInvalid: "Use 3 to 20 letters, numbers or underscores, all lowercase.",
   usernameReserved: "That username is not available. Try another one.",

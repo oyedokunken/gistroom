@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { cookies } from "next/headers";
 import { getDb } from "@gistroom/db";
-import { api, assertSameOrigin, json, parseJson, userAgent } from "@/server/http";
+import { api, json, parseJson, userAgent } from "@/server/http";
 import { requireOnboarded } from "@/server/auth/session";
 import { DEVICE_COOKIE, isDeviceId } from "@/server/auth/tokens";
 import { saveSubscription } from "@/server/push/subscriptions";
@@ -18,7 +18,6 @@ const unsubscribeSchema = z.object({ endpoint: z.string().url().max(1024) });
  * never go to the person before (Section 10.4).
  */
 export const POST = api(async (request) => {
-  assertSameOrigin(request);
   const { user, session } = await requireOnboarded();
   const input = await parseJson(request, subscribeSchema);
   const jar = await cookies();
@@ -34,7 +33,6 @@ export const POST = api(async (request) => {
 
 /** Turning alerts off removes the subscription for good. */
 export const DELETE = api(async (request) => {
-  assertSameOrigin(request);
   const { user } = await requireOnboarded();
   const { endpoint } = await parseJson(request, unsubscribeSchema);
   await getDb().pushSubscription.deleteMany({ where: { endpoint, userId: user.id } });

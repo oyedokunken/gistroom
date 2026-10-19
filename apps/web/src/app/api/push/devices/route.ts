@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { getDb } from "@gistroom/db";
-import { api, assertSameOrigin, json } from "@/server/http";
+import { api, json } from "@/server/http";
 import { requireOnboarded } from "@/server/auth/session";
 import { DEVICE_COOKIE } from "@/server/auth/tokens";
 
@@ -46,7 +46,6 @@ export const GET = api(async () => {
 
 /** Remove one device. Alerts stop there, its sessions are not touched. */
 export const DELETE = api(async (request) => {
-  assertSameOrigin(request);
   const { user } = await requireOnboarded();
   const id = new URL(request.url).searchParams.get("id") ?? "";
   await getDb().pushSubscription.deleteMany({ where: { id, userId: user.id } });
@@ -54,8 +53,7 @@ export const DELETE = api(async (request) => {
 });
 
 /** The person has been told a device is unhealthy. */
-export const POST = api(async (request) => {
-  assertSameOrigin(request);
+export const POST = api(async () => {
   const { user } = await requireOnboarded();
   await getDb().pushSubscription.updateMany({
     where: { userId: user.id, unhealthyAt: { not: null }, unhealthySeenAt: null },

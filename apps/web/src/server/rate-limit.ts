@@ -90,6 +90,17 @@ export async function hit(
   return decide(row.count, policy, now);
 }
 
+/** The longest window of any policy, plus a day of slack, so a row is never removed while it can still count. */
+const KEEP_MS = (Math.max(...Object.values(policies).map((p) => p.windowSec)) + 86_400) * 1000;
+
+/** The daily sweep removes windows that can no longer count. The index on windowStart keeps this cheap. */
+export async function purgeRateLimits(now: Date = new Date()): Promise<number> {
+  const { count } = await getDb().rateLimit.deleteMany({
+    where: { windowStart: { lt: new Date(now.getTime() - KEEP_MS) } },
+  });
+  return count;
+}
+
 /** Hit and throw a 429 when over the limit (R17). */
 export async function enforce(policy: Policy, subject: string): Promise<void> {
   const decision = await hit(policy, subject);

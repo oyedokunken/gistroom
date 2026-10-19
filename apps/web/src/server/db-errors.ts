@@ -10,3 +10,14 @@ export function isUniqueViolation(error: unknown, field?: string): boolean {
   if (typeof target === "string") return target.includes(field);
   return true;
 }
+
+/** True when Postgres refused a transaction because it could not be serialized with another one (P2034, SQLSTATE 40001). */
+export function isSerializationFailure(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) return false;
+  const e = error as { code?: unknown; message?: unknown; meta?: { code?: unknown } };
+  if (e.code === "P2034" || e.code === "40001" || e.meta?.code === "40001") return true;
+  return (
+    typeof e.message === "string" &&
+    /could not serialize access|serialization failure/i.test(e.message)
+  );
+}

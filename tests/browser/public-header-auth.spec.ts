@@ -1,5 +1,6 @@
 import { expect as baseExpect, test } from "@playwright/test";
-import { createUser, dbAvailable, signIn } from "./auth-helpers";
+import { createUser, signIn } from "./auth-helpers";
+import { requireTestDb } from "../helpers/require-test-db";
 import { decideCookies } from "./helpers";
 
 // The sign in state comes from a call to the server after the page loads, and several tests share one remote database.
@@ -16,7 +17,7 @@ test.describe("public header when signed out", () => {
 });
 
 test.describe("public header when signed in", () => {
-  test.skip(!dbAvailable, "needs TEST_DATABASE_URL");
+  test.skip(!requireTestDb(), "needs TEST_DATABASE_URL");
 
   test("desktop dock says Open Gistroom and shows the avatar menu", async ({ page, context }) => {
     await page.setViewportSize({ width: 1280, height: 800 });

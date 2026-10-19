@@ -1,7 +1,8 @@
 import { expect, test } from "@playwright/test";
-import { createUser, dbAvailable, signIn } from "./auth-helpers";
+import { createUser, signIn } from "./auth-helpers";
+import { requireTestDb } from "../helpers/require-test-db";
 
-test.skip(!dbAvailable, "needs TEST_DATABASE_URL");
+test.skip(!requireTestDb(), "needs TEST_DATABASE_URL");
 
 test.describe("avatar menu on a wide screen", () => {
   test.use({ viewport: { width: 1280, height: 800 } });

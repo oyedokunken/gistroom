@@ -1,11 +1,12 @@
 import { getDb } from "@gistroom/db";
+import { requireTestDb } from "./require-test-db";
 
 /**
- * Integration tests need a real Postgres. They run only when TEST_DATABASE_URL is set and
- * DATABASE_SCHEMA is gistroom_test, and they skip themselves otherwise (Section 5.3).
+ * Integration tests need a real Postgres. They run only when TEST_DATABASE_URL is set and DATABASE_SCHEMA is
+ * gistroom_test. Locally they skip themselves otherwise (Section 5.3), and in CI loading this module throws instead
+ * (see require-test-db.ts).
  */
-export const testDbEnabled =
-  Boolean(process.env.TEST_DATABASE_URL) && process.env.DATABASE_SCHEMA === "gistroom_test";
+export const testDbEnabled = requireTestDb();
 
 export function prepareTestEnv(): void {
   if (!testDbEnabled) return;

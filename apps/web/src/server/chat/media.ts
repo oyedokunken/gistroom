@@ -14,6 +14,7 @@ import {
 import { AppError, notFound } from "../http";
 import { enforce, policies } from "../rate-limit";
 import {
+  assertMediaBucketPrivate,
   buckets,
   createSignedUploadUrl,
   createSignedUrl,
@@ -41,6 +42,7 @@ export function uploadError(reason: Extract<UploadVerdict, { ok: false }>["reaso
 /** Step one: check the declared file and hand back a one time URL to upload it to. */
 export async function signChatUpload(me: User, input: SignUploadInput): Promise<SignedUpload> {
   await enforce(policies.mediaSign, me.id);
+  await assertMediaBucketPrivate();
   const access = await accessFor(me.id, input.conversationId);
   await assertCanInteract(me.id, access.peerId);
 
@@ -173,6 +175,7 @@ export async function attachmentLink(
   });
   if (!row || row.message.deletedForEveryoneAt) throw notFound();
   await accessFor(me.id, row.message.conversationId);
+  await assertMediaBucketPrivate();
   const path = thumb && row.thumbPath ? row.thumbPath : row.storagePath;
   return createSignedUrl(buckets.media(), path, 300);
 }

@@ -1,5 +1,6 @@
 import { AppError } from "./http";
 import { getEnv } from "./env";
+import { logger } from "./logger";
 import { errors } from "@gistroom/shared";
 
 /**
@@ -31,6 +32,38 @@ export const buckets = {
   media: () => config().mediaBucket,
   avatars: () => config().publicBucket,
 };
+
+/**
+ * R15: chat media only ever lives in a private bucket of its own. Before media is signed for upload or opened, the
+ * bucket is looked up. It must exist, be private, and not be the avatar bucket. A public bucket makes every key a
+ * working link for anyone who has it, so nothing is signed until that is fixed. A good answer is remembered for ten
+ * minutes. Anything else is never remembered, and a lookup that fails closes the door too (npm run storage:check).
+ */
+const BUCKET_CHECK_TTL_MS = 10 * 60_000;
+let checkedAt: { bucket: string; at: number } | null = null;
+
+export function resetMediaBucketCheck(): void {
+  checkedAt = null;
+}
+
+export async function assertMediaBucketPrivate(now: number = Date.now()): Promise<void> {
+  const c = config();
+  if (checkedAt && checkedAt.bucket === c.mediaBucket && now - checkedAt.at < BUCKET_CHECK_TTL_MS)
+    return;
+  const refuse = (reason: string) => {
+    logger.error({ bucket: c.mediaBucket, reason }, "chat media bucket refused (R15)");
+    return new AppError(503, "SERVER", errors.mediaUnavailable);
+  };
+  if (c.mediaBucket === c.publicBucket) throw refuse("same as the public avatar bucket");
+  const res = await fetch(`${c.url}/storage/v1/bucket/${encodeURIComponent(c.mediaBucket)}`, {
+    headers: headers(c),
+  });
+  if (res.status === 404 || res.status === 400) throw refuse("bucket does not exist");
+  await call(res);
+  const body = (await res.json()) as { public?: boolean };
+  if (body.public !== false) throw refuse("bucket is public");
+  checkedAt = { bucket: c.mediaBucket, at: now };
+}
 
 function headers(c: Config, extra: Record<string, string> = {}): Record<string, string> {
   return { Authorization: `Bearer ${c.key}`, apikey: c.key, ...extra };

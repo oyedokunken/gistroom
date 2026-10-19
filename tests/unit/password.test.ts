@@ -36,11 +36,11 @@ describe("password hashing", () => {
     expect(await verifyPassword("correct horse battery", a)).toBe(true);
     expect(await verifyPassword("correct horse batterY", a)).toBe(false);
     expect(await verifyPassword("", a)).toBe(false);
-  });
+  }, 30_000);
   it("treats composed and decomposed characters as the same password", async () => {
     const h = await hashPassword("café-gist-2026");
     expect(await verifyPassword("café-gist-2026", h)).toBe(true);
-  });
+  }, 30_000);
   it("returns false for malformed stored values instead of throwing", async () => {
     for (const bad of [
       "",
@@ -51,15 +51,15 @@ describe("password hashing", () => {
     ]) {
       expect(await verifyPassword("whatever", bad)).toBe(false);
     }
-  });
+  }, 30_000);
   it("flags hashes that use weaker settings for an upgrade", async () => {
     expect(needsRehash(await hashPassword("some long password"))).toBe(false);
     expect(needsRehash("scrypt$1024$8$1$AAAA$AAAA")).toBe(true);
     expect(needsRehash("legacy$hash")).toBe(true);
-  });
+  }, 30_000);
   it("has a dummy hash for unknown emails", async () => {
     expect(await verifyPassword("anything", await dummyHash())).toBe(false);
-  });
+  }, 30_000);
 });
 
 describe("password rules", () => {

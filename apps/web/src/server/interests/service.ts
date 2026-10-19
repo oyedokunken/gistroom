@@ -7,7 +7,7 @@ export async function getInterests(userId: string): Promise<string[]> {
   const rows = await getDb().userInterest.findMany({
     where: { userId },
     select: { topicSlug: true },
-    orderBy: { createdAt: "asc" },
+    orderBy: [{ createdAt: "asc" }, { topicSlug: "asc" }],
   });
   return rows.map((r) => r.topicSlug);
 }

@@ -1,8 +1,9 @@
 import { expect as baseExpect, test, type Page } from "@playwright/test";
 import { getDb } from "@gistroom/db";
-import { capturedCode, createUser, dbAvailable, signIn } from "./auth-helpers";
+import { capturedCode, createUser, signIn } from "./auth-helpers";
+import { requireTestDb } from "../helpers/require-test-db";
 
-test.skip(!dbAvailable, "needs TEST_DATABASE_URL");
+test.skip(!requireTestDb(), "needs TEST_DATABASE_URL");
 
 // Every change goes to a database in another country, and several tests share it.
 const expect = baseExpect.configure({ timeout: 20_000 });

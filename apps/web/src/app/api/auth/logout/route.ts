@@ -1,10 +1,9 @@
-import { api, assertSameOrigin, json } from "@/server/http";
+import { api, json } from "@/server/http";
 import { cookies } from "next/headers";
 import { clearSessionCookie, getSessionContext, signOutThisDevice } from "@/server/auth/session";
 import { DEVICE_COOKIE } from "@/server/auth/tokens";
 
-export const POST = api(async (request) => {
-  assertSameOrigin(request);
+export const POST = api(async () => {
   const ctx = await getSessionContext();
   // Signing out on purpose also stops alerts on this browser, so a shared computer never shows the next person's gist.
   if (ctx) {

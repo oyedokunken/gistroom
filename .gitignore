@@ -21,3 +21,9 @@ apps/web/public/sw.version.json
 apps/web/AGENTS.md
 
 .vercel
+
+# Local tooling config
+.claude/launch.json
+
+# ESLint and Prettier caches
+.cache/

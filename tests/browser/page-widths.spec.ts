@@ -30,7 +30,9 @@ for (const width of [1280, 1440]) {
 
       for (const route of FULL) {
         await page.goto(route);
-        const box = await page.locator('[data-page-shell="full"]').first().boundingBox();
+        const shell = page.locator('[data-page-shell="full"]').first();
+        await expect(shell, route).toBeVisible();
+        const box = await shell.boundingBox();
         expect(box, route).not.toBeNull();
         expect(Math.abs((box?.width ?? 0) - Math.min(1400, width)), route).toBeLessThanOrEqual(2);
       }
@@ -38,7 +40,9 @@ for (const width of [1280, 1440]) {
       const narrowWidths: number[] = [];
       for (const route of NARROW) {
         await page.goto(route);
-        const box = await page.locator('[data-page-shell="narrow"]').first().boundingBox();
+        const shell = page.locator('[data-page-shell="narrow"]').first();
+        await expect(shell, route).toBeVisible();
+        const box = await shell.boundingBox();
         expect(box, route).not.toBeNull();
         expect(box?.width ?? 0, route).toBeLessThanOrEqual(721);
         narrowWidths.push(Math.round(box?.width ?? 0));

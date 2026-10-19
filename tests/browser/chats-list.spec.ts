@@ -61,8 +61,14 @@ test.describe("chats list", () => {
           };
         });
 
-      await bar.hover();
-      await expect.poll(async () => (await colours()).bg).toBe(YELLOW);
+      // Hover again on each try: the bar can be replaced while the page settles, which drops the hover.
+      await expect
+        .poll(async () => {
+          await page.mouse.move(5, 5);
+          await bar.hover();
+          return (await colours()).bg;
+        })
+        .toBe(YELLOW);
       let c = await colours();
       expect(c.text).toBe(INK);
       expect(c.icon).toBe(INK);

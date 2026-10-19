@@ -2,14 +2,17 @@
 
 Plan and expectations: CLAUDE.md Section 21.
 
-## Today
+## Suites
 
-| Suite                                          | State                                                                                                                          |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `test:unit` (Vitest)                           | Running. Copy checker, UI rules checker, limits, safe database guard, CSP builder, JSON-LD, graphics manifest, vaul style hash |
-| `test:integration`                             | Empty, passes with no tests. Needs the Supabase test schema (Phase 1)                                                          |
-| `test:socket`                                  | Empty, same                                                                                                                    |
-| `test:browser`, `test:a11y`, `test:responsive` | Placeholders that print a note. Playwright arrives in Phase 1                                                                  |
+| Suite                                          | Needs a database      | What it covers                                                                                                                   |
+| ---------------------------------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `test:unit` (Vitest)                           | no                    | schemas, rules, state machines, tokens, password cost, route CSRF coverage, storage guard, migration logic, copy and UI checkers |
+| `test:integration` (Vitest)                    | yes                   | auth, sessions, account, friends, search, push, rooms, rings, registration, reliability, media access, rate limits               |
+| `test:socket` (Vitest)                         | no                    | Socket.IO delivery, presence and room events against a fake store                                                                |
+| `test:browser`, `test:a11y`, `test:responsive` | yes (signed in specs) | Playwright flows, axe scans and layout audits                                                                                    |
+| `test:coverage`                                | yes                   | unit, integration and socket together with v8 coverage and enforced floors (D90)                                                 |
+
+Database suites use `TEST_DATABASE_URL` and `DATABASE_SCHEMA=gistroom_test`. Locally they use the hosted test schema from `.env` and skip when it is missing. In CI a missing database throws (see wiki/CI.md).
 
 ## Rules
 
@@ -18,6 +21,7 @@ Plan and expectations: CLAUDE.md Section 21.
 - Emoji in tests are written as escapes, for example `"\u{1F600}"`.
 - Strings that the copy checker forbids are built from fragments in tests, so the test files stay clean.
 - UI checks that need a real browser are done with Playwright, not by reading markup.
+- Rate limits count in fixed windows. A test that expects the Nth call in a window to be refused calls `waitForWindowRoom` first, so a window edge cannot make it fail by chance.
 
 ## Targeted runs
 

@@ -53,6 +53,7 @@ The full product spec and engineering rules are in [CLAUDE.md](CLAUDE.md). That 
 - [Testing](#testing)
 - [Security](#security)
 - [Deployment guide](#deployment-guide)
+- [Operations](#operations)
 - [Status and roadmap](#status-and-roadmap)
 - [Launch checklist](#launch-checklist)
 - [Documentation](#documentation)
@@ -450,7 +451,7 @@ flowchart LR
   Hook --> Commit[Commit]
   Commit --> Push[Pre-push: verify:quick]
   Push --> GH[GitHub]
-  GH --> CI[CI: verify and npm audit]
+  GH --> CI[CI: lint, unit, build, database suites with coverage, browser, npm audit]
   GH --> Deploy[Vercel and Render build]
   Deploy --> Live[Live]
 ```
@@ -649,6 +650,7 @@ Every key is listed and commented in [.env.example](.env.example). Both apps val
 | Storage       | `SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_MEDIA_BUCKET`, `SUPABASE_PUBLIC_BUCKET`                             |
 | LiveKit       | `LIVEKIT_URL`, `NEXT_PUBLIC_LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`                                                                      |
 | Web Push      | `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`                                                               |
+| Proxy trust   | `TRUST_PROXY` (optional, see Operations)                                                                                                               |
 | Realtime only | `PORT`, `WEB_APP_URL`, `ALLOWED_ORIGINS`, `LOG_LEVEL`                                                                                                  |
 
 ## Quick start
@@ -670,7 +672,7 @@ Web runs on http://localhost:3000 and the realtime service on http://localhost:4
 | `npm run dev`                                          | web and realtime together                             |
 | `npm run build`                                        | Prisma client, shared, web, realtime                  |
 | `npm run verify`                                       | the full pipeline, must be green before a commit      |
-| `npm run verify:quick`                                 | copy, ui, lint, typecheck, unit tests                 |
+| `npm run verify:quick`                                 | copy, ui, lint, typecheck, unit tests, in parallel    |
 | `npm run lint:copy`                                    | no emojis, no long dashes, no banned phrases          |
 | `npm run lint:ui`                                      | UI rules (no toasts, no native select, tokens only)   |
 | `npm run lint:font`                                    | Graphik glyph coverage with the Noto Sans fallback    |
@@ -682,10 +684,15 @@ Web runs on http://localhost:3000 and the realtime service on http://localhost:4
 | `npm run db:migrate`                                   | migrations against the dev schema only                |
 | `npm run db:seed`, `db:reset`, `db:studio`             | dev schema only, through `assert-safe-db`             |
 | `npm run storage:setup`                                | create the Supabase storage buckets                   |
+| `npm run storage:check`                                | fail unless chat media is in its own private bucket   |
+| `npm run storage:migrate-media`                        | move chat media to the private bucket, report first   |
+| `npm run test:coverage`                                | unit, integration and socket tests with v8 coverage   |
 
 ## Testing
 
-Unit tests cover schemas, rules, state machines, token signing, copy and UI checkers, SEO helpers and the graphics manifest. Integration tests run against the `gistroom_test` schema, socket tests use `socket.io-client`, and Playwright covers browser, accessibility and responsive checks. See [wiki/Testing.md](wiki/Testing.md).
+Unit tests cover schemas, rules, state machines, token signing, password cost, copy and UI checkers, SEO helpers, the graphics manifest, route CSRF coverage, the storage guard and the media migration logic. Integration tests run against the `gistroom_test` schema (auth, sessions, account, friends, search, push, chat, rooms, rings, reliability, media access, rate limits), socket tests use `socket.io-client`, and Playwright covers browser, accessibility and responsive checks. See [wiki/Testing.md](wiki/Testing.md).
+
+CI runs every suite on every pull request: unit, build, integration and socket with v8 coverage (floors enforced, report kept as an artifact) and the full Playwright run, the last two against a throwaway Postgres service container. With `CI=true` a suite that needs the database throws when it is missing instead of skipping. A full coverage run measured 31 percent of lines over the whole tree (UI components are only exercised by browser tests), 75 percent or more for server code, 89 percent for the shared package and 65 percent for realtime. `npm run verify:quick` runs its stages side by side and takes about 35 seconds with warm caches.
 
 ## Security
 
@@ -701,6 +708,17 @@ Report a vulnerability to `security@gistroom.ng`. See [SECURITY.md](SECURITY.md)
 ## Deployment guide
 
 Two deployments only: `apps/web` on Vercel and `apps/realtime` on Render. Supabase and LiveKit are hosted services. Steps are in [wiki/Deployment.md](wiki/Deployment.md). The Render blueprint is [render.yaml](render.yaml).
+
+## Operations
+
+What the free tiers and the current design can and cannot do. None of this is hidden by a workaround.
+
+- **Keepalive.** `.github/workflows/keepalive.yml` pings the realtime service and the web health check every 14 minutes. GitHub runs scheduled workflows on a best effort basis, so a run can start many minutes late or be skipped, and GitHub switches scheduled workflows off after 60 days without repository activity. It does not alert anyone when it fails. Render free can therefore still sleep, and a cold start takes about a minute. Clients reconnect with backoff, joining a call or room never needs the realtime service, and an outside uptime monitor on `/health` and `/api/health` is the real alarm (launch checklist).
+- **Database pooling.** Web uses the pooled connection with `pgbouncer=true` and `connection_limit=1`. Each serverless instance holds one connection, so queries in one request run one after another even inside `Promise.all`, a long transaction blocks the rest of that instance, and many instances can still exhaust the pooler. Realtime uses a direct or session connection with a higher limit. Tests keep their pools small with `DATABASE_POOL_MAX`.
+- **Rate limiter.** The limiter on web is a database backed fixed window: one upsert per limited request, keyed by policy and subject. A caller can use up to twice the limit by straddling a window edge, and every limited request costs one database write. Old windows are removed by the daily sweep. Per address limits trust the forwarded client address only on Vercel, or when `TRUST_PROXY=true` names another proxy that overwrites the header. Anywhere else all callers share one key, which is strict rather than open (D91).
+- **Passwords.** scrypt at N=2^17 uses about 128 MiB and about one second of one core on a development laptop, per sign in. Concurrent sign ins share the Node thread pool (four threads by default), so a burst of sign ins queues. Watch function memory and p95 sign in time first.
+- **Chat media storage.** Chat media needs a private bucket of its own. `npm run storage:check` verifies it and `npm run storage:migrate-media` moves old files (D39, D87).
+- **Load check, open (Phase 7).** Nothing has been load tested. It must measure: sign in throughput and p95 with scrypt under concurrency, function memory and cold starts on Vercel, pooled connection queueing at `connection_limit=1` on the chat list and message routes, limiter write rate and its share of database time, how many sockets one realtime instance holds before memory or CPU gives out, push fan out time for a busy room, and call join to first audio against the 3 second budget.
 
 ## Status and roadmap
 
@@ -725,7 +743,7 @@ Two deployments only: `apps/web` on Vercel and `apps/realtime` on Render. Supaba
 - [x] Gmail app password, mail transport set to `smtp`
 - [x] VAPID keys generated and set on both services
 - [ ] All illustrations reviewed and approved
-- [ ] A private bucket for chat media (today one public bucket is shared, see decision D39)
+- [ ] Production chat media in a private bucket: set `SUPABASE_MEDIA_BUCKET` to a private bucket, run `npm run storage:migrate-media`, check with `npm run storage:check` (the code refuses public buckets, D39 and D87)
 - [ ] Legal pages reviewed against the NDPA and the Cybercrimes Act
 - [ ] Graphik web license confirmed (D7)
 - [ ] Sitemap submitted in Search Console

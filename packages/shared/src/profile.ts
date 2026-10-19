@@ -5,6 +5,16 @@ import { validation } from "./content/validation";
 
 export const BIO_MAX = 160;
 
+/** True for a time zone name the runtime knows, such as Africa/Lagos. */
+export function isValidTimeZone(zone: string): boolean {
+  try {
+    new Intl.DateTimeFormat("en", { timeZone: zone });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export const updateProfileSchema = z
   .object({
     name: nameSchema,
@@ -14,7 +24,7 @@ export const updateProfileSchema = z
     sendReadReceipts: z.boolean(),
     roomInvitesFrom: z.enum(["FRIENDS", "EVERYONE"]),
     dataSaver: z.boolean(),
-    timezone: z.string().trim().min(1).max(64),
+    timezone: z.string().trim().min(1).max(64).refine(isValidTimeZone, validation.timezoneUnknown),
   })
   .partial();
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;

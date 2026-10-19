@@ -717,7 +717,7 @@ What the free tiers and the current design can and cannot do. None of this is hi
 - **Database pooling.** Web uses the pooled connection with `pgbouncer=true` and `connection_limit=1`. Each serverless instance holds one connection, so queries in one request run one after another even inside `Promise.all`, a long transaction blocks the rest of that instance, and many instances can still exhaust the pooler. Realtime uses a direct or session connection with a higher limit. Tests keep their pools small with `DATABASE_POOL_MAX`.
 - **Rate limiter.** The limiter on web is a database backed fixed window: one upsert per limited request, keyed by policy and subject. A caller can use up to twice the limit by straddling a window edge, and every limited request costs one database write. Old windows are removed by the daily sweep. Per address limits trust the forwarded client address only on Vercel, or when `TRUST_PROXY=true` names another proxy that overwrites the header. Anywhere else all callers share one key, which is strict rather than open (D91).
 - **Passwords.** scrypt at N=2^17 uses about 128 MiB and about one second of one core on a development laptop, per sign in. Concurrent sign ins share the Node thread pool (four threads by default), so a burst of sign ins queues. Watch function memory and p95 sign in time first.
-- **Chat media storage.** Chat media needs a private bucket of its own. `npm run storage:check` verifies it and `npm run storage:migrate-media` moves old files (D39, D87).
+- **Chat media storage.** Chat media needs a private bucket of its own. `npm run storage:check` verifies it and `npm run storage:migrate-media` moves old files (D39, D87). Production uses the private `media` bucket since 2026-10-20 (D92).
 - **Load check, open (Phase 7).** Nothing has been load tested. It must measure: sign in throughput and p95 with scrypt under concurrency, function memory and cold starts on Vercel, pooled connection queueing at `connection_limit=1` on the chat list and message routes, limiter write rate and its share of database time, how many sockets one realtime instance holds before memory or CPU gives out, push fan out time for a busy room, and call join to first audio against the 3 second budget.
 
 ## Status and roadmap
@@ -743,7 +743,7 @@ What the free tiers and the current design can and cannot do. None of this is hi
 - [x] Gmail app password, mail transport set to `smtp`
 - [x] VAPID keys generated and set on both services
 - [ ] All illustrations reviewed and approved
-- [ ] Production chat media in a private bucket: set `SUPABASE_MEDIA_BUCKET` to a private bucket, run `npm run storage:migrate-media`, check with `npm run storage:check` (the code refuses public buckets, D39 and D87)
+- [x] Production chat media is in the private `media` bucket (moved on 2026-10-20, D92). The public copies in the old bucket are still there: remove them with `npm run storage:migrate-media -- --from <public bucket> --to media --apply --delete-source` once you are happy
 - [ ] Legal pages reviewed against the NDPA and the Cybercrimes Act
 - [ ] Graphik web license confirmed (D7)
 - [ ] Sitemap submitted in Search Console

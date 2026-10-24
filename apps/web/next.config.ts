@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const config: NextConfig = {
+  experimental: {
+    agentUpgrade: "security",
+  },
   // Browser tests build into their own folder so they never clash with a dev server that is already running.
   distDir: process.env.NEXT_DIST_DIR ?? ".next",
   reactStrictMode: true,

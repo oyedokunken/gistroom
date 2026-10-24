@@ -3,9 +3,8 @@
 import Link from "next/link";
 import { useRef } from "react";
 import { motion, useInView, useReducedMotion } from "motion/react";
-import { ExternalLink } from "lucide-react";
+import { Coffee, ExternalLink } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { consent } from "@/content/consent";
 import { footer, social } from "@/content/landing";
 import { builderCredit } from "@/content/site";
 import { OPEN_CONSENT_EVENT } from "@/components/system/consent-banner";
@@ -55,6 +54,10 @@ function Wordmark() {
   );
 }
 
+function openCookieSettings() {
+  window.dispatchEvent(new Event(OPEN_CONSENT_EVENT));
+}
+
 export function Footer({ year = new Date().getUTCFullYear() }: { year?: number }) {
   return (
     <footer
@@ -69,12 +72,22 @@ export function Footer({ year = new Date().getUTCFullYear() }: { year?: number }
               <ul className="mt-3 flex flex-col">
                 {col.links.map((l) => (
                   <li key={l.href}>
-                    <Link
-                      href={l.href}
-                      className="inline-flex min-h-11 items-center text-text-muted hover:text-green-700"
-                    >
-                      {l.label}
-                    </Link>
+                    {l.href === "#cookie-settings" ? (
+                      <button
+                        type="button"
+                        onClick={openCookieSettings}
+                        className="inline-flex min-h-11 items-center text-text-muted hover:text-green-700"
+                      >
+                        {l.label}
+                      </button>
+                    ) : (
+                      <Link
+                        href={l.href}
+                        className="inline-flex min-h-11 items-center text-text-muted hover:text-green-700"
+                      >
+                        {l.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -112,25 +125,31 @@ export function Footer({ year = new Date().getUTCFullYear() }: { year?: number }
           data-legal-row
           className="mx-[6%] mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-0 whitespace-nowrap text-[clamp(0.5625rem,2.9vw,0.875rem)] tracking-tight text-text-muted md:justify-between"
         >
-          <p className="min-h-11 content-center">{footer.copyright(year)}</p>
-          <p className="min-h-11 content-center">
-            {builderCredit.prefix}{" "}
+          <p className="min-h-11 basis-full content-center text-center md:basis-auto">
+            {footer.copyright(year)}
+          </p>
+          <div className="flex min-h-11 basis-full items-center justify-center gap-x-4 md:basis-auto">
+            <p>
+              {builderCredit.prefix}{" "}
+              <a
+                href={builderCredit.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-11 items-center font-semibold text-green-700 underline-offset-4 hover:underline"
+              >
+                {builderCredit.label}
+              </a>
+            </p>
             <a
-              href={builderCredit.href}
+              href={footer.coffee.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-11 items-center font-semibold text-green-700 underline-offset-4 hover:underline"
+              className="inline-flex min-h-11 items-center gap-1 font-semibold text-green-700 underline-offset-4 hover:underline"
             >
-              {builderCredit.label}
+              <Coffee aria-hidden className="size-4" />
+              {footer.coffee.label}
             </a>
-          </p>
-          <button
-            type="button"
-            onClick={() => window.dispatchEvent(new Event(OPEN_CONSENT_EVENT))}
-            className="inline-flex min-h-11 items-center font-semibold text-green-700 underline-offset-4 hover:underline"
-          >
-            {consent.settings}
-          </button>
+          </div>
         </div>
       </div>
     </footer>

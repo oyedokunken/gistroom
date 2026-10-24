@@ -17,7 +17,7 @@ test.describe("footer legal row", () => {
           return { top: r.top, bottom: r.bottom, left: r.left, right: r.right };
         }),
       );
-      expect(items.length).toBeGreaterThanOrEqual(3);
+      expect(items.length).toBe(2);
       const tops = items.map((i) => i.top).sort((a, b) => a - b);
       if (width < 768) {
         // Phones may wrap onto a second row. Anything beyond that is a bug.

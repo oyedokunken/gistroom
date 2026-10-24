@@ -45,7 +45,9 @@ describe("every link in the public header and footer goes somewhere", () => {
     ...nav.moreItems.map((i) => i.href),
     hero.primary.href,
     hero.secondary.href,
-    ...footer.columns.flatMap((c) => c.links.map((l) => l.href)),
+    ...footer.columns
+      .flatMap((c) => c.links.map((l) => l.href))
+      .filter((href) => !href.startsWith("#")),
   ]);
   for (const href of hrefs) {
     it(`${href} has a page`, () => {

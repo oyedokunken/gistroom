@@ -62,14 +62,19 @@ export const footer = {
       ],
     },
     {
-      title: "Help",
+      title: "Support",
       links: [
         { label: "Support", href: "/support" },
         { label: "Safety", href: "/safety" },
+        { label: "Cookie settings", href: "#cookie-settings" },
       ],
     },
   ],
   copyright: (year: number) => `Copyright ${year} - Gistroom`,
+  coffee: {
+    label: "Buy me a coffee",
+    href: "https://buymeamalt.com/@oyedokunken",
+  },
   theme: {
     label: "Theme",
     light: "Light",

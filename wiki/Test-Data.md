@@ -6,10 +6,14 @@ Two kinds of test data exist. Neither is meant to stay once Gistroom is live.
 
 A world around real accounts, so you can see every screen with real looking content.
 
-- 30 Nigerian people with real sounding names from Lagos, Abuja, Kano, Port Harcourt, Enugu, Ibadan and more. Emails are on gmail.com and yahoo.com (`first.last.gistroom@...`). Every bio ends with "Test account." They have no password, so nobody can sign in as them, and they are never emailed.
+- 30 Nigerian people with real sounding names from Lagos, Abuja, Kano, Port Harcourt, Enugu, Ibadan and more. Emails are on gmail.com and yahoo.com (`first.last.gistroom@...`). Bios include their city without a visible test label. They have no password, so nobody can sign in as them, and they are never emailed.
 - Friends of the prime user (eight with chat history in plain English and Pidgin), friends of the second user, requests waiting, one pending request the prime user sent, one rejected, one blocked person.
-- Five calls shown in the middle of the chats and in the call log, twelve scheduled public rooms across topics, one private room and four ended rooms with summaries.
+- Five call records shown in the chats and call log, sixteen scheduled public rooms across topics, one private room and hosted rooms for the real accounts.
 - Real Nigerian topics and keywords: football, japa, amapiano, jollof, fuel price, NYSC, owambe, WAEC and JAMB.
+
+Every timestamp written by the prime test world is now or future. Calls, chats, friendships, requests and notifications use current or future timestamps. Every seeded Room is scheduled to start in the future; previous ended-room examples are now upcoming rooms. Public room dates are spread from about 20 hours after the seed time through the end of the following month. The three named hosted rooms are Chelsea Banter and Anime Lovers Room by Felix, and FUTA Alumni Connect by themastermind.
+
+For a full refresh of an existing world, first remove only users marked `isSeed`, then apply again. Felix and themastermind are real accounts and are not removed. The removal command deletes the old seeded world and all its related records so no old timestamps remain.
 
 ```
 npm run seed:friends                          dry run, changes nothing

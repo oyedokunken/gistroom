@@ -25,60 +25,63 @@ async function requirePassword(user: User, password: string | undefined): Promis
 export async function buildExport(user: User) {
   await enforce(policies.dataExport, user.id);
   const db = getDb();
-  const [interests, friendships, blocks, sent, notes, calls, hosted, attended, sessions, prefs] =
-    await Promise.all([
-      db.userInterest.findMany({ where: { userId: user.id }, select: { topicSlug: true } }),
-      db.friendship.findMany({
-        where: { OR: [{ userLowId: user.id }, { userHighId: user.id }] },
-        select: { userLowId: true, userHighId: true, createdAt: true },
-      }),
-      db.block.findMany({
-        where: { blockerId: user.id },
-        select: { blockedId: true, createdAt: true },
-      }),
-      db.message.findMany({
-        where: { senderId: user.id, deletedForEveryoneAt: null },
-        select: { type: true, body: true, createdAt: true, editedAt: true, conversationId: true },
-        orderBy: { createdAt: "asc" },
-        take: 20_000,
-      }),
-      db.note.findMany({
-        where: { userId: user.id },
-        select: {
-          body: true,
-          createdAt: true,
-          conversationId: true,
-          room: { select: { title: true } },
-        },
-        orderBy: { createdAt: "asc" },
-      }),
-      db.callLogEntry.findMany({
-        where: { userId: user.id },
-        select: {
-          kind: true,
-          direction: true,
-          outcome: true,
-          mediaType: true,
-          titleSnapshot: true,
-          startedAt: true,
-          durationSec: true,
-        },
-        orderBy: { startedAt: "asc" },
-      }),
-      db.room.findMany({
-        where: { hostId: user.id },
-        select: { title: true, visibility: true, status: true, startedAt: true, endedAt: true },
-      }),
-      db.roomMember.findMany({
-        where: { userId: user.id, state: { in: ["JOINED", "LEFT"] } },
-        select: { role: true, joinedAt: true, leftAt: true, room: { select: { title: true } } },
-      }),
-      db.session.findMany({
-        where: { userId: user.id },
-        select: { deviceLabel: true, createdAt: true, lastSeenAt: true, revokedAt: true },
-      }),
-      db.notificationPreference.findUnique({ where: { userId: user.id } }),
-    ]);
+  const [interests, friendships, blocks] = await Promise.all([
+    db.userInterest.findMany({ where: { userId: user.id }, select: { topicSlug: true } }),
+    db.friendship.findMany({
+      where: { OR: [{ userLowId: user.id }, { userHighId: user.id }] },
+      select: { userLowId: true, userHighId: true, createdAt: true },
+    }),
+    db.block.findMany({
+      where: { blockerId: user.id },
+      select: { blockedId: true, createdAt: true },
+    }),
+  ]);
+  const [sent, notes, calls] = await Promise.all([
+    db.message.findMany({
+      where: { senderId: user.id, deletedForEveryoneAt: null },
+      select: { type: true, body: true, createdAt: true, editedAt: true, conversationId: true },
+      orderBy: { createdAt: "asc" },
+      take: 20_000,
+    }),
+    db.note.findMany({
+      where: { userId: user.id },
+      select: {
+        body: true,
+        createdAt: true,
+        conversationId: true,
+        room: { select: { title: true } },
+      },
+      orderBy: { createdAt: "asc" },
+    }),
+    db.callLogEntry.findMany({
+      where: { userId: user.id },
+      select: {
+        kind: true,
+        direction: true,
+        outcome: true,
+        mediaType: true,
+        titleSnapshot: true,
+        startedAt: true,
+        durationSec: true,
+      },
+      orderBy: { startedAt: "asc" },
+    }),
+  ]);
+  const [hosted, attended, sessions, prefs] = await Promise.all([
+    db.room.findMany({
+      where: { hostId: user.id },
+      select: { title: true, visibility: true, status: true, startedAt: true, endedAt: true },
+    }),
+    db.roomMember.findMany({
+      where: { userId: user.id, state: { in: ["JOINED", "LEFT"] } },
+      select: { role: true, joinedAt: true, leftAt: true, room: { select: { title: true } } },
+    }),
+    db.session.findMany({
+      where: { userId: user.id },
+      select: { deviceLabel: true, createdAt: true, lastSeenAt: true, revokedAt: true },
+    }),
+    db.notificationPreference.findUnique({ where: { userId: user.id } }),
+  ]);
 
   const friendIds = friendships.map((f) => (f.userLowId === user.id ? f.userHighId : f.userLowId));
   const people = await db.user.findMany({

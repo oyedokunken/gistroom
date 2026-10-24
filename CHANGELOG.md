@@ -21,6 +21,7 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ### Changed
 
+- The friends test world now writes all activity timestamps at or after the seed time, schedules every Room in the future, removes visible test labels from bios, and includes Chelsea Banter, FUTA Alumni Connect and Anime Lovers Room.
 - `npm run verify:quick` runs its stages side by side with ESLint, Prettier and TypeScript caches, about 35 seconds with warm caches instead of about 212.
 - The rooms service, the room screen, the room panels and the landing sections are split into focused files with no change in behavior.
 - The daily sweep also removes expired rate limit windows.

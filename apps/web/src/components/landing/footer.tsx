@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRef } from "react";
 import { motion, useInView, useReducedMotion } from "motion/react";
-import { Coffee, ExternalLink } from "lucide-react";
+import { Code2, Coffee, ExternalLink } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { footer, social } from "@/content/landing";
 import { builderCredit } from "@/content/site";
@@ -123,20 +123,21 @@ export function Footer({ year = new Date().getUTCFullYear() }: { year?: number }
         {/* As wide as the wordmark above it. Phones may wrap onto a second row. */}
         <div
           data-legal-row
-          className="mx-[6%] mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-0 whitespace-nowrap text-[clamp(0.5625rem,2.9vw,0.875rem)] tracking-tight text-text-muted md:justify-between"
+          className="mx-[6%] mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-0 whitespace-nowrap text-[clamp(0.5625rem,2.9vw,0.875rem)] tracking-tight text-text-muted md:grid md:grid-cols-3 md:gap-0"
         >
-          <p className="min-h-11 basis-full content-center text-center md:basis-auto">
+          <p className="min-h-11 basis-full content-center text-center md:basis-auto md:justify-self-start">
             {footer.copyright(year)}
           </p>
-          <div className="flex min-h-11 basis-full items-center justify-center gap-x-4 md:basis-auto">
-            <p>
+          <div className="flex min-h-11 basis-full items-center justify-center gap-x-4 md:contents">
+            <p className="md:justify-self-center">
               {builderCredit.prefix}{" "}
               <a
                 href={builderCredit.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center font-semibold text-green-700 underline-offset-4 hover:underline"
+                className="inline-flex min-h-11 items-center gap-1 font-semibold text-green-700 underline-offset-4 hover:underline"
               >
+                <Code2 aria-hidden className="size-4" />
                 {builderCredit.label}
               </a>
             </p>
@@ -144,7 +145,7 @@ export function Footer({ year = new Date().getUTCFullYear() }: { year?: number }
               href={footer.coffee.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-11 items-center gap-1 font-semibold text-green-700 underline-offset-4 hover:underline"
+              className="inline-flex min-h-11 items-center gap-1 font-semibold text-green-700 underline-offset-4 hover:underline md:justify-self-end"
             >
               <Coffee aria-hidden className="size-4" />
               {footer.coffee.label}

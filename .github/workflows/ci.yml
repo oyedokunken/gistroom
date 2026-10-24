@@ -113,7 +113,7 @@ jobs:
         run: npm run test:coverage
       - name: Keep the coverage report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage
           path: coverage
@@ -174,7 +174,7 @@ jobs:
         run: npx playwright test
       - name: Keep Playwright traces from failures
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-traces
           path: test-results

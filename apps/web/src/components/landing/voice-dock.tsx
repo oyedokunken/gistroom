@@ -230,7 +230,7 @@ function DesktopDock() {
                 aria-expanded={fanned}
                 aria-label={fanned ? nav.closeMenu : nav.openMenu}
                 onClick={() => setFanned((v) => !v)}
-                className="pointer-events-auto relative flex size-14 items-center justify-center rounded-full border border-border bg-surface shadow-lift"
+                className="pointer-events-auto relative flex size-14 cursor-pointer items-center justify-center rounded-full border border-border bg-surface shadow-lift transition-colors hover:border-green-600 hover:bg-green-100 focus-visible:bg-green-100"
               >
                 <LogoMark size={36} className="text-green-600 dark:text-text" />
               </button>
@@ -262,10 +262,10 @@ function DesktopDock() {
                             aria-current={current ? "page" : undefined}
                             onClick={() => setFanned(false)}
                             className={cn(
-                              "flex size-11 items-center justify-center rounded-full shadow-soft",
+                              "flex size-11 cursor-pointer items-center justify-center rounded-full shadow-soft transition-colors focus-visible:outline-offset-4",
                               item.id === "cta"
-                                ? "bg-green-600 text-white"
-                                : "bg-surface text-text",
+                                ? "bg-green-600 text-white hover:bg-green-700"
+                                : "bg-surface text-text hover:bg-green-100 hover:text-green-700 focus-visible:bg-green-100 focus-visible:text-green-700",
                               current &&
                                 item.id !== "cta" &&
                                 "bg-green-100 text-green-700 ring-2 ring-green-600",

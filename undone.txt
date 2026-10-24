@@ -1,0 +1,530 @@
+Gistroom future improvements
+============================
+
+This file records requested future work. None of the items below has been
+implemented by this change. They are ordered by priority and should be
+delivered in vertical slices with schema, server, UI, tests, and documentation
+updated together.
+
+Priority 0: fix broken or trust-critical behavior
+--------------------------------------------------
+
+1. Fix avatar upload persistence
+
+Problem:
+- Removing the default avatar and uploading a replacement appears to succeed,
+  but the new avatar does not remain where it should.
+
+Expected behavior:
+- A user can replace a seeded or default avatar from profile settings.
+- The UI shows upload progress, validation errors, and the final persisted
+  avatar after a reload.
+- The old avatar is removed only after the new upload has been committed.
+- A failed upload does not erase the existing avatar.
+- The same avatar is used consistently in profile pages, chat, calls, rooms,
+  notifications, search results, and generated account reports.
+
+Implementation scope:
+- Trace the sign flow, upload flow, commit route, storage path, database update,
+  cache invalidation, and avatar serializer.
+- Confirm that the signed upload path and final commit use the same user and
+  asset identifiers.
+- Verify magic bytes, size limits, image dimensions, and supported formats.
+- Make the commit operation idempotent and reject an asset belonging to another
+  user.
+- Refresh the authenticated profile cache after commit and after removal.
+- Keep the old asset until the database points to the new asset, then clean it
+  up safely.
+- Add clear inline form errors and a retry action. Do not use a toast.
+
+Tests:
+- Unit test valid, invalid, stale, duplicate, and cross-user commit cases.
+- Integration test upload, commit, reload, replacement, removal, and failure.
+- Browser test that replaces the avatar and verifies it after a page reload.
+
+2. Repair notification delivery and reliability
+
+Problem:
+- Notifications are not reaching users as reliably as the product requires.
+  This includes room reminders and the general stale-tab and offline cases.
+
+Expected behavior:
+- Every eligible event creates one in-app notification with a stable dedupe key.
+- A focused live socket receives the event without a duplicate push.
+- Calls always push, even when a socket is focused.
+- A sleeping or restarted realtime service catches up from durable jobs.
+- Push subscriptions are associated with the device, not just the current
+  session, and follow the documented grace and reauthentication rules.
+- Failed, expired, revoked, and unhealthy subscriptions are recorded and
+  surfaced in notification settings.
+- Room reminders arrive at the configured time for registered attendees and
+  the host, with private-room authorization respected.
+- The notification list, unread count, browser push, email fallback, and room
+  reminder state agree after refresh and reconnect.
+
+Investigation and implementation scope:
+- Trace notification creation in web, scheduled job claiming, realtime
+  delivery, web push response handling, service worker display and click
+  handling, and client resync.
+- Add structured delivery records or equivalent observability for each stage:
+  created, claimed, socket sent, push sent, push rejected, email sent, and
+  permanently dropped.
+- Check dedupe behavior across retries, multiple tabs, multiple devices, and
+  realtime restarts.
+- Ensure quiet hours suppress push only where specified, not in-app notices or
+  required room state.
+- Ensure notification links open the correct page and send an expired session
+  through sign-in before returning to the target.
+- Add an authenticated test-notification flow that proves delivery to the
+  current device.
+
+Tests:
+- Unit test payloads, TTL, urgency, dedupe, quiet hours, and subscription
+  lifecycle.
+- Integration test room reminders, job retries, push 404 and 410 responses,
+  stale subscriptions, and reconnect catch-up.
+- Socket test focused and unfocused delivery behavior.
+- Browser test the stale-tab scenario, service worker push handling, and
+  notification click navigation.
+- Document diagnosis steps in wiki/Notifications-and-Push.md.
+
+3. Make upcoming-room reminders dependable
+
+This is part of the notification repair but should have an explicit acceptance
+slice:
+- Registered attendees can enable or disable reminders.
+- The host receives the due notice required by the product.
+- A scheduled room can send the 15 minute reminder, live-now notice, moved
+  notice, and cancellation notice exactly once per recipient.
+- Private rooms notify only people who are eligible for that room.
+- The reminder survives a sleeping realtime process through the web sweep.
+- The UI clearly shows registration state and the next reminder.
+
+Priority 1: chat and navigation improvements
+---------------------------------------------
+
+4. Add forwarded messages
+
+Supported content:
+- Text
+- Images
+- Documents and other supported files
+- Voice notes
+
+Expected behavior:
+- A person can select one or more eligible messages and choose Forward.
+- The destination picker supports recent chats and people the sender is
+  authorized to message.
+- The forwarded message shows a clear "Forwarded" label without changing the
+  original sender or timestamp semantics.
+- Text preserves its content. Images, documents, and voice notes preserve
+  their attachment metadata and remain private to authorized recipients.
+- Forwarding creates a new message with a new client id and does not duplicate
+  the original message identity.
+- Forwarded content remains subject to media authorization, deletion, report
+  evidence, rate limits, and idempotency.
+- A forwarded message can itself be forwarded only if the product policy
+  permits it, with no misleading chain of original senders.
+
+Implementation scope:
+- Add a shared message operation schema and server permission check.
+- Define whether forwarding is allowed for deleted, hidden, expired, or
+  unavailable media.
+- Reuse existing media references only when the destination authorization is
+  safe. Otherwise create a new private asset reference.
+- Add message metadata for forwarded state and source type, not arbitrary
+  client-controlled labels.
+- Add selection, destination picker, confirmation, loading, empty, and error
+  states to the chat UI.
+- Add content strings under apps/web/src/content and shared strings where
+  realtime payloads need them.
+
+Tests:
+- Unit test each supported message type and invalid or unauthorized sources.
+- Integration test text, image, document, and voice-note forwarding.
+- Test retries do not create duplicate messages.
+- Browser test the selection, destination picker, label, and rendered
+  attachment.
+
+5. Add back navigation to a chat thread
+
+Expected behavior:
+- On narrow chat layouts, a back icon appears before the other person's avatar
+  in the conversation header.
+- Activating it returns to the main empty chat pane or conversation list
+  according to the existing responsive layout.
+- It preserves drafts and does not leave a live call or room.
+- It is a labelled Lucide icon button with a 44px target and visible focus.
+- Desktop three-pane behavior remains unchanged unless a back action is
+  useful at that breakpoint.
+
+Tests:
+- Browser test opening a chat, using the back button, and verifying the empty
+  chat pane.
+- Test keyboard activation, draft preservation, and accessibility name.
+
+6. Fix voice-note hover contrast
+
+Problem:
+- The voice-note player hover state can produce white text on a white or
+  otherwise low-contrast background.
+
+Expected behavior:
+- Hover, focus, playing, paused, disabled, and dark-theme states use token
+  combinations with WCAG AA contrast.
+- The play button, waveform, progress, time, speed control, and download
+  action remain readable in every state.
+- Hover must not change layout or hide the active progress state.
+
+Implementation scope:
+- Inspect the shared voice-note player and all chat attachment variants.
+- Replace raw or conflicting color classes with design tokens.
+- Add explicit hover and focus-visible states for both light and dark themes.
+- Keep motion limited to allowed transform and opacity changes.
+
+Tests:
+- Add focused component or browser checks for hover and focus classes.
+- Run the accessibility scan against a message containing a voice note.
+
+Priority 2: rooms discovery and room pages
+-------------------------------------------
+
+7. Show live and upcoming rooms on the public Rooms page
+
+Problem:
+- /app/discover already includes live and future rooms.
+- /rooms currently shows only live rooms.
+
+Expected behavior:
+- /rooms contains both live public rooms and scheduled public rooms using the
+  same filtering, authorization, ordering, and empty-state rules as discover.
+- Live rooms appear first, followed by upcoming rooms ordered by start time.
+- Signed-out visitors can inspect public room information without private
+  details leaking.
+- Ended rooms do not appear in the active public list.
+- The page remains server rendered and keeps its metadata and revalidation
+  requirements.
+
+Implementation scope:
+- Reuse one public-room query and DTO instead of maintaining separate
+  implementations.
+- Align topic, language, search, pagination, and error behavior across
+  /rooms and /app/discover.
+- Clearly label room state as Live or Upcoming.
+- Add tests proving parity between both routes.
+
+8. Improve room cards and room interaction
+
+Room card actions:
+- Hosts see "Start room" when a scheduled room is ready for them.
+- Eligible attendees see "Join room" for a live room or when joining is
+  allowed.
+- Ineligible or signed-out visitors do not see a misleading join action.
+- Signed-out visitors see a countdown action such as "Starts in: 1 day 2h"
+  for upcoming rooms. The countdown must use the server start time and the
+  viewer's timezone, with a stable fallback when time data is unavailable.
+
+Attendance copy:
+- Live room: "2 in room"
+- Finished room: "2 attended"
+- Scheduled room: "2 attending"
+- Counts must come from authorized server data, never fabricated client data.
+
+Layout:
+- Stop forcing every room view into one centered block.
+- Use a responsive list or grid with a selected-room detail panel or sidebar.
+- On mobile, open the selected room details in a sheet or full-width detail
+  view with an obvious back action.
+- Keep room actions visible without making cards excessively tall.
+- Improve loading, empty, error, and no-results states.
+- Preserve keyboard navigation and 44px controls.
+
+Tests:
+- Browser tests for host, attendee, signed-out, live, scheduled, and ended
+  states.
+- Responsive tests at 320, 390, 768, and 1440 widths.
+- Accessibility checks for action names, focus order, and countdown text.
+
+9. Add related rooms
+
+Expected behavior:
+- Every public room page includes "Related rooms" or "Other rooms you might
+  like" when relevant.
+- Recommendations use topic first, then language, then room state and
+  schedule proximity.
+- A room does not recommend itself, ended private rooms, inaccessible private
+  rooms, or duplicate entries.
+- The list has a useful fallback when no related rooms exist.
+- Recommendations are server authorized and do not reveal private room
+  metadata.
+
+Tests:
+- Unit test ranking and exclusion rules.
+- Integration test public, private, ended, and empty recommendation cases.
+- Browser test the related-room links and mobile layout.
+
+10. Copy room links safely
+
+Expected behavior:
+- A room page and room controls provide Copy room link.
+- Copy success uses the shared feedback modal or inline status, not a toast.
+- A private-room copy explains that only invited people or people who have
+  joined through an eligible invite can enter.
+- The copied link never exposes private room details to an unauthorized
+  viewer.
+- Revoked, expired, ended, or invalid invite links show the existing safe
+  not-invited or ended state.
+- The action works with the Clipboard API and has a keyboard and manual-copy
+  fallback.
+
+Tests:
+- Unit test public and private link text and authorization.
+- Browser test copy status, denied clipboard permission, and private-room
+  explanation.
+
+11. Widen or redesign room filter controls
+
+Problem:
+- The filters and dropdowns on /app/rooms are cramped and visually packed.
+
+Preferred direction:
+- First test a wider responsive filter modal or sheet with grouped controls,
+  readable labels, clear selections, Reset, and Apply.
+- If a wider inline control bar is better at desktop, use it there and retain
+  a sheet on mobile.
+- Do not use a native select. Continue using shared Select or Combobox
+  components.
+- Ensure the modal does not clip long topic or language labels.
+
+Tests:
+- Browser tests for open, select, reset, apply, Escape, outside click, and
+  keyboard navigation.
+- Responsive screenshots or layout assertions at the supported widths.
+
+Priority 3: profile identity, verification, and notifications UI
+----------------------------------------------------------------
+
+12. Expand user profiles
+
+The profile at /app/u/[username] should show, subject to privacy rules:
+- Display name
+- Immutable username
+- Verified email status, without exposing the email address publicly unless
+  an explicit privacy decision allows it
+- Date joined
+- Total accepted friends
+- Interests
+- Badges and badge counts
+- Bio, avatar, presence, mutual friends, and existing profile actions
+
+Rules:
+- Never expose another user's email address through a public profile.
+- Date joined and friend totals need consistent privacy and deletion behavior.
+- Deleted or suspended users keep the existing safe representation.
+- Seeded profiles remain natural and are not described as fake to visitors.
+
+Tests:
+- Serializer tests for public, owner, blocked, deleted, and private fields.
+- Browser test owner and visitor profile views.
+
+13. Verify email and lock identity fields
+
+Expected behavior:
+- Add an email verification status and verification action to
+  /app/settings/profile.
+- The verification flow uses the existing email challenge rules, rate limits,
+  expiry, and inline error patterns.
+- Verified email status is visible to the account owner.
+- Email and username fields are immutable after account creation.
+- The UI explains the immutable rule and does not present editable controls.
+- Server routes reject attempts to mutate either field, including crafted
+  requests and stale forms.
+- Username and email remain available for sign-in, recovery, and public
+  username links according to current product rules.
+
+Tests:
+- Unit and integration tests for verification, resend, expiry, and lockout.
+- API tests proving email and username mutation is rejected.
+- Browser test the settings display and verification action.
+
+14. Paginate and search notifications
+
+Expected behavior:
+- /app/notifications supports cursor pagination with a stable page size.
+- Search matches allowed notification text and relevant structured fields.
+- Search does not scan or expose private data outside the current user's
+  notification rows.
+- Read, unread, delete, undo where supported, and clear actions work across
+  pages without losing the active search.
+- The URL or local view state preserves the search and pagination position
+  when appropriate.
+- Loading, no results, error, and end-of-list states are explicit.
+
+Implementation scope:
+- Add a server-side cursor and search schema, not offset pagination.
+- Add indexes that support the chosen search fields and ordering.
+- Debounce client search requests and cancel stale requests.
+- Keep unread counts consistent after mutations and reconnect.
+
+Tests:
+- Unit test cursor boundaries, search normalization, and authorization.
+- Integration test multi-page search and mutation behavior.
+- Browser test search, next page, back navigation, and empty results.
+
+Priority 4: engagement and recommendations
+-------------------------------------------
+
+15. Email and in-app re-engagement for inactive people
+
+Expected behavior:
+- Identify people who have been inactive for more than seven days using a
+  privacy-safe last activity policy.
+- Send at most one re-engagement email per configured cooldown period.
+- Add a matching in-app notification when the person returns or when policy
+  permits it.
+- Copy can be warm, for example "You've missed a lot of gists", but must not
+  invent activity, counts, people, or room details.
+- Respect notification preferences, unsubscribes, quiet-hour policy, email
+  safety rules, deleted accounts, suspended accounts, and seed-account rules.
+- The email contains a deep link back to a useful page and a preferences link.
+- The job is idempotent and safe across retries.
+
+Implementation scope:
+- Define whether inactivity uses last session, last meaningful action, or both.
+- Add a durable dedupe key or re-engagement record.
+- Add a scheduled job and daily sweep path.
+- Add a template, plain text alternative, preview, and copy checks.
+
+Tests:
+- Unit test inactivity windows, cooldowns, preferences, and dedupe.
+- Integration test scheduled delivery and retry behavior.
+- Mail template test for content, links, and unsubscribe or preferences
+  behavior.
+
+16. Suggested friends
+
+Candidate signals:
+- Shared interests
+- Participation in the same rooms
+- Shared language or broad location, only where the person has consented
+- Mutual friends
+- Existing search and discoverability settings
+
+Safety and product rules:
+- Never recommend blocked, deleted, suspended, non-discoverable, or already
+  connected people.
+- Never expose the private reason a person was recommended.
+- Location must be coarse and opt-in. Do not use precise location.
+- Room participation must not reveal private-room membership.
+- Recommendations need rate limits, stable ordering, and dismissal or
+  not-interested controls.
+- Start with explainable ranking and a small capped result set rather than a
+  hidden opaque score.
+
+Implementation scope:
+- Define a recommendation DTO and a server-side ranking function.
+- Add the minimum indexes and precomputed aggregates only after measuring.
+- Add an activity or recommendation dedupe policy.
+- Add a Find people section and empty state.
+
+Tests:
+- Unit test ranking signals and exclusion rules.
+- Integration test blocks, privacy, mutual friends, interests, and room
+  visibility.
+- Browser test recommendation actions, dismissal, and loading states.
+
+Priority 5: badge system, design discussion, and long-term polish
+------------------------------------------------------------------
+
+17. User badges
+
+Product shape:
+- Define ten badge families.
+- A badge follows the user everywhere it is shown: profile, chat header,
+  message metadata where appropriate, room participant tile, room member list,
+  search result, and notification preview where space allows.
+- Each badge has a name, icon, short explanation, eligibility rule, earned
+  timestamp, and display order.
+- One badge family can be earned multiple times. Display the count as x2, x5,
+  and so on, with an accessible text equivalent.
+- Counts must be earned from server-trusted events, never from client claims.
+- Badge grants are idempotent and auditable.
+- Users can hide a badge from selected surfaces only if the final privacy
+  decision supports it. The earned record should not be silently deleted.
+
+Badge discussion proposal:
+1. First Room Host
+   Requirement: host one completed room.
+2. Room Host
+   Requirement: host five completed rooms.
+3. Helpful Host
+   Requirement: host ten completed rooms with no unresolved moderation
+   action attributed to the host.
+4. Regular Attendee
+   Requirement: attend five completed rooms.
+5. Conversation Starter
+   Requirement: participate in ten distinct rooms or chats with meaningful
+   activity, using a server-defined anti-spam threshold.
+6. Good Listener
+   Requirement: attend five rooms without moderation removal and remain for a
+   minimum measured duration.
+7. Community Builder
+   Requirement: accept or maintain ten friendships with no active block or
+   safety restriction.
+8. Topic Explorer
+   Requirement: participate in rooms across five distinct topics.
+9. Consistent Gist
+   Requirement: return and participate on five separate calendar days.
+10. Trusted Reporter
+    Requirement: submit a report that is reviewed and resolved as actionable.
+
+Questions to settle before implementation:
+- Whether badges are permanent or can be revoked after moderation action.
+- Whether hosts can earn multiple counts for the same room.
+- Whether friend and activity badges should count seeded or internal users.
+- Whether sensitive badges such as Trusted Reporter should be private or
+  omitted from public surfaces.
+- Whether "Good Listener" is a useful concept or should be replaced with a
+  data-saver or audio-first badge.
+- Exact anti-spam thresholds and minimum room durations.
+- Whether badge counts show the total lifetime count or only completed grants.
+
+Implementation scope:
+- Add badge definitions and a versioned eligibility evaluator in shared
+  contracts.
+- Add badge grant records, unique keys, source event references, and audit
+  metadata in Prisma.
+- Add a safe grant worker or transaction hooks for relevant events.
+- Add badge serialization to profile and participant DTOs.
+- Add a profile badge section with accessible labels and explanations.
+- Add moderation and account deletion behavior.
+
+Tests:
+- Unit test every definition, repeated grants, thresholds, and revocation
+  decisions.
+- Integration test grants from rooms, friends, interests, activity, and
+  reports.
+- Browser test profile display, xN counts, responsive layout, and accessible
+  names.
+
+Cross-cutting delivery requirements
+-----------------------------------
+
+- Follow the existing architecture: Prisma for database access, Zod for
+  request and event validation, shared contracts for web and realtime, and
+  private media storage for chat attachments.
+- Keep all user-facing strings in the content modules. Do not inline new copy
+  in components.
+- Use Lucide icons, design tokens, shared feedback modals, and inline form
+  errors. Do not add toast libraries.
+- Preserve the no-emoji and no-dash copy rules enforced by the repository.
+- Add empty, loading, error, offline, unauthorized, and reduced-motion states.
+- Add rate limits, idempotency, authorization, audit logging, and privacy
+  checks for every mutation.
+- Update README, CHANGELOG, relevant wiki pages, and Decisions.md when a
+  product decision changes the documented behavior.
+- Add focused tests before broad verification. Run npm run verify:changed for
+  each slice, then the full npm run verify before release or shared-code
+  delivery.
+- Do not implement any item in this file without first turning its questions
+  into an agreed decision and a vertical-slice plan.

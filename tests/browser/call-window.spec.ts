@@ -215,10 +215,7 @@ test.describe("call window on a desktop", () => {
 test.describe("rooms in the call window", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  test("a room opened from Discover floats over Discover and the address stays", async ({
-    page,
-    context,
-  }) => {
+  test("a room opened from Discover navigates to its full page", async ({ page, context }) => {
     const host = await createUser("cwh1", { name: "Room Host" });
     const guest = await createUser("cwg1", { name: "Room Guest" });
     const room = await createRoom(host, { title: "Window talk", topic: "football" });
@@ -228,23 +225,19 @@ test.describe("rooms in the call window", () => {
       .getByRole("link", { name: /Window talk/ })
       .first()
       .click();
-    const win = page.getByTestId("call-window");
-    await expect(win).toBeVisible();
-    await expect(page).toHaveURL(/\/app\/discover/);
-    await expect(win.getByRole("button", { name: "Join room" })).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`/app/rooms/${room.slug}`));
+    await expect(page.getByTestId("call-window")).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Window talk", level: 1 })).toBeVisible();
     expect(room.slug.length).toBeGreaterThan(3);
   });
 
-  test("the room address opens the window over a details page", async ({ page, context }) => {
+  test("the room address opens the full room page", async ({ page, context }) => {
     const host = await createUser("cwh2", { name: "Room Host" });
     const guest = await createUser("cwg2", { name: "Room Guest" });
     const room = await createRoom(host, { title: "Deep link talk" });
     await signIn(context, guest);
     await page.goto(`/app/rooms/${room.slug}`);
-    await expect(page.getByTestId("call-window")).toBeVisible();
-    await expect(
-      page.getByRole("heading", { name: "This room is open in the call window" }),
-    ).toBeVisible();
+    await expect(page.getByTestId("call-window")).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "Deep link talk", level: 1 })).toBeVisible();
   });
 

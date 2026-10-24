@@ -13,7 +13,7 @@ Owner: Kenny (@oyedokunken, https://www.oyedokun.dev/). Gistroom is built by @oy
 3. After every change, run `npm run verify:changed` (only the checks your files need). Before a release, a push that touches shared code, or when asked, run the full `npm run verify`. Never say a task is done until the checks you ran are green. Report what ran and what passed in two or three lines.
 4. Work in vertical slices (schema, API, realtime, UI, tests, docs together). Commit after each green slice.
 5. Plan first for anything big. Write a short plan (what, files, risks), then build, then critique your own result against this file. Remove one decoration before calling a screen finished.
-6. Never invent facts in product copy: no made-up user counts, testimonials, company logos, awards or press. Sample content must be labeled as sample.
+6. Never invent facts in product copy: no made-up user counts, testimonials, company logos, awards or press. Sample content shown in the UI must be labeled as sample. Seeded profiles are identified internally by `User.isSeed`; keep their bios natural unless the owner asks for a visible label.
 7. Keep this file, the README, the wiki and the CHANGELOG current. A feature without docs is not done.
 8. When something here is ambiguous, pick the safest reading, note it under "Decisions" in `wiki/Decisions.md`, and keep moving.
 

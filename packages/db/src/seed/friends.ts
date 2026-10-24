@@ -5,7 +5,7 @@ import type { PrismaClient } from "../generated/client";
 /**
  * A targeted test world around one real account (the prime test user) and, optionally, a second one. Thirty
  * Nigerian people with real sounding names, their gist, their rooms and their calls, all marked `isSeed` so one
- * command removes every trace of them before launch. Every bio says it is a test account (CLAUDE.md rule 0.6).
+ * command removes every trace of them before launch. Seeded profiles have natural bios and are marked `isSeed` internally.
  * Seeded people never log in and are never emailed.
  */
 
@@ -388,14 +388,12 @@ const CHATS: Record<string, Line[]> = {
   ],
 };
 
-/** Calls the prime user had with friends: who, media, outcome, minutes, days ago, hour of day. */
+/** Seed call records with all timestamps at or after the current seed time. */
 const CALLS: {
   name: string;
   media: "AUDIO" | "VIDEO";
   outcome: "ANSWERED" | "MISSED" | "DECLINED";
   min: number;
-  daysAgo: number;
-  hour: number;
   mine: boolean;
 }[] = [
   {
@@ -403,8 +401,6 @@ const CALLS: {
     media: "AUDIO",
     outcome: "ANSWERED",
     min: 32,
-    daysAgo: 0,
-    hour: 12,
     mine: true,
   },
   {
@@ -412,13 +408,11 @@ const CALLS: {
     media: "VIDEO",
     outcome: "ANSWERED",
     min: 18,
-    daysAgo: 1,
-    hour: 16,
     mine: false,
   },
-  { name: "Chidi", media: "AUDIO", outcome: "MISSED", min: 0, daysAgo: 2, hour: 9, mine: false },
-  { name: "Ngozi", media: "VIDEO", outcome: "ANSWERED", min: 47, daysAgo: 3, hour: 20, mine: true },
-  { name: "Bayo", media: "AUDIO", outcome: "DECLINED", min: 0, daysAgo: 4, hour: 22, mine: true },
+  { name: "Chidi", media: "AUDIO", outcome: "MISSED", min: 0, mine: false },
+  { name: "Ngozi", media: "VIDEO", outcome: "ANSWERED", min: 47, mine: true },
+  { name: "Bayo", media: "AUDIO", outcome: "DECLINED", min: 0, mine: true },
 ];
 
 const SCHEDULED: {
@@ -428,7 +422,6 @@ const SCHEDULED: {
   media: "AUDIO" | "VIDEO";
   language: "ENGLISH" | "PIDGIN" | "YORUBA" | "IGBO" | "HAUSA";
   description: string;
-  hours: number;
 }[] = [
   {
     title: "Arsenal vs Chelsea: who go win?",
@@ -437,7 +430,6 @@ const SCHEDULED: {
     media: "AUDIO",
     language: "PIDGIN",
     description: "Match preview, predictions and banter. Bring your scoreline.",
-    hours: 20,
   },
   {
     title: "Japa diaries: UK or Canada?",
@@ -446,7 +438,6 @@ const SCHEDULED: {
     media: "VIDEO",
     language: "ENGLISH",
     description: "Someone who did it answers your visa, work and settling in questions.",
-    hours: 30,
   },
   {
     title: "Jollof wars: Lagos, Port Harcourt or Ghana?",
@@ -455,7 +446,6 @@ const SCHEDULED: {
     media: "AUDIO",
     language: "PIDGIN",
     description: "The only debate that matters. Recipes allowed.",
-    hours: 44,
   },
   {
     title: "Amapiano vs Afrobeats: what is on repeat",
@@ -464,7 +454,6 @@ const SCHEDULED: {
     media: "AUDIO",
     language: "ENGLISH",
     description: "DJ Segun plays and argues. Request a song.",
-    hours: 52,
   },
   {
     title: "Fuel price and your pocket",
@@ -473,7 +462,6 @@ const SCHEDULED: {
     media: "AUDIO",
     language: "ENGLISH",
     description: "How people are coping, and what can change.",
-    hours: 70,
   },
   {
     title: "NYSC camp stories and what they never told you",
@@ -482,7 +470,6 @@ const SCHEDULED: {
     media: "AUDIO",
     language: "PIDGIN",
     description: "Orientation camp, posting day and primary assignment gist.",
-    hours: 76,
   },
   {
     title: "Side hustles that actually pay in 2026",
@@ -491,7 +478,6 @@ const SCHEDULED: {
     media: "AUDIO",
     language: "ENGLISH",
     description: "Real numbers from real hustles. No get rich quick.",
-    hours: 96,
   },
   {
     title: "Situationship edition: when is it love?",
@@ -500,7 +486,6 @@ const SCHEDULED: {
     media: "AUDIO",
     language: "PIDGIN",
     description: "A marriage counsellor and friends talk honestly.",
-    hours: 120,
   },
   {
     title: "Best Nollywood movie of the year so far",
@@ -509,7 +494,6 @@ const SCHEDULED: {
     media: "VIDEO",
     language: "ENGLISH",
     description: "Vote, defend your pick, find something to watch tonight.",
-    hours: 140,
   },
   {
     title: "WAEC and JAMB: tips from people who passed",
@@ -518,7 +502,6 @@ const SCHEDULED: {
     media: "AUDIO",
     language: "ENGLISH",
     description: "Study plans, timetables and mistakes to avoid.",
-    hours: 160,
   },
   {
     title: "Building in Yaba: startup lessons",
@@ -527,7 +510,6 @@ const SCHEDULED: {
     media: "VIDEO",
     language: "ENGLISH",
     description: "Hiring, fundraising and shipping in Lagos.",
-    hours: 200,
   },
   {
     title: "Sunday reflections",
@@ -536,72 +518,44 @@ const SCHEDULED: {
     media: "AUDIO",
     language: "HAUSA",
     description: "A calm conversation about faith and daily life.",
-    hours: 230,
   },
-];
-
-const ENDED: {
-  title: string;
-  topic: string;
-  hostFirst: string;
-  guests: string[];
-  peak: number;
-  messages: number;
-  reactions: number;
-  daysAgo: number;
-  minutes: number;
-}[] = [
   {
-    title: "Last night's match, the full gist",
+    title: "Match day predictions",
     topic: "football",
     hostFirst: "Adaeze",
-    guests: ["Tunde", "Chidi", "Femi", "Kelechi"],
-    peak: 5,
-    messages: 38,
-    reactions: 21,
-    daysAgo: 1,
-    minutes: 62,
+    media: "AUDIO",
+    language: "PIDGIN",
+    description: "Bring your scoreline and make your case before kickoff.",
   },
   {
-    title: "Owambe season planning",
+    title: "Owambe plans for the weekend",
     topic: "fashion-and-owambe",
     hostFirst: "Zainab",
-    guests: ["Yetunde", "Nkechi", "Funmi"],
-    peak: 4,
-    messages: 17,
-    reactions: 9,
-    daysAgo: 3,
-    minutes: 41,
+    media: "VIDEO",
+    language: "ENGLISH",
+    description: "Outfit ideas, colour combinations and event plans.",
   },
   {
-    title: "Getting your first tech job",
+    title: "Your first tech job: ask anything",
     topic: "careers-and-jobs",
     hostFirst: "Ngozi",
-    guests: ["Tunde", "Obinna", "Rotimi", "Dayo"],
-    peak: 5,
-    messages: 52,
-    reactions: 30,
-    daysAgo: 5,
-    minutes: 75,
+    media: "AUDIO",
+    language: "ENGLISH",
+    description: "Bring your CV questions and hear practical advice.",
   },
   {
-    title: "Gbedu hour: what is on repeat",
+    title: "Gbedu hour: new sounds",
     topic: "music-and-gbedu",
     hostFirst: "Bayo",
-    guests: ["Segun", "Adaeze"],
-    peak: 3,
-    messages: 24,
-    reactions: 14,
-    daysAgo: 7,
-    minutes: 55,
+    media: "AUDIO",
+    language: "ENGLISH",
+    description: "Share what is on repeat and find your next favourite track.",
   },
 ];
 
 const userEmail = (p: Person) => `${p.first}.${p.last}.gistroom@${p.domain}`.toLowerCase();
 const userName = (p: Person) => `${p.last}_${p.first}`.toLowerCase().slice(0, 20);
 const orderedPair = (a: string, b: string) => (a < b ? { low: a, high: b } : { low: b, high: a });
-const minutesAgo = (m: number, now: Date) => new Date(now.getTime() - m * 60_000);
-
 export interface FriendsSummary {
   people: number;
   friendships: number;
@@ -609,7 +563,6 @@ export interface FriendsSummary {
   messages: number;
   calls: number;
   scheduledRooms: number;
-  endedRooms: number;
   notifications: number;
 }
 
@@ -624,6 +577,14 @@ export async function seedFriendsWorld(
     ? await db.user.findUnique({ where: { email: input.secondEmail } })
     : null;
 
+  const firstRoomAt = new Date(now.getTime() + 20 * 3_600_000);
+  const endOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0, 23, 59, 59, 999);
+  const scheduledRoomAt = (index: number) =>
+    new Date(
+      firstRoomAt.getTime() +
+        ((endOfNextMonth.getTime() - firstRoomAt.getTime()) * index) / (SCHEDULED.length - 1),
+    );
+
   // People
   const ids = new Map<string, string>();
   for (const p of PEOPLE) {
@@ -635,15 +596,19 @@ export async function seedFriendsWorld(
         passwordHash: null,
         name: `${p.first} ${p.last}`,
         username: userName(p),
-        bio: `${p.bio} (${p.city}. Test account.)`,
+        bio: `${p.bio} (${p.city})`,
         onboardedAt: now,
         ageConfirmedAt: now,
         termsAcceptedAt: now,
-        lastSeenAt: minutesAgo(p.seen, now),
+        lastSeenAt: now,
         isSeed: true,
         timezone: "Africa/Lagos",
       },
-      update: { lastSeenAt: minutesAgo(p.seen, now), isSeed: true },
+      update: {
+        bio: `${p.bio} (${p.city})`,
+        lastSeenAt: now,
+        isSeed: true,
+      },
     });
     ids.set(p.first, row.id);
     await db.userInterest.createMany({
@@ -661,18 +626,22 @@ export async function seedFriendsWorld(
     const had = await db.friendship.findUnique({
       where: { userLowId_userHighId: { userLowId: low, userHighId: high } },
     });
-    if (had) return;
+    if (had) {
+      await db.friendship.update({
+        where: { id: had.id },
+        data: { createdAt: since, nextAnniversaryAt: nextYear },
+      });
+      return;
+    }
     await db.friendship.create({
       data: { userLowId: low, userHighId: high, nextAnniversaryAt: nextYear, createdAt: since },
     });
     friendships += 1;
   };
-  const day = (n: number) => new Date(now.getTime() - n * 86_400_000);
-  for (const [i, p] of PEOPLE.entries()) {
-    if (p.with === "felix" || p.with === "both")
-      await befriend(felix.id, id(p.first), day(20 + i * 9));
+  for (const p of PEOPLE) {
+    if (p.with === "felix" || p.with === "both") await befriend(felix.id, id(p.first), now);
     if ((p.with === "second" || p.with === "both") && second)
-      await befriend(second.id, id(p.first), day(15 + i * 7));
+      await befriend(second.id, id(p.first), now);
   }
   // The seeded people know each other too, so mutual friends show up.
   const web: [string, string][] = [
@@ -692,7 +661,7 @@ export async function seedFriendsWorld(
     ["Emeka", "Chinedu"],
     ["Ibrahim", "Usman"],
   ];
-  for (const [a, b] of web) await befriend(id(a), id(b), day(40));
+  for (const [a, b] of web) await befriend(id(a), id(b), now);
 
   // Requests: three waiting for the prime user, one they sent that is waiting, one rejected, one blocked
   let requests = 0;
@@ -700,16 +669,27 @@ export async function seedFriendsWorld(
     const had = await db.friendRequest.findFirst({
       where: { requesterId: from, addresseeId: to },
     });
-    if (had) return;
+    if (had) {
+      await db.friendRequest.update({
+        where: { id: had.id },
+        data: {
+          status,
+          createdAt: now,
+          respondedAt: status === "REJECTED" ? now : null,
+          retryAfter: status === "REJECTED" ? new Date(now.getTime() + 6 * 86_400_000) : null,
+        },
+      });
+      return;
+    }
     await db.friendRequest.create({
       data: {
         requesterId: from,
         addresseeId: to,
         status,
         ...(status === "REJECTED"
-          ? { respondedAt: day(1), retryAfter: new Date(now.getTime() + 6 * 86_400_000) }
+          ? { respondedAt: now, retryAfter: new Date(now.getTime() + 6 * 86_400_000) }
           : {}),
-        createdAt: minutesAgo(30 + requests * 70, now),
+        createdAt: now,
       },
     });
     requests += 1;
@@ -745,9 +725,7 @@ export async function seedFriendsWorld(
       });
     }
     if ((await db.message.count({ where: { conversationId: convo.id } })) > 0) continue;
-    const base =
-      now.getTime() -
-      (lines.length + 3) * 3_600_000 * (1 + Object.keys(CHATS).indexOf(first) * 0.4);
+    const base = now.getTime() + Object.keys(CHATS).indexOf(first) * 30 * 60_000;
     let lastRow: { id: string; createdAt: Date } | null = null;
     for (const [i, [who, text]] of lines.entries()) {
       const row: { id: string; createdAt: Date } = await db.message.create({
@@ -780,17 +758,15 @@ export async function seedFriendsWorld(
 
   // Calls the prime user had, shown in the chats and in the call log
   let calls = 0;
-  for (const c of CALLS) {
+  for (const [callIndex, c] of CALLS.entries()) {
     const them = id(c.name);
     const { low, high } = orderedPair(felix.id, them);
     const convo = await db.conversation.findUnique({ where: { dmKey: `${low}:${high}` } });
     if (!convo) continue;
-    const startedAt = new Date(now.getTime() - c.daysAgo * 86_400_000);
-    startedAt.setHours(c.hour, 0, 0, 0);
-    if (startedAt > now) startedAt.setTime(now.getTime() - 30 * 60_000);
+    const startedAt = new Date(now.getTime() + callIndex * 2 * 3_600_000);
     const caller = c.mine ? felix.id : them;
     const callee = c.mine ? them : felix.id;
-    const clientId = `seedcall:${c.name}:${c.daysAgo}`;
+    const clientId = `seedcall:${c.name}`;
     const had = await db.message.findUnique({
       where: { senderId_clientId: { senderId: caller, clientId } },
     });
@@ -858,7 +834,27 @@ export async function seedFriendsWorld(
   let scheduledRooms = 0;
   for (const [i, r] of SCHEDULED.entries()) {
     const host = id(r.hostFirst);
-    if (await db.room.findFirst({ where: { title: r.title, hostId: host } })) continue;
+    const existing = await db.room.findFirst({
+      where: { title: r.title, hostId: host },
+      select: { id: true },
+    });
+    if (existing) {
+      await db.room.update({
+        where: { id: existing.id },
+        data: {
+          status: "SCHEDULED",
+          scheduledFor: scheduledRoomAt(i),
+          startedAt: null,
+          endedAt: null,
+          createdAt: now,
+          peakParticipants: 0,
+          messageCount: 0,
+          reactionCount: 0,
+        },
+      });
+      scheduledRooms += 1;
+      continue;
+    }
     await db.room.create({
       data: {
         slug: slugFromBytes(randomBytes(12)),
@@ -869,7 +865,7 @@ export async function seedFriendsWorld(
         language: r.language,
         media: r.media,
         status: "SCHEDULED",
-        scheduledFor: new Date(now.getTime() + r.hours * 3_600_000),
+        scheduledFor: scheduledRoomAt(i),
         livekitRoom: `room_${randomUUID()}`,
         members: {
           create: [
@@ -882,7 +878,23 @@ export async function seedFriendsWorld(
     scheduledRooms += 1;
   }
   const privateTitle = "Friends only: weekend plans";
-  if (!(await db.room.findFirst({ where: { title: privateTitle, hostId: id("Tunde") } }))) {
+  const existingPrivate = await db.room.findFirst({
+    where: { title: privateTitle, hostId: id("Tunde") },
+    select: { id: true },
+  });
+  if (existingPrivate) {
+    await db.room.update({
+      where: { id: existingPrivate.id },
+      data: {
+        status: "SCHEDULED",
+        scheduledFor: new Date(now.getTime() + 26 * 3_600_000),
+        startedAt: null,
+        endedAt: null,
+        createdAt: now,
+      },
+    });
+    scheduledRooms += 1;
+  } else {
     await db.room.create({
       data: {
         slug: slugFromBytes(randomBytes(12)),
@@ -913,6 +925,7 @@ export async function seedFriendsWorld(
     topic: string;
     minutes: number;
     guests: string[];
+    description?: string;
   }[] = [
     {
       host: felix.id,
@@ -928,6 +941,22 @@ export async function seedFriendsWorld(
       minutes: 180,
       guests: ["Emeka", "Kemi", "Ngozi"],
     },
+    {
+      host: felix.id,
+      title: "Chelsea Banter",
+      topic: "football",
+      minutes: 60,
+      guests: ["Adaeze", "Tunde", "Chidi", "Femi"],
+      description: "Match talk, bold predictions and proper Chelsea banter before kickoff.",
+    },
+    {
+      host: felix.id,
+      title: "Anime Lovers Room",
+      topic: "entertainment-and-pop-culture",
+      minutes: 180,
+      guests: ["Seun", "Obinna", "Ifeoma"],
+      description: "Explore new worlds, future tech and the anime worth watching next.",
+    },
     ...(second
       ? [
           {
@@ -937,11 +966,66 @@ export async function seedFriendsWorld(
             minutes: 40,
             guests: ["Blessing", "Amina", "Bayo", "Yetunde"],
           },
+          {
+            host: second.id,
+            title: "FUTA Alumni Connect",
+            topic: "campus-life",
+            minutes: 24 * 60,
+            guests: ["Dayo", "Tolani", "Obinna", "Ifeoma"],
+            description: "FUTA graduates reconnect, share opportunities and build what comes next.",
+          },
         ]
       : []),
   ];
   for (const h of hosted) {
-    if (await db.room.findFirst({ where: { title: h.title, hostId: h.host } })) continue;
+    const existing = await db.room.findFirst({
+      where: { title: h.title, hostId: h.host },
+      select: { id: true },
+    });
+    if (existing) {
+      const scheduledFor = new Date(now.getTime() + h.minutes * 60_000);
+      await db.roomMessage.deleteMany({ where: { roomId: existing.id } });
+      await db.roomModLog.deleteMany({ where: { roomId: existing.id } });
+      await db.roomInviteLink.deleteMany({ where: { roomId: existing.id } });
+      await db.note.deleteMany({ where: { roomId: existing.id } });
+      await db.roomMember.deleteMany({ where: { roomId: existing.id } });
+      await db.room.update({
+        where: { id: existing.id },
+        data: {
+          title: h.title,
+          topicId: topics.get(h.topic) ?? null,
+          description:
+            h.description ??
+            "A sample room for testing. Say you are coming and wait for the host to start.",
+          visibility: "PUBLIC",
+          status: "SCHEDULED",
+          scheduledFor,
+          startedAt: null,
+          endedAt: null,
+          locked: false,
+          peakParticipants: 0,
+          messageCount: 0,
+          reactionCount: 0,
+          emptySince: null,
+          longWarnedAt: null,
+          livekitRoom: `room_seed_${randomUUID()}`,
+          createdAt: now,
+        },
+      });
+      const others = [felix.id, second?.id].filter((x): x is string => Boolean(x) && x !== h.host);
+      await db.roomMember.createMany({
+        data: [
+          { roomId: existing.id, userId: h.host, role: "HOST", state: "INVITED" },
+          ...[...h.guests.map(id), ...others].map((userId) => ({
+            roomId: existing.id,
+            userId,
+            state: "INVITED" as const,
+          })),
+        ],
+      });
+      scheduledRooms += 1;
+      continue;
+    }
     const others = [felix.id, second?.id].filter((x): x is string => Boolean(x) && x !== h.host);
     await db.room.create({
       data: {
@@ -950,6 +1034,7 @@ export async function seedFriendsWorld(
         title: h.title,
         topicId: topics.get(h.topic) ?? null,
         description:
+          h.description ??
           "A sample room for testing. Say you are coming and wait for the host to start.",
         language: "ENGLISH",
         media: "AUDIO",
@@ -969,43 +1054,6 @@ export async function seedFriendsWorld(
     });
     scheduledRooms += 1;
   }
-  let endedRooms = 0;
-  for (const r of ENDED) {
-    const host = id(r.hostFirst);
-    if (await db.room.findFirst({ where: { title: r.title, hostId: host } })) continue;
-    const started = new Date(now.getTime() - r.daysAgo * 86_400_000);
-    const stopped = new Date(started.getTime() + r.minutes * 60_000);
-    const guests = [...r.guests.map(id), felix.id];
-    await db.room.create({
-      data: {
-        slug: slugFromBytes(randomBytes(12)),
-        hostId: host,
-        title: r.title,
-        topicId: topics.get(r.topic) ?? null,
-        description: "A past room for testing.",
-        status: "ENDED",
-        startedAt: started,
-        endedAt: stopped,
-        peakParticipants: r.peak,
-        messageCount: r.messages,
-        reactionCount: r.reactions,
-        livekitRoom: `room_${randomUUID()}`,
-        members: {
-          create: [
-            { userId: host, role: "HOST", state: "LEFT", joinedAt: started, leftAt: stopped },
-            ...guests.map((g) => ({
-              userId: g,
-              state: "LEFT" as const,
-              joinedAt: started,
-              leftAt: stopped,
-            })),
-          ],
-        },
-      },
-    });
-    endedRooms += 1;
-  }
-
   // Notifications for the prime user, with real request ids so the buttons work
   let notifications = 0;
   const note = async (
@@ -1025,7 +1073,7 @@ export async function seedFriendsWorld(
         dedupeKey: `seedfw:${key}`,
         payload: payload as never,
         readAt: read ? now : null,
-        createdAt: minutesAgo(10 + notifications * 25, now),
+        createdAt: new Date(now.getTime() + notifications * 5 * 60_000),
       },
     });
     notifications += 1;
@@ -1069,7 +1117,6 @@ export async function seedFriendsWorld(
     messages,
     calls,
     scheduledRooms,
-    endedRooms,
     notifications,
   };
 }

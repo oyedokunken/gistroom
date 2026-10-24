@@ -36,6 +36,7 @@ export function RoomLobby({
 }) {
   const scheduled = room.status === "SCHEDULED";
   const host = room.myRole === "HOST";
+  const secondaryText = embedded ? "text-white/80" : "text-text-muted";
   return (
     <div className="mx-auto flex max-w-lg flex-col items-center gap-5 px-6 py-16 text-center">
       <div className="flex flex-wrap items-center justify-center gap-2">
@@ -52,38 +53,42 @@ export function RoomLobby({
         ) : null}
         {room.locked ? <Badge>{copy.stage.locked}</Badge> : null}
         <Badge>{room.media === "VIDEO" ? copy.create.video : copy.create.audio}</Badge>
-        <span className="text-sm text-text-muted">{LANGUAGE_LABELS[room.language]}</span>
+        <span className={`text-sm ${secondaryText}`}>{LANGUAGE_LABELS[room.language]}</span>
       </div>
       {embedded ? (
-        <h2 className="text-3xl font-black tracking-tight text-text">{room.title}</h2>
+        <h2 className="text-3xl font-black tracking-tight text-white">{room.title}</h2>
       ) : (
         <h1 className="text-3xl font-black tracking-tight text-text">{room.title}</h1>
       )}
-      {room.description ? <p className="max-w-prose text-text-muted">{room.description}</p> : null}
-      <p className="flex items-center gap-2 text-text-muted">
+      {room.description ? (
+        <p className={`max-w-prose ${secondaryText}`}>{room.description}</p>
+      ) : null}
+      <p className={`flex items-center gap-2 ${secondaryText}`}>
         <Avatar name={room.host.name} src={room.host.avatarUrl} size={28} />
         {room.host.name}
       </p>
-      <p className="tabular text-sm text-text-muted">
+      <p className={`tabular text-sm ${secondaryText}`}>
         {copy.stage.peopleOf(room.joined, room.max)}
       </p>
       {room.settings.joinMuted ? (
-        <p className="text-sm text-text-muted">{copy.stage.joinMutedNote}</p>
+        <p className={`text-sm ${secondaryText}`}>{copy.stage.joinMutedNote}</p>
       ) : null}
       {scheduled && room.scheduledFor ? (
-        <p className="text-text">
+        <p className={embedded ? "text-white" : "text-text"}>
           {copy.stage.startingSoon(formatFull(new Date(room.scheduledFor)))}
         </p>
       ) : null}
       {scheduled && !host ? (
         <div className="flex flex-col items-center gap-2">
           {room.going ? (
-            <p className="flex items-center gap-2 font-semibold text-green-700">
+            <p
+              className={`flex items-center gap-2 font-semibold ${embedded ? "text-green-300" : "text-green-700"}`}
+            >
               <BellRing aria-hidden className="size-4" />
               {copy.stage.goingTitle}
             </p>
           ) : null}
-          <p className="max-w-sm text-sm text-text-muted">
+          <p className={`max-w-sm text-sm ${secondaryText}`}>
             {room.going ? copy.stage.goingBody : copy.stage.waitingNote}
           </p>
           <Button

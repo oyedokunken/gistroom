@@ -60,7 +60,7 @@ process.stdout.write(
     `  second user ${second}: ${found.second ? `found (@${found.second.username})` : "not found, their friends are skipped"}`,
     `  seeded people already there: ${already}`,
     `  would add up to ${PEOPLE.length} people (gmail.com and yahoo.com), friendships, requests, chats with real gist,`,
-    `  five calls shown in the chats, twelve scheduled public rooms, one private room and four ended rooms.`,
+    `  five call records, sixteen scheduled public rooms, one private room and up to six hosted future rooms.`,
     "",
   ].join("\n"),
 );

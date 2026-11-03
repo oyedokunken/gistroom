@@ -6,7 +6,7 @@
 
 Friends, chats, calls and rooms. Audio first, built for Nigerian data.
 
-[Live app](https://gistroom.vercel.app) · [Realtime health](https://gistroom-realtime.onrender.com/health) · [Spec](CLAUDE.md) · [Wiki](wiki/Home.md) · [Changelog](CHANGELOG.md)
+[Live app](https://gistroom.oyedokun.dev) · [Realtime health](https://gistroom-realtime.onrender.com/health) · [Spec](CLAUDE.md) · [Wiki](wiki/Home.md) · [Changelog](CHANGELOG.md)
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=nextdotjs)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
@@ -525,7 +525,7 @@ gistroom/
 
 ## API reference
 
-All routes are under `https://gistroom.vercel.app/api`. Every mutating route checks the `Origin` header, validates input with Zod, rate limits, and authorizes on the server. Errors return `{ error: { code, message, fields? } }`.
+All routes are under `https://gistroom.oyedokun.dev/api`. Every mutating route checks the `Origin` header, validates input with Zod, rate limits, and authorizes on the server. Errors return `{ error: { code, message, fields? } }`.
 
 ### Auth
 

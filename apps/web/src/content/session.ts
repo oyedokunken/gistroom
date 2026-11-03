@@ -78,7 +78,7 @@ export const session = {
     ],
     stepsSafari: [
       "Open Settings, then Safari (or the app), then Camera and Microphone.",
-      "Choose Allow for gistroom.ng.",
+      "Choose Allow for gistroom.oyedokun.dev.",
       "Come back and select Try again.",
     ],
     stepsFirefox: [

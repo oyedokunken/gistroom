@@ -39,8 +39,8 @@ Generate secrets with `node scripts/gen-secrets.mjs` and VAPID keys with `node s
 
 ## 4. Keep the free tier awake
 
-Create an UptimeRobot or cron-job.org monitor that requests `https://gistroom.ng/api/health` and `https://<your-render-host>/health` every 5 minutes. Clients also reconnect with backoff, because Render restarts too.
+Create an UptimeRobot or cron-job.org monitor that requests `https://gistroom.oyedokun.dev/api/health` and `https://<your-render-host>/health` every 5 minutes. Clients also reconnect with backoff, because Render restarts too.
 
 ## 5. Domain
 
-Point `gistroom.ng` at Vercel and add `www.gistroom.ng` as a redirect to the apex (the app also redirects `www` in `next.config.ts`). Set `ALLOWED_ORIGINS` on Render to `https://gistroom.ng`.
+The live address is `https://gistroom.oyedokun.dev` (D93). Add it as a domain on the Vercel project (a CNAME record for `gistroom` pointing at `cname.vercel-dns.com`), then set `APP_URL` and `NEXT_PUBLIC_APP_URL` to it on Vercel, `WEB_APP_URL` on Render to it, and `ALLOWED_ORIGINS` on Render to `https://gistroom.oyedokun.dev,https://gistroom.ng`. Update the Google OAuth redirect URI to `https://gistroom.oyedokun.dev/api/auth/google/callback`. The old `gistroom.vercel.app` host redirects every page to the new address (API routes are left alone, see `next.config.ts`). `gistroom.ng` is untouched for now; `www.gistroom.ng` still redirects to its apex.

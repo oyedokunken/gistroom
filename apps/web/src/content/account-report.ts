@@ -35,7 +35,7 @@ export const dataReport = {
   tileHosted: "Rooms hosted",
   tileJoined: "Rooms joined",
   tileMessages: "Messages",
-  footerBrand: "gistroom.ng",
+  footerBrand: "gistroom.oyedokun.dev",
   footerMade: (when: string) => `Made ${when}`,
   footerPage: (n: number, total: number) => `Page ${n} of ${total}`,
   mediaLabel: (m: string) => (m === "VIDEO" ? "Video" : m === "AUDIO" ? "Audio" : "Mixed"),

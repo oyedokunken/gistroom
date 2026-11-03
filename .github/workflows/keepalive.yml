@@ -17,7 +17,7 @@ jobs:
       - name: Ping realtime and web
         env:
           REALTIME_URL: ${{ vars.REALTIME_URL || 'https://gistroom-realtime.onrender.com' }}
-          WEB_URL: ${{ vars.WEB_URL || 'https://gistroom.vercel.app' }}
+          WEB_URL: ${{ vars.WEB_URL || 'https://gistroom.oyedokun.dev' }}
         run: |
           curl --fail --silent --show-error --retry 3 --retry-delay 10 --max-time 90 "$REALTIME_URL/health"
           echo

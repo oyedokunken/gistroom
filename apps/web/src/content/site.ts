@@ -3,7 +3,7 @@ export const site = {
   tagline: "Come gist. Properly.",
   description:
     "Talk live about Nigeria. Start a room, call your friends and chat. Audio first, built for Nigerian data.",
-  url: "https://gistroom.ng",
+  url: "https://gistroom.oyedokun.dev",
 } as const;
 
 export const home = {

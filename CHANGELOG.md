@@ -6,6 +6,8 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ### Added
 
+- Gistroom now lives at `https://gistroom.oyedokun.dev`. The old `gistroom.vercel.app` address redirects to it (pages only, API routes stay), canonical URLs, Open Graph and the README use the new address, and the Render blueprint allows it as a realtime origin next to `gistroom.ng` (D93).
+
 - Security hardening from the audit: chat media is only signed or opened while its bucket is private and separate from avatars (D39 resolved in code, with `npm run storage:check` and `npm run storage:migrate-media`), the same origin check now runs inside every mutating route, scrypt moved to N=2^17 with old hashes upgraded at sign in, forwarded client addresses are trusted only on Vercel or with `TRUST_PROXY=true`, a search containing a NUL byte no longer returns a server error, search paging no longer skips tied results, the profile time zone must be a real zone, and pressing Call twice at once can no longer start two calls (the checks and the insert are one serializable transaction).
 - CI now runs the integration, socket and browser suites against a Postgres service container and fails instead of skipping, with v8 coverage floors and the report kept as an artifact. `npm run test:coverage` runs the same locally.
 - Operations notes in the README: keepalive limits, database pooling, the fixed window limiter, scrypt cost and the open Phase 7 load check.

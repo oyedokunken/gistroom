@@ -33,4 +33,8 @@ export const fontStack =
 export const emailFontStack =
   "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans', Arial, sans-serif";
 
-export const SITE = { name: "Gistroom", url: "https://gistroom.ng", locale: "en-NG" } as const;
+export const SITE = {
+  name: "Gistroom",
+  url: "https://gistroom.oyedokun.dev",
+  locale: "en-NG",
+} as const;

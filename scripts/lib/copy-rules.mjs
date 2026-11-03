@@ -74,6 +74,8 @@ export function stripCoAuthor(text) {
 export const BUILDER_ALLOWED_FILES = ["content/site.ts", "content/maker.ts", "content/landing.ts"];
 const BUILDER_SCOPE = /^apps\/web\/src\/(content|components|app|lib|server\/mail)\//;
 const BUILDER_NAME = /oyedokun|\bkenny\b/i;
+// The product's own address is not a credit, so it is blanked (same length, columns stay right) before the check.
+const PRODUCT_HOST = /gistroom\.oyedokun\.dev/gi;
 
 export function checkBuilderHandle(relativePath, text) {
   const rel = relativePath.split(path_sep).join("/");
@@ -81,7 +83,7 @@ export function checkBuilderHandle(relativePath, text) {
   if (BUILDER_ALLOWED_FILES.some((f) => rel.endsWith(f))) return [];
   const problems = [];
   text.split(/\r?\n/).forEach((line, i) => {
-    const m = BUILDER_NAME.exec(line);
+    const m = BUILDER_NAME.exec(line.replace(PRODUCT_HOST, (h) => " ".repeat(h.length)));
     if (m) {
       problems.push({
         line: i + 1,

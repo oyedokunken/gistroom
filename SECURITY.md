@@ -24,7 +24,7 @@ Response times:
 
 ## Scope
 
-In scope: `gistroom.ng`, the web app, the realtime service and their APIs.
+In scope: `gistroom.oyedokun.dev`, `gistroom.ng`, the web app, the realtime service and their APIs.
 
 Out of scope: denial of service by volume, social engineering of staff or users, spam, findings that need a rooted or jailbroken device, and third party services (Supabase, LiveKit, Vercel, Render, Google).
 

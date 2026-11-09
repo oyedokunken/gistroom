@@ -6,6 +6,7 @@ const root = process.cwd();
 const SKIP_DIRS = new Set([
   "generated",
   "node_modules",
+  ".claude",
   ".next",
   ".next-e2e",
   "dist",

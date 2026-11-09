@@ -14,6 +14,7 @@ export default tseslint.config(
   {
     ignores: [
       "**/node_modules/**",
+      ".claude/**",
       "**/.next/**",
       "**/.next-e2e/**",
       "**/dist/**",

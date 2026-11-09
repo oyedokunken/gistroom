@@ -14,3 +14,4 @@ apps/web/src/lib/art.generated.ts
 apps/web/public/sw.js
 test-results
 playwright-report
+.claude

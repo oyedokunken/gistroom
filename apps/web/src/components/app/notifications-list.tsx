@@ -3,8 +3,8 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
-import { Bell, CheckCheck, MailOpen, Trash2, Undo2 } from "lucide-react";
-import { type NotificationDto, type Page } from "@gistroom/shared";
+import { Bell, CheckCheck, MailOpen, Search, Trash2, Undo2, X } from "lucide-react";
+import { isSearchable, normalizeSearch, type NotificationDto, type Page } from "@gistroom/shared";
 import {
   DetailActions,
   DetailExtras,
@@ -18,6 +18,8 @@ import {
 import { useFeedback } from "@/components/feedback/feedback-provider";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { IconButton } from "@/components/ui/icon-button";
+import { Input } from "@/components/ui/field";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Modal } from "@/components/ui/modal";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -81,27 +83,74 @@ export function NotificationsList() {
   const router = useRouter();
   const pathname = usePathname();
   const search = useSearchParams();
-  const wide = useMediaQuery("(min-width: 768px)");
   const selectedId = search.get("n");
+  const wide = useMediaQuery("(min-width: 768px)");
   const listRef = useRef<HTMLDivElement>(null);
+
+  /** The search text lives in the address too (?q=), so a refresh and the back button return to the same list. */
+  const urlQ = normalizeSearch(search.get("q"));
+  const urlSearch = isSearchable(urlQ) ? urlQ : "";
+  const [term, setTerm] = useState(urlQ);
+  const written = useRef(urlQ);
+
+  const hrefFor = useCallback(
+    (id: string | null, q: string) => {
+      const params = new URLSearchParams();
+      if (q) params.set("q", q);
+      if (id) params.set("n", id);
+      const qs = params.toString();
+      return qs ? `${pathname}?${qs}` : pathname;
+    },
+    [pathname],
+  );
 
   /** The selection lives in the address, so a refresh and the back button both work. */
   const select = useCallback(
     (id: string | null, mode: "push" | "replace" = "push") => {
-      const next = id ? `${pathname}?n=${encodeURIComponent(id)}` : pathname;
+      const next = hrefFor(id, urlSearch);
       if (mode === "push") router.push(next, { scroll: false });
       else router.replace(next, { scroll: false });
     },
-    [pathname, router],
+    [hrefFor, router, urlSearch],
   );
 
+  // Typing waits 300 ms, then writes the search into the address (replacing, so back does not step through letters).
+  const selectedRef = useRef(selectedId);
+  selectedRef.current = selectedId;
+  useEffect(() => {
+    const next = normalizeSearch(term);
+    if (next === written.current) return;
+    const timer = window.setTimeout(() => {
+      written.current = next;
+      router.replace(hrefFor(selectedRef.current, isSearchable(next) ? next : ""), {
+        scroll: false,
+      });
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [term, hrefFor, router]);
+
+  // Back and forward change the address. Bring the box in line with it.
+  useEffect(() => {
+    if (urlQ !== written.current) {
+      written.current = urlQ;
+      setTerm(urlQ);
+    }
+  }, [urlQ]);
+
   const q = useInfiniteQuery({
-    queryKey: ["notifications", tab],
+    queryKey: ["notifications", tab, urlSearch],
     initialPageParam: null as string | null,
-    queryFn: ({ pageParam }) =>
-      apiFetch<Page<NotificationDto>>(
-        `/api/notifications?${tab === "unread" ? "unread=1&" : ""}${tab === "activity" ? "tab=activity&" : ""}${pageParam ? `cursor=${encodeURIComponent(pageParam)}` : ""}`,
-      ),
+    // The query signal cancels a request that a newer search has made stale.
+    queryFn: ({ pageParam, signal }) => {
+      const params = new URLSearchParams();
+      if (tab === "unread") params.set("unread", "1");
+      if (tab === "activity") params.set("tab", "activity");
+      if (urlSearch) params.set("q", urlSearch);
+      if (pageParam) params.set("cursor", pageParam);
+      return apiFetch<Page<NotificationDto>>(`/api/notifications?${params.toString()}`, {
+        signal,
+      });
+    },
     getNextPageParam: (last) => last.nextCursor,
   });
   const items = useMemo(() => q.data?.pages.flatMap((p) => p.items) ?? [], [q.data]);
@@ -305,6 +354,46 @@ export function NotificationsList() {
           </div>
         </div>
 
+        <div className="px-4 pb-3">
+          <label htmlFor="notification-search" className="sr-only">
+            {notices.searchLabel}
+          </label>
+          <div className="relative">
+            <Search
+              aria-hidden
+              className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-text-muted"
+            />
+            <Input
+              id="notification-search"
+              type="text"
+              inputMode="search"
+              autoComplete="off"
+              enterKeyHint="search"
+              value={term}
+              placeholder={notices.searchPlaceholder}
+              aria-describedby={
+                normalizeSearch(term).length === 1 ? "notification-search-hint" : undefined
+              }
+              onChange={(e) => setTerm(e.target.value)}
+              className="pl-10 pr-12"
+            />
+            {term ? (
+              <IconButton
+                label={notices.searchClear}
+                className="absolute right-0.5 top-1/2 -translate-y-1/2"
+                onClick={() => setTerm("")}
+              >
+                <X aria-hidden className="size-4" />
+              </IconButton>
+            ) : null}
+          </div>
+          {normalizeSearch(term).length === 1 ? (
+            <p id="notification-search-hint" className="mt-1 text-sm text-text-muted">
+              {notices.searchShort}
+            </p>
+          ) : null}
+        </div>
+
         {selecting ? (
           <div className="flex flex-wrap items-center gap-2 border-y border-border bg-surface-2 px-4 py-2">
             <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-medium text-text">
@@ -358,7 +447,7 @@ export function NotificationsList() {
           </div>
         ) : q.isError ? (
           <div className="flex flex-col items-center gap-3 p-8 text-center">
-            <p className="text-text-muted">{notices.loadError}</p>
+            <p className="text-text-muted">{urlSearch ? notices.searchError : notices.loadError}</p>
             <Button variant="secondary" onClick={() => void q.refetch()}>
               {notices.retry}
             </Button>
@@ -367,11 +456,13 @@ export function NotificationsList() {
           <EmptyState
             icon="alerts"
             title={
-              tab === "unread"
-                ? notices.emptyUnread
-                : tab === "activity"
-                  ? notices.emptyActivity
-                  : notices.emptyAll
+              urlSearch
+                ? notices.searchEmpty(urlSearch)
+                : tab === "unread"
+                  ? notices.emptyUnread
+                  : tab === "activity"
+                    ? notices.emptyActivity
+                    : notices.emptyAll
             }
           />
         ) : (
@@ -483,7 +574,9 @@ export function NotificationsList() {
                   {notices.loadMore}
                 </Button>
               </div>
-            ) : null}
+            ) : (
+              <p className="p-4 text-center text-sm text-text-muted">{notices.endOfList}</p>
+            )}
           </>
         )}
       </div>

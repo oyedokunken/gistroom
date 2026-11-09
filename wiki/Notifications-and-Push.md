@@ -38,3 +38,16 @@ A notice with a dedupe key (a 15 minute reminder, a live now notice, a moved or 
 ## Room reminders
 
 A registered person can switch the 15 minute and live now reminders off for one room (`reminders-off`). Moved and cancelled notices still arrive, because they change what the person has planned. The host always gets the 15 minute reminder and the due now notice. The room page shows the next reminder time. The reminder survives a sleeping realtime service because the sweep reads the rooms, not the jobs, and the daily Vercel cron runs the same sweep.
+
+## Search and paging on the notifications page
+
+- `GET /api/notifications` takes `tab` (all or activity), `unread=1`, `q`, `cursor` and `limit` (1 to 50, default 20), validated by `notificationListQuerySchema` in `packages/shared`. The order is `createdAt` then `id`, newest first, and the cursor is the last row of the page. There is no offset.
+- `q` is trimmed, spaces are collapsed and it is cut at 60 characters. One character is refused, two or more search. It matches case insensitively inside the person own rows only: a short list of payload keys (names, usernames, room title, message preview, title, body, text, device) plus the types whose label contains the text, so "missed call" finds missed calls. Ids, links and counts are never matched. The room registration row stores its names in a list and is not searched by name.
+- The page keeps the text in the address (`?q=`), waits 300 ms after typing, cancels a request that a newer search made stale, and shows loading, no results, error with Try again and an end of list line. Reading, deleting and clearing refresh the same cached pages, so the search stays and the unread count follows. Index: `Notification(userId, createdAt desc, id desc)`.
+- The decision is D109.
+
+## Come back nudges
+
+- A person with no meaningful action and no session for more than seven days gets one in app notice (type `REENGAGE`, opens Discover) and one email (`come-back`), at most once in 30 days and three times in 365 days. Both are sent by the daily sweep in the Lagos daytime, 200 people per run at most. See D105 to D108.
+- Settings, Notifications has a switch for it ("Reminders when you have been away") with separate In the app and Email choices. It never pushes. Quiet hours hold the email. Seed, internal, suspended, deleted and unverified accounts are never selected, and a switched off email is final for that spell.
+- `ReengagementNotice` has one row per person, spell and channel, which is what makes a retry or a second sweep safe. A spell is the UTC day of the last sign of life.

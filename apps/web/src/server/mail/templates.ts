@@ -531,6 +531,22 @@ export const templates = {
     manage: true,
     check: (p) => p.requests[0]?.username ?? "",
   }),
+  "come-back": notice({
+    id: "come-back",
+    schema: z.object({ to: z.string().min(1).max(60), path: z.string().startsWith("/app/") }),
+    sample: { to: "Tunde Bello", path: "/app/discover" },
+    subject: (p) => `Come back to Gistroom, ${firstName(p.to)}`,
+    preheader: () => "Rooms go live all the time, and your chats are where you left them.",
+    heading: (p) => `${firstName(p.to)}, it has been a while`,
+    paragraphs: () => [
+      "You have not been on Gistroom for a bit. Rooms go live all the time, and your chats are right where you left them.",
+      "Come gist with us whenever you are ready.",
+    ],
+    action: (p) => ({ label: "See live rooms", path: p.path }),
+    after: () => ["You get this at most once a month. You can switch it off below."],
+    manage: true,
+    check: (p) => firstName(p.to),
+  }),
   "data-export-ready": notice({
     id: "data-export-ready",
     schema: z.object({ path: z.string().startsWith("/") }),

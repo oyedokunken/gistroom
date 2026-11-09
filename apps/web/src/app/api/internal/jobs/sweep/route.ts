@@ -3,7 +3,9 @@ import { api, json } from "@/server/http";
 import { getEnv } from "@/server/env";
 import { purgeRateLimits } from "@/server/rate-limit";
 import { expireDueCalls, reconcileStuckCalls } from "@/server/calls/service";
+import { sendReengagement } from "@/server/reengage";
 import { sendFriendDigests } from "@/server/mail/notify-email";
+import { sweepBadges } from "@/server/badges";
 import { sweepSessions, sweepSubscriptions } from "@/server/auth/sweep";
 import { purgeExpiredActivity, purgeOldDeliveries } from "@/server/notifications/activity";
 import { processRoomSchedule } from "@/server/rooms/registration";
@@ -27,6 +29,8 @@ function allowed(request: Request): boolean {
   });
 }
 
+const inReengageHours = (now: Date) => now.getUTCHours() >= 8 && now.getUTCHours() < 20;
+
 /**
  * Safety net for work that is due: finishes calls that rang out. The realtime scheduler calls it, and the
  * daily Vercel cron calls it too, so nothing is lost if the realtime service was asleep (Section 10.5).
@@ -41,11 +45,14 @@ async function run(request: Request): Promise<Response> {
     roomSchedule: await processRoomSchedule(),
     expiredRings: await expireRings(),
     purgedRoomChat: await purgeEndedRoomChat(),
+    badges: await sweepBadges(),
     purgedActivity: await purgeExpiredActivity(),
     purgedDeliveries: await purgeOldDeliveries(),
     purgedRateLimits: await purgeRateLimits(),
     sessions: await sweepSessions(),
     subscriptions: await sweepSubscriptions(),
+    // Daytime in Lagos only (08:00 to 19:59 UTC), so a come back email never lands in the middle of the night.
+    reengagement: inReengageHours(new Date()) ? await sendReengagement() : null,
     friendDigests: new Date().getUTCHours() === 7 ? await sendFriendDigests() : 0,
   });
 }

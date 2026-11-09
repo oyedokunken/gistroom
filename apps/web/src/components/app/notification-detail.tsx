@@ -46,6 +46,7 @@ export const ICONS: Record<NotificationType, LucideIcon> = {
   SECURITY_NEW_DEVICE: ShieldCheck,
   REPORT_UPDATE: Bell,
   SYSTEM: Bell,
+  REENGAGE: Bell,
   ACTIVITY: CheckCheck,
 };
 

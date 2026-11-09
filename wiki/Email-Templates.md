@@ -15,3 +15,7 @@ Email is sent only from the web app through Nodemailer.
 - Transports: `console`, `capture` (writes to `.mail-capture/`) and `smtp` (Gmail). Production only accepts `smtp`.
 - Inline styles use single quoted font names. A test checks every style attribute is well formed, because a double quote there breaks the whole email.
 - The support address in the footer is support@gistroom.ng (assumed, see Decisions D26).
+
+## come-back
+
+Sent by the sweep to people who have been away for more than seven days. Props: `to` (full name, the greeting uses the first name) and `path` (always `/app/discover`). It states no counts, names or rooms, links to the live rooms, says it comes at most once a month and carries the manage preferences link (`/app/settings/notifications`), where the Reminders when you have been away switch turns it off. It follows the person email switch and quiet hours, is never sent to seed, internal, suspended or unverified accounts, and respects `MAIL_ALLOWED_DOMAINS` outside production. It has no times, so no zone rule applies.

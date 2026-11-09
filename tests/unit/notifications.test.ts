@@ -140,11 +140,14 @@ describe("preferences", () => {
       "ROOM_INVITE",
       "ROOM_STARTING",
       "ROOM_LIVE_NOW",
+      // The come back nudge is an email by design, with its own switch.
+      "REENGAGE",
     ];
     for (const t of NOTIFICATION_TYPES) {
       expect(defaultSwitches(t).email).toBe(on.includes(t));
     }
     expect(defaultSwitches("ROOM_ENDED").push).toBe(false);
+    expect(defaultSwitches("REENGAGE").push).toBe(false);
   });
   it("respects per type switches", () => {
     const prefs = {

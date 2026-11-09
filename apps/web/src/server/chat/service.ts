@@ -15,6 +15,7 @@ import {
   type MessageType,
   type Page,
 } from "@gistroom/shared";
+import { touchActivity } from "../activity";
 import { decodeCursor, encodeCursor } from "../cursor";
 import { AppError, forbidden, notFound } from "../http";
 import { enforce, policies } from "../rate-limit";
@@ -273,6 +274,7 @@ export async function sendMessage(
   const db = getDb();
   const access = await accessFor(me.id, conversationId);
   await assertCanInteract(me.id, access.peerId);
+  void touchActivity(me.id);
   if (!bodyIsValid(input.type, input.body)) {
     throw new AppError(400, "INVALID", errors.messageTooLong(LIMITS.MESSAGE_MAX_CHARS), {
       fields: { body: errors.messageTooLong(LIMITS.MESSAGE_MAX_CHARS) },

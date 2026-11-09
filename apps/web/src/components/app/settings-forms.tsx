@@ -10,10 +10,12 @@ import { useCalmSetting } from "@/lib/calm";
 import { useFeedback } from "@/components/feedback/feedback-provider";
 import { Button } from "@/components/ui/button";
 import { AvatarUploader } from "./avatar-uploader";
+import { EmailVerifyCard } from "./email-verify-card";
 import { Field, Input, Textarea } from "@/components/ui/field";
 import { Select } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { settings } from "@/content/app";
+import { badgeCopy } from "@/content/badges";
 import { ApiClientError, apiFetch } from "@/lib/api";
 
 /** Saves a partial profile and shows a calm inline confirmation next to the button. */
@@ -79,9 +81,7 @@ export function ProfileForm({ user }: { user: MeUser }) {
       <Field label={copy.usernameLabel} help={copy.usernameHelp}>
         {(props) => <Input {...props} value={`@${user.username}`} readOnly />}
       </Field>
-      <Field label={copy.emailLabel} help={copy.emailHelp}>
-        {(props) => <Input {...props} value={user.email} readOnly />}
-      </Field>
+      <EmailVerifyCard verified={user.emailVerified} email={user.email} />
       <div className="flex items-center gap-4">
         <Button type="submit" loading={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? copy.saving : copy.save}
@@ -104,6 +104,7 @@ export function PrivacyForm({ user }: { user: MeUser }) {
     showPresence: user.showPresence,
     sendReadReceipts: user.sendReadReceipts,
     roomInvitesFrom: user.roomInvitesFrom,
+    showBadges: user.showBadges,
   });
   const [busy, setBusy] = useState(false);
   const update = <K extends keyof typeof values>(key: K, value: (typeof values)[K]) => {
@@ -130,6 +131,12 @@ export function PrivacyForm({ user }: { user: MeUser }) {
           help={copy.sendReadReceiptsHelp}
           checked={values.sendReadReceipts}
           onChange={(v) => update("sendReadReceipts", v)}
+        />
+        <Switch
+          label={badgeCopy.showNextToName}
+          help={badgeCopy.showNextToNameHelp}
+          checked={values.showBadges}
+          onChange={(v) => update("showBadges", v)}
         />
       </div>
       <Field label={copy.roomInvitesLabel}>

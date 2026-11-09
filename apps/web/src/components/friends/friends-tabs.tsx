@@ -7,6 +7,7 @@ import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-quer
 import { MoreVertical, Search, UserMinus, UserX, User } from "lucide-react";
 import type { FriendDto, FriendRequestDto, PersonResult, PublicUser } from "@gistroom/shared";
 import { useFeedback } from "@/components/feedback/feedback-provider";
+import { BadgeRow } from "@/components/badges/badge-row";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonStyles } from "@/components/ui/button";
@@ -24,6 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { friends as copy } from "@/content/friends";
 import { ApiClientError, apiFetch } from "@/lib/api";
 import { useRealtimeStore } from "@/lib/realtime/store";
+import { SuggestedPeople } from "@/components/friends/suggested-people";
 import { PersonActions } from "./person-actions";
 
 type Tab = "friends" | "requests" | "sent" | "find";
@@ -45,7 +47,10 @@ function PersonLine({
       <Link href={`/app/u/${user.username}`} className="flex min-w-0 flex-1 items-center gap-3">
         <Avatar name={user.name} src={user.avatarUrl} size={48} online={online} />
         <span className="flex min-w-0 flex-col">
-          <span className="truncate font-semibold text-text">{user.name}</span>
+          <span className="flex min-w-0 items-center gap-1.5">
+            <span className="truncate font-semibold text-text">{user.name}</span>
+            <BadgeRow badges={user.badges} />
+          </span>
           <span className="truncate text-sm text-text-muted">{sub ?? `@${user.username}`}</span>
         </span>
       </Link>
@@ -291,6 +296,7 @@ function FindPeople() {
 
   return (
     <div className="flex flex-col">
+      <SuggestedPeople />
       <div className="relative mx-auto mb-4 w-full max-w-[720px]">
         <Search
           aria-hidden

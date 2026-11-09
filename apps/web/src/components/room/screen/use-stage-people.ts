@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { type RoomRole, type RoomDto, type RoomMemberDto } from "@gistroom/shared";
+import { type BadgeChip, type RoomRole, type RoomDto, type RoomMemberDto } from "@gistroom/shared";
 import { useRoomLiveKit } from "@/lib/rooms/use-room-livekit";
 import { type PersonState } from "../panels/shared";
 
@@ -19,11 +19,15 @@ export function useStagePeople({
 }) {
   // Who each LiveKit tile belongs to, from the people list the server keeps.
   const byUser = useMemo(() => {
-    const map = new Map<string, { role: RoomRole; avatarUrl: string | null }>();
+    const map = new Map<
+      string,
+      { role: RoomRole; avatarUrl: string | null; badges: BadgeChip[] | undefined }
+    >();
     for (const m of members.data?.members ?? []) {
       map.set(m.user.id, {
         role: m.user.id === room?.host.id ? "HOST" : m.role,
         avatarUrl: m.user.avatarUrl,
+        badges: m.user.badges,
       });
     }
     return map;
@@ -39,6 +43,7 @@ export function useStagePeople({
           id,
           role: id === meId ? role : (known?.role ?? (room?.host.id === id ? "HOST" : null)),
           avatarUrl: known?.avatarUrl ?? null,
+          badges: known?.badges,
         };
       }),
     [lk.participants, byUser, meId, role, room?.host.id],

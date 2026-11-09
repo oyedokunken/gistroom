@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Camera, CameraOff, EllipsisVertical, Mic, MicOff } from "lucide-react";
 import { canActOn, canDo, type RoomDto, type RoomMemberDto, type RoomRole } from "@gistroom/shared";
 import { useFeedback } from "@/components/feedback/feedback-provider";
+import { BadgeRow } from "@/components/badges/badge-row";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -114,6 +115,7 @@ export function PeoplePanel({
                       {mine ? ` (${copy.stage.you})` : ""}
                     </span>
                     <RoleBadge role={target} />
+                    <BadgeRow badges={m.user.badges} />
                     {m.joinedAt ? (
                       <span className="tabular text-xs text-text-muted">
                         {copy.people.joinedAt(formatClock(new Date(m.joinedAt)))}

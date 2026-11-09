@@ -15,6 +15,7 @@ import {
   type MessageDto,
 } from "@gistroom/shared";
 import { useFeedback } from "@/components/feedback/feedback-provider";
+import { BadgeRow } from "@/components/badges/badge-row";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { NotesPanel } from "@/components/notes/notes-panel";
@@ -505,7 +506,10 @@ export function ThreadView({
               online={live ? presence?.online : undefined}
             />
             <span className="flex min-w-0 flex-col">
-              <span className="truncate font-semibold text-text">{peer.name}</span>
+              <span className="flex min-w-0 items-center gap-1.5">
+                <span className="truncate font-semibold text-text">{peer.name}</span>
+                <BadgeRow badges={peer.badges} />
+              </span>
               <span
                 role="status"
                 aria-live="polite"

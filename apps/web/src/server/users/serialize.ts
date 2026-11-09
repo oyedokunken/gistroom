@@ -16,6 +16,8 @@ export function toMe(user: User): MeUser {
     sendReadReceipts: user.sendReadReceipts,
     roomInvitesFrom: user.roomInvitesFrom,
     dataSaver: user.dataSaver,
+    showBadges: user.showBadges,
+    emailVerified: user.emailVerifiedAt !== null,
     timezone: user.timezone,
   };
 }

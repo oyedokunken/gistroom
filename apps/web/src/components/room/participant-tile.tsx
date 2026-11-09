@@ -4,8 +4,10 @@ import { useEffect, useRef } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { CameraOff, MicOff, Volume2 } from "lucide-react";
 import { SignalBars } from "@/components/session/signal-bars";
+import type { BadgeChip } from "@gistroom/shared";
 import type { QualityLabel } from "@/lib/live/live-session";
 import type { Participant } from "livekit-client";
+import { BadgeRow } from "@/components/badges/badge-row";
 import { Avatar } from "@/components/ui/avatar";
 import { roomCopy } from "@/content/rooms";
 import { cn } from "@/lib/cn";
@@ -21,6 +23,7 @@ export function ParticipantTile({
   roleLabel,
   version,
   avatarUrl,
+  badges,
   reactions,
   onReactionDone,
   quality = "unknown",
@@ -31,6 +34,8 @@ export function ParticipantTile({
   roleLabel: string | null;
   version: number;
   avatarUrl: string | null;
+  /** Public badges to show next to the name. */
+  badges?: readonly BadgeChip[];
   reactions: readonly FloatingReaction[];
   onReactionDone: (id: string) => void;
   quality?: QualityLabel;
@@ -110,6 +115,7 @@ export function ParticipantTile({
           <span className="truncate font-semibold">
             {participant.isLocal ? `${name} (${roomCopy.stage.you})` : name}
           </span>
+          <BadgeRow badges={badges} />
         </span>
         <span className="flex shrink-0 items-center gap-1.5">
           {roleLabel ? (

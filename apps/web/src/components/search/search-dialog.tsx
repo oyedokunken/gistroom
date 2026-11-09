@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { MessageCircle, NotebookPen, Radio, Search, Users } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import type { SearchResults } from "@gistroom/shared";
+import { BadgeRow } from "@/components/badges/badge-row";
 import { Avatar } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/field";
 import { search as copy } from "@/content/search";
@@ -177,7 +178,10 @@ export function SearchDialog() {
                         <Link href={`/app/u/${p.username}`} onClick={close} className={row}>
                           <Avatar name={p.name} src={p.avatarUrl} size={40} />
                           <span className="min-w-0">
-                            <span className="block truncate font-semibold text-text">{p.name}</span>
+                            <span className="flex min-w-0 items-center gap-1.5">
+                              <span className="truncate font-semibold text-text">{p.name}</span>
+                              <BadgeRow badges={p.badges} />
+                            </span>
                             <span className="block truncate text-sm text-text-muted">
                               @{p.username}
                             </span>

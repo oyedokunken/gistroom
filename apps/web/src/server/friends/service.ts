@@ -1,4 +1,6 @@
 import { getDb, toPublicUser, type FriendRequest, type User } from "@gistroom/db";
+import { touchActivity } from "../activity";
+import { grantBadgesFor } from "../badges";
 import { errors, type FriendDto, type FriendRequestDto } from "@gistroom/shared";
 import { dmKeyFor, orderedPair } from "../cursor";
 import { AppError, notFound } from "../http";
@@ -44,6 +46,7 @@ export type SendOutcome =
   | { status: "ALREADY_SENT"; requestId: string };
 
 export async function sendRequest(me: User, targetId: string): Promise<SendOutcome> {
+  void touchActivity(me.id);
   const db = getDb();
   await enforce(policies.friendRequestHour, me.id).catch(() => {
     throw new AppError(429, "RATE_LIMITED", errors.friendLimitHour);
@@ -132,6 +135,7 @@ export async function acceptRequest(
   me: User,
   requestId: string,
 ): Promise<{ conversationId: string }> {
+  void touchActivity(me.id);
   const db = getDb();
   const request = await db.friendRequest.findUnique({ where: { id: requestId } });
   if (!request || request.addresseeId !== me.id) throw notFound();
@@ -158,6 +162,7 @@ export async function acceptRequest(
     }),
   ]);
   const conversationId = await ensureConversation(request.requesterId, request.addresseeId);
+  void grantBadgesFor([request.requesterId, me.id]);
   await notify({
     userId: request.requesterId,
     type: "FRIEND_REQUEST_ACCEPTED",

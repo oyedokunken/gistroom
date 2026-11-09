@@ -18,6 +18,7 @@ import { fileFamily, formatBytes, type AttachmentDto, type MessageDto } from "@g
 import { Modal } from "@/components/ui/modal";
 import { chat } from "@/content/chat";
 import { formatDuration } from "@/lib/chat/voice";
+import { voiceStyle } from "./voice-styles";
 import { cn } from "@/lib/cn";
 
 const mediaUrl = (a: AttachmentDto, thumb = false) =>
@@ -88,6 +89,7 @@ export function VoiceView({ a, mine }: { a: AttachmentDto; mine: boolean }) {
   const [speed, setSpeed] = useState<(typeof SPEEDS)[number]>(1);
   const bars = a.waveform.length > 0 ? a.waveform : Array.from({ length: 40 }, () => 30);
   const total = a.durationMs ?? 0;
+  const style = voiceStyle(mine);
 
   useEffect(() => {
     const el = audio.current;
@@ -129,10 +131,7 @@ export function VoiceView({ a, mine }: { a: AttachmentDto; mine: boolean }) {
         type="button"
         onClick={toggle}
         aria-label={playing ? chat.media.pause : chat.media.play}
-        className={cn(
-          "flex size-11 shrink-0 items-center justify-center rounded-full",
-          mine ? "bg-white text-green-700" : "bg-green-600 text-white",
-        )}
+        className={cn("flex size-11 shrink-0 items-center justify-center rounded-full", style.play)}
       >
         {playing ? (
           <Pause aria-hidden className="size-5" />
@@ -147,28 +146,19 @@ export function VoiceView({ a, mine }: { a: AttachmentDto; mine: boolean }) {
               key={i}
               className={cn(
                 "min-w-px max-w-[3px] flex-1 rounded-full",
-                i <= current && progress > 0
-                  ? mine
-                    ? "bg-yellow-400"
-                    : "bg-green-600"
-                  : mine
-                    ? "bg-white/55"
-                    : "bg-text-muted/50",
+                i <= current && progress > 0 ? style.wavePlayed : style.waveRest,
               )}
               style={{ height: `${Math.max(12, h)}%` }}
             />
           ))}
         </div>
-        <span className="tabular text-xs opacity-80">{formatDuration(total)}</span>
+        <span className={cn("tabular text-xs", style.time)}>{formatDuration(total)}</span>
       </div>
       <button
         type="button"
         onClick={cycleSpeed}
         aria-label={chat.media.speed(speed)}
-        className={cn(
-          "tabular min-h-11 min-w-11 rounded-full text-xs font-bold",
-          mine ? "bg-white/20" : "bg-surface",
-        )}
+        className={cn("tabular min-h-11 min-w-11 rounded-full text-xs font-bold", style.speed)}
       >
         {speed}x
       </button>

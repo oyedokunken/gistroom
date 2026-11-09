@@ -30,6 +30,8 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ### Changed
 
+- The voice note player uses explicit token styles for rest, hover, focus and disabled on both bubble colours, so white text can no longer land on a white or pale background. A unit test checks every pairing against WCAG AA in light and dark.
+
 - The friends test world now writes all activity timestamps at or after the seed time, schedules every Room in the future, removes visible test labels from bios, and includes Chelsea Banter, FUTA Alumni Connect and Anime Lovers Room.
 - `npm run verify:quick` runs its stages side by side with ESLint, Prettier and TypeScript caches, about 35 seconds with warm caches instead of about 212.
 - The rooms service, the room screen, the room panels and the landing sections are split into focused files with no change in behavior.

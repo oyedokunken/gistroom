@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { requiredMessage } from "./required-message";
 import { LIMITS } from "./limits";
 import { validation } from "./content/validation";
 import { RESERVED_USERNAMES } from "./reserved-usernames";
@@ -6,7 +7,7 @@ import { loginPasswordSchema, newPasswordSchema } from "./password";
 import { MAX_INTERESTS, MIN_INTERESTS, TOPICS, canonicalTopicSlug } from "./topics";
 
 export const emailSchema = z
-  .string({ required_error: validation.emailRequired })
+  .string({ error: requiredMessage(validation.emailRequired) })
   .trim()
   .toLowerCase()
   .min(1, validation.emailRequired)
@@ -24,7 +25,7 @@ export const identifierKind = (value: string): IdentifierKind =>
  * The error says which of the two was expected, based on what the person typed.
  */
 export const identifierSchema = z
-  .string({ required_error: validation.identifierRequired })
+  .string({ error: requiredMessage(validation.identifierRequired) })
   .trim()
   .toLowerCase()
   .min(1, validation.identifierRequired)
@@ -40,19 +41,19 @@ export const identifierSchema = z
   });
 
 export const otpCodeSchema = z
-  .string({ required_error: validation.codeInvalid })
+  .string({ error: requiredMessage(validation.codeInvalid) })
   .trim()
   .regex(/^[0-9]{6}$/, validation.codeInvalid); // six digits, equal to LIMITS.OTP_LENGTH (unit tested)
 
 export const usernameSchema = z
-  .string({ required_error: validation.usernameInvalid })
+  .string({ error: requiredMessage(validation.usernameInvalid) })
   .trim()
   .toLowerCase()
   .regex(LIMITS.USERNAME_REGEX, validation.usernameInvalid)
   .refine((u) => !RESERVED_USERNAMES.has(u), validation.usernameReserved);
 
 export const nameSchema = z
-  .string({ required_error: validation.nameRequired })
+  .string({ error: requiredMessage(validation.nameRequired) })
   .trim()
   .min(1, validation.nameRequired)
   .max(LIMITS.NAME_MAX, validation.nameTooLong(LIMITS.NAME_MAX));
@@ -93,8 +94,8 @@ export const onboardingSchema = z.object({
   name: nameSchema,
   username: usernameSchema,
   password: newPasswordSchema.optional(),
-  ageConfirmed: z.literal(true, { errorMap: () => ({ message: validation.ageRequired }) }),
-  termsAccepted: z.literal(true, { errorMap: () => ({ message: validation.termsRequired }) }),
+  ageConfirmed: z.literal(true, { error: validation.ageRequired }),
+  termsAccepted: z.literal(true, { error: validation.termsRequired }),
 });
 export type OnboardingInput = z.infer<typeof onboardingSchema>;
 

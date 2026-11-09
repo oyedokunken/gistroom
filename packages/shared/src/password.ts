@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { requiredMessage } from "./required-message";
 import { passwordMessages } from "./content/validation";
 
 export const PASSWORD_MIN = 10;
@@ -95,7 +96,7 @@ export function passwordIssue(
 
 /** Zod field for a new password. Pass the context for the checks that need it. */
 export const newPasswordSchema = z
-  .string({ required_error: passwordMessages.required })
+  .string({ error: requiredMessage(passwordMessages.required) })
   .superRefine((value, ctx) => {
     const issue = passwordIssue(value);
     if (issue) ctx.addIssue({ code: "custom", message: passwordMessages[issue] });
@@ -103,6 +104,6 @@ export const newPasswordSchema = z
 
 /** Login only needs a non empty value. Strength is judged when a password is set, not when it is used. */
 export const loginPasswordSchema = z
-  .string({ required_error: passwordMessages.loginRequired })
+  .string({ error: requiredMessage(passwordMessages.loginRequired) })
   .min(1, passwordMessages.loginRequired)
   .max(PASSWORD_MAX, passwordMessages.TOO_LONG);

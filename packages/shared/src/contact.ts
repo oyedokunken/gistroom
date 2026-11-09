@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { requiredMessage } from "./required-message";
 import { emailSchema, nameSchema } from "./auth";
 import { validation } from "./content/validation";
 
@@ -9,7 +10,7 @@ export const contactSchema = z.object({
   name: nameSchema,
   email: emailSchema,
   message: z
-    .string({ required_error: validation.contactMessageShort })
+    .string({ error: requiredMessage(validation.contactMessageShort) })
     .trim()
     .min(CONTACT_MESSAGE_MIN, validation.contactMessageShort)
     .max(CONTACT_MESSAGE_MAX, validation.contactMessageLong(CONTACT_MESSAGE_MAX)),

@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { requiredMessage } from "./required-message";
 import { LIMITS } from "./limits";
 
 export const noteBodySchema = z
-  .string({ required_error: "Write something first." })
+  .string({ error: requiredMessage("Write something first.") })
   .trim()
   .min(1, "Write something first.")
   .max(LIMITS.NOTE_MAX_CHARS, `Notes can be up to ${LIMITS.NOTE_MAX_CHARS} characters.`);

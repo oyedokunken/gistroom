@@ -31,6 +31,7 @@ enum AuthProvider {
 }
 
 enum OtpPurpose {
+  VERIFY_EMAIL
   SIGN_IN
   SIGN_UP
   RESET_PASSWORD
@@ -140,6 +141,7 @@ enum RoomModAction {
   LINK_CREATED
   LINK_REVOKED
   MESSAGE_DELETED
+  PRESENT_STOP
   END
 }
 
@@ -211,6 +213,12 @@ model User {
   dataSaver         Boolean         @default(true)
   onboardedAt       DateTime?
   lastSeenAt        DateTime?
+  /// The last meaningful action (a message, a room, a call, a friend request). Written at most once an hour. Only a time, never what was done.
+  lastActiveAt      DateTime?
+  /// Show earned badges next to my name. Off hides them on every public surface. The earned record is kept either way.
+  showBadges        Boolean         @default(true)
+  /// The badges shown next to a name, kept up to date by the badge worker: [{ badge, count }] in display order. Private badges are left out.
+  badgesPublic      Json            @default("[]")
   ageConfirmedAt    DateTime?
   termsAcceptedAt   DateTime?
   deletedAt         DateTime?
@@ -221,10 +229,10 @@ model User {
 
   authAccounts           AuthAccount[]
   sessions               Session[]
-  sentRequests           FriendRequest[]         @relation("RequestSender")
-  receivedRequests       FriendRequest[]         @relation("RequestReceiver")
-  blocksMade             Block[]                 @relation("Blocker")
-  blocksReceived         Block[]                 @relation("Blocked")
+  sentRequests           FriendRequest[]             @relation("RequestSender")
+  receivedRequests       FriendRequest[]             @relation("RequestReceiver")
+  blocksMade             Block[]                     @relation("Blocker")
+  blocksReceived         Block[]                     @relation("Blocked")
   memberships            ConversationMember[]
   messages               Message[]
   stars                  MessageStar[]
@@ -234,15 +242,58 @@ model User {
   notifications          Notification[]
   notificationPreference NotificationPreference?
   pushSubscriptions      PushSubscription[]
-  callsMade              Call[]                  @relation("Caller")
-  callsReceived          Call[]                  @relation("Callee")
+  callsMade              Call[]                      @relation("Caller")
+  callsReceived          Call[]                      @relation("Callee")
   hostedRooms            Room[]
   roomMemberships        RoomMember[]
   callLogs               CallLogEntry[]
   interests              UserInterest[]
   notes                  Note[]
+  activityDays           ActivityDay[]
+  badgeGrants            BadgeGrant[]
+  suggestionDismissals   FriendSuggestionDismissal[]
+  reengagementNotices    ReengagementNotice[]
 
   @@index([status, discoverable])
+  @@index([lastActiveAt])
+}
+
+/// One row per person per calendar day (Lagos time) with a meaningful action. Feeds the Consistent Gist badge and nothing else.
+model ActivityDay {
+  userId String
+  day    DateTime @db.Date
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, day])
+}
+
+/// One earned badge. A family can be earned many times: ordinal 1 is the first, 2 the second. The unique key makes a grant
+/// idempotent, and a row is never deleted silently: moderation sets revokedAt and writes an AuditLog entry.
+model BadgeGrant {
+  id          String    @id @default(cuid(2))
+  userId      String
+  badge       String
+  ordinal     Int
+  /// What earned it, for audit: counts at the time, never private content.
+  source      Json?
+  evaluator   Int       @default(1)
+  earnedAt    DateTime  @default(now())
+  revokedAt   DateTime?
+  revokedById String?
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badge, ordinal])
+  @@index([userId, revokedAt])
+}
+
+/// "Not interested" on a suggested friend. The person is not suggested again.
+model FriendSuggestionDismissal {
+  userId    String
+  targetId  String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, targetId])
 }
 
 /// Topics a person picked at onboarding. The slug comes from the shared topic list, so there is no Topic row to seed.
@@ -521,6 +572,28 @@ model Notification {
 
   @@unique([userId, dedupeKey])
   @@index([userId, readAt, createdAt])
+  @@index([userId, createdAt(sort: Desc), id(sort: Desc)])
+}
+
+/// One decision about a come back nudge for one person in one inactivity spell. The unique key makes a retry safe.
+model ReengagementNotice {
+  id          String   @id @default(cuid(2))
+  userId      String
+  /// The UTC day of the person's last sign of life. Coming back and going quiet again starts a new spell.
+  windowStart DateTime
+  /// EMAIL or IN_APP.
+  channel     String
+  /// SENT, SKIPPED (switched off or capped, final for this spell) or FAILED (three failed sends, final).
+  status      String
+  reason      String?
+  attempts    Int      @default(0)
+  sentAt      DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, windowStart, channel])
+  @@index([userId, createdAt])
 }
 
 model NotificationPreference {
@@ -600,26 +673,31 @@ model NotificationDelivery {
 
 // ---------- Calls and Rooms ----------
 model Call {
-  id            String     @id @default(cuid(2))
-  kind          CallKind   @default(DIRECT)
-  callerId      String
-  calleeId      String
-  initialMedia  MediaKind
-  status        CallStatus @default(RINGING)
-  livekitRoom   String     @unique
-  ringExpiresAt DateTime
-  answeredAt    DateTime?
-  endedAt       DateTime?
-  endReason     String?
+  id                 String     @id @default(cuid(2))
+  kind               CallKind   @default(DIRECT)
+  callerId           String
+  calleeId           String
+  initialMedia       MediaKind
+  status             CallStatus @default(RINGING)
+  livekitRoom        String     @unique
+  ringExpiresAt      DateTime
+  answeredAt         DateTime?
+  endedAt            DateTime?
+  endReason          String?
   /// The last time each side said it was still on the call. A side silent for a minute counts as gone.
-  callerSeenAt  DateTime?
-  calleeSeenAt  DateTime?
+  callerSeenAt       DateTime?
+  calleeSeenAt       DateTime?
   /// Who ended the call on purpose. Null when the system ended it (it rang out, someone dropped, a block).
-  endedById     String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  caller        User       @relation("Caller", fields: [callerId], references: [id])
-  callee        User       @relation("Callee", fields: [calleeId], references: [id])
+  endedById          String?
+  /// Screen sharing: who presents now, who asked for the turn and when, and when a handoff to them opened.
+  presenterId        String?
+  presentRequesterId String?
+  presentRequestedAt DateTime?
+  presentHandoffAt   DateTime?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  caller             User       @relation("Caller", fields: [callerId], references: [id])
+  callee             User       @relation("Callee", fields: [calleeId], references: [id])
 
   @@index([calleeId, status])
   @@index([callerId, status])
@@ -637,50 +715,55 @@ model Topic {
 }
 
 model Room {
-  id               String           @id @default(cuid(2))
-  slug             String           @unique
-  hostId           String
-  title            String
-  topicId          String?
-  language         Language         @default(ENGLISH)
-  description      String?
-  visibility       RoomVisibility   @default(PUBLIC)
-  status           RoomStatus       @default(LIVE)
-  scheduledFor     DateTime?
-  startedAt        DateTime?
-  endedAt          DateTime?
-  locked           Boolean          @default(false)
-  maxParticipants  Int              @default(32)
+  id                 String           @id @default(cuid(2))
+  slug               String           @unique
+  hostId             String
+  title              String
+  topicId            String?
+  language           Language         @default(ENGLISH)
+  description        String?
+  visibility         RoomVisibility   @default(PUBLIC)
+  status             RoomStatus       @default(LIVE)
+  scheduledFor       DateTime?
+  startedAt          DateTime?
+  endedAt            DateTime?
+  locked             Boolean          @default(false)
+  maxParticipants    Int              @default(32)
   /// What the room is about: audio talk or video talk. A label only, everyone can switch their camera any time.
-  media            MediaKind        @default(AUDIO)
+  media              MediaKind        @default(AUDIO)
   /// Room settings, changed live by the host and moderators.
-  cameraAllowed    Boolean          @default(true)
-  joinMuted        Boolean          @default(false)
-  chatMode         RoomChatMode     @default(EVERYONE)
-  reactionsOn      Boolean          @default(true)
-  slowModeSec      Int              @default(0)
-  membersCanShare  Boolean          @default(true)
+  cameraAllowed      Boolean          @default(true)
+  joinMuted          Boolean          @default(false)
+  chatMode           RoomChatMode     @default(EVERYONE)
+  reactionsOn        Boolean          @default(true)
+  slowModeSec        Int              @default(0)
+  membersCanShare    Boolean          @default(true)
   /// After "mute everyone": only moderators may unmute people.
-  unmuteLocked     Boolean          @default(false)
+  unmuteLocked       Boolean          @default(false)
   /// Numbers kept for the summary after the room ends and its chat is gone.
-  peakParticipants Int              @default(0)
-  messageCount     Int              @default(0)
-  reactionCount    Int              @default(0)
+  peakParticipants   Int              @default(0)
+  messageCount       Int              @default(0)
+  reactionCount      Int              @default(0)
   /// When the long room warning was sent, so it goes out once.
-  longWarnedAt     DateTime?
+  longWarnedAt       DateTime?
   /// Since when nobody has been connected to this live room. Set and cleared by the reconcile sweep.
-  emptySince       DateTime?
-  livekitRoom      String           @unique
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-  host             User             @relation(fields: [hostId], references: [id])
-  topic            Topic?           @relation(fields: [topicId], references: [id])
-  members          RoomMember[]
-  inviteLinks      RoomInviteLink[]
-  modLogs          RoomModLog[]
-  messages         RoomMessage[]
-  notes            Note[]
-  reactions        RoomReaction[]
+  emptySince         DateTime?
+  /// Screen sharing: who presents now, who asked for the turn and when, and when a handoff to them opened.
+  presenterId        String?
+  presentRequesterId String?
+  presentRequestedAt DateTime?
+  presentHandoffAt   DateTime?
+  livekitRoom        String           @unique
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  host               User             @relation(fields: [hostId], references: [id])
+  topic              Topic?           @relation(fields: [topicId], references: [id])
+  members            RoomMember[]
+  inviteLinks        RoomInviteLink[]
+  modLogs            RoomModLog[]
+  messages           RoomMessage[]
+  notes              Note[]
+  reactions          RoomReaction[]
 
   @@index([visibility, status, startedAt])
   @@index([topicId, status])

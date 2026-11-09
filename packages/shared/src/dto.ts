@@ -119,6 +119,8 @@ export type NotificationType =
   | "SECURITY_NEW_DEVICE"
   | "REPORT_UPDATE"
   | "SYSTEM"
+  /** A gentle nudge for someone who has been away. In the app and, if allowed, by email. Never pushed. */
+  | "REENGAGE"
   /** A receipt for something the person did. Lives in the Activity tab, never pushed or emailed, expires after a week. */
   | "ACTIVITY";
 

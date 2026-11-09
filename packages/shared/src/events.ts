@@ -2,6 +2,12 @@
 import { z } from "zod";
 import type { CallDto } from "./calls";
 import type { RoomChatDto, RoomRole, RoomMemberState } from "./rooms";
+import {
+  PRESENT_CHANGES,
+  PRESENT_SCOPES,
+  type PresentChange,
+  type PresentScope,
+} from "./presentation";
 import type { FriendRequestDto, MessageDto, NotificationDto } from "./dto";
 import type { PublicUser } from "./profile";
 
@@ -75,6 +81,12 @@ export interface ServerEvents {
   "room:reaction": { roomSlug: string; userId: string; emoji: string };
   /** A moderator muted your microphone or turned off your camera. */
   "room:muted": { roomSlug: string; userId: string; kind: "audio" | "video" | "all" };
+  /**
+   * Someone started, stopped, asked for, handed over or was stopped from presenting their screen. A hint: the tab
+   * refetches the presentation state, and the LiveKit track stays the truth for what is on screen. `ref` is the call id
+   * or the room slug. It never carries a source name or a window title.
+   */
+  "presentation:changed": { scope: PresentScope; ref: string; change: PresentChange };
   "session:revoked": { sessionId: string };
   "auth:expired": Record<string, never>;
 }
@@ -121,6 +133,13 @@ export const internalEventSchema = z.discriminatedUnion("type", [
     messageId: id.optional(),
     emoji: z.string().max(16).optional(),
     kind: z.enum(["audio", "video", "all"]).optional(),
+  }),
+  /** A presentation changed in a call (refId is the call id) or a room (refId is the room id). */
+  z.object({
+    type: z.literal("presentation"),
+    scope: z.enum(PRESENT_SCOPES),
+    refId: id,
+    change: z.enum(PRESENT_CHANGES),
   }),
   z.object({
     type: z.literal("call"),

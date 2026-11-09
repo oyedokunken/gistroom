@@ -35,6 +35,13 @@ export const LIMITS = {
   ROOM_CHIP_CROWD: 24,
   /** Join and leave sounds only play in rooms this small. */
   ROOM_SOUND_MAX_PEOPLE: 12,
+  // Screen sharing
+  /** One person presents at a time in a call or room. */
+  PRESENT_MAX_PRESENTERS: 1,
+  /** An "Ask to present" request lapses after this long without an answer. */
+  PRESENT_REQUEST_TTL_SEC: 30,
+  /** After the presenter allows a handoff, only the person who asked may start for this long. */
+  PRESENT_HANDOFF_SEC: 30,
   // Auth
   OTP_LENGTH: 6,
   OTP_TTL_MIN: 10,
@@ -78,6 +85,17 @@ export const LIMITS = {
   PAGE_SIZE_DEFAULT: 20,
   PAGE_SIZE_OPTIONS: [10, 20, 50],
   SEARCH_MIN_CHARS: 2,
+  /** Search inside the notification list. */
+  NOTIFICATION_SEARCH_MAX_CHARS: 60,
+  // Re-engagement
+  /** No meaningful action and no session for this many days counts as inactive. */
+  REENGAGE_INACTIVE_DAYS: 7,
+  /** At least this many days between two re-engagement notices to one person. */
+  REENGAGE_COOLDOWN_DAYS: 30,
+  /** At most this many in any 365 days. */
+  REENGAGE_MAX_PER_YEAR: 3,
+  /** People looked at in one sweep run. */
+  REENGAGE_BATCH: 200,
 } as const;
 
 export const LANGUAGES = ["ENGLISH", "PIDGIN", "YORUBA", "IGBO", "HAUSA", "OTHER"] as const;

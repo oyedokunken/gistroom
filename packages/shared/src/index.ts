@@ -23,3 +23,8 @@ export * from "./topics";
 export * from "./notes";
 export * from "./reactions";
 export * from "./room-listing";
+export * from "./presentation";
+export * from "./badges";
+export * from "./notification-search";
+export * from "./reengage";
+export * from "./suggestions";

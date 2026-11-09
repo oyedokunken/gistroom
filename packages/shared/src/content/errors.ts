@@ -90,10 +90,17 @@ export const errors = {
   forwardNothing:
     "None of those messages can be forwarded. Deleted messages, call records and room invites stay in the chat.",
   forwardFailed: "We could not forward that to this person.",
+  identityLocked: "Your email and username are permanent and cannot be changed.",
   chatUnavailable: "You can't send messages to this person.",
   editWindowClosed: "You can only edit a message in the first 15 minutes.",
   editNotAllowed: "You can only edit your own text messages.",
   messageTooLong: (max: number) => `Messages can be up to ${max} characters.`,
+  presentBusy: "Someone else is presenting right now. Ask them for a turn.",
+  presentNotAllowed: "You can not present in this call right now.",
+  presentEnded: "This session has ended, so nothing can be presented.",
+  presentRequestTaken: "Someone has already asked for the next turn. Try again in a moment.",
+  presentUnavailable: "Presenting is not available right now. Try again in a moment.",
+  presentNoRequest: "There is no request to answer.",
   deleteWindowClosed: "You can only delete a message for everyone in the first 15 minutes.",
 } as const;
 

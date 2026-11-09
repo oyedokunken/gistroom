@@ -1,5 +1,5 @@
 import type { Call, Prisma, User } from "./generated/client";
-import { defaultAvatarSrc } from "@gistroom/shared";
+import { PUBLIC_BADGE_LIMIT, defaultAvatarSrc, parseBadgeChips } from "@gistroom/shared";
 import type { AttachmentDto, CallDto, MessageDto, PublicUser, ReactionDto } from "@gistroom/shared";
 
 /** Public avatar URL from the public bucket. Null when none is set or storage is not configured. */
@@ -10,7 +10,15 @@ export function avatarUrl(path: string | null): string | null {
   return `${base}/storage/v1/object/public/${bucket}/${path}`;
 }
 
-type PublicFields = Pick<User, "id" | "name" | "username" | "avatarPath" | "bio" | "status">;
+type PublicFields = Pick<User, "id" | "name" | "username" | "avatarPath" | "bio" | "status"> &
+  Partial<Pick<User, "badgesPublic" | "showBadges">>;
+
+/** The badges to show next to a name, or nothing when the person hides them or the row did not load them. */
+function badgesOf(user: PublicFields): { badges?: ReturnType<typeof parseBadgeChips> } {
+  if (user.showBadges === false) return {};
+  const chips = parseBadgeChips(user.badgesPublic).slice(0, PUBLIC_BADGE_LIMIT);
+  return chips.length > 0 ? { badges: chips } : {};
+}
 
 /** Only name, username, avatar and bio ever leave the server about another person (Section 20). */
 export function toPublicUser(user: PublicFields): PublicUser {
@@ -23,6 +31,7 @@ export function toPublicUser(user: PublicFields): PublicUser {
     username: user.username,
     avatarUrl: avatarUrl(user.avatarPath) ?? defaultAvatarSrc(user.id),
     bio: user.bio,
+    ...badgesOf(user),
   };
 }
 

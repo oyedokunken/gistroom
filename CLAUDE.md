@@ -339,7 +339,8 @@ Rules:
 - Search is by name and username only. No email search, no phone search, ever.
 - Minimum 2 characters, trigram match, 30 per minute rate limit, results exclude blocked, deleted, suspended and non-discoverable users.
 - Each result shows avatar, name, `@username`, mutual friend count and the correct action: Add friend, Request sent, Message, or nothing when unavailable.
-- Profile page `/app/u/[username]`: avatar, name, bio, mutual friends, actions (message, call, block, report).
+- Profile page `/app/u/[username]`: avatar, name, immutable username, whether the email is verified (never the address), date joined (month and year), the number of friends who are still active, interests, badges (Section 9.10), bio, presence, mutual friends, actions (message, call, block, report). Email and username are permanent (D99): Settings shows them with no control and the server refuses any request that names either. An unverified account can verify from Settings with a 6 digit code.
+- Suggested friends (D97): the Find people tab lists up to 12 people from interests in common, mutual friends and public rooms together, each with plain reasons and a Not interested button. Blocked, hidden, deleted, suspended, connected and pending people are never shown, private rooms are never read, and location and language are not used.
 
 ### 9.2 Friends
 
@@ -360,6 +361,7 @@ Rules:
 - Delete for me hides a message for the caller only. Delete for everyone is allowed for the sender within 15 minutes (D4), and editing a text message is allowed for the same 15 minutes (the bubble shows Edited) and replaces the bubble with "This message was deleted". Delete chat means clear for me (`clearedAt`) and remove from my list; new messages bring it back with only new history.
 - Archive: archived chats stay archived when new messages arrive (D3), but the Archived row shows a dot. Unarchive manually.
 - Starred messages: per user, a screen listing them with jump-to-message.
+- Forwarding (D94): one message from its menu, or up to 10 with Select, to up to 5 friends, recent chats first. Text, photos, videos, voice notes and files only. Each copy is a new message from the forwarder marked Forwarded, with no original sender or time and no chain, and files are copied to a path in the destination chat. Retries never duplicate (client generated batch id).
 - Media tab in chat details: Media (images and videos in a grid with a lightbox), Files, Voice notes, Starred. Cursor paginated.
 - Voice notes: `MediaRecorder` with mime negotiation (`audio/webm;codecs=opus` first, `audio/mp4` for Safari). Max 5 minutes. Hold or lock to record, slide to cancel. Waveform of 64 bars generated client side and stored. Playback speeds 1x, 1.5x, 2x. A permission primer modal explains the mic request before the browser prompt.
 - Uploads: client requests a signed upload URL (type, size and quota checked), uploads straight to the private bucket at `dm/{conversationId}/{messageId}/{uuid}`, then the server finalizes after verifying magic bytes and size. Images are compressed client side (target 1.5 MB, longest edge 2048 px) with orientation applied and EXIF removed by re-encoding; thumbnails are generated client side. HEIC is converted to JPEG client side. Videos up to the limit in Section 26 with a client-generated poster frame. Allowed files: pdf, docx, xlsx, pptx, txt, csv.
@@ -417,13 +419,14 @@ Rules:
 - **The end:** the person who ends it reads "You ended the room". Everyone else reads who ended it (the host or a moderator) with the length and peak, and attendees can open the summary. A room with nobody connected for 5 minutes is ended by the sweeper, which asks LiveKit who is connected. A room ends after 8 hours with a warning 15 minutes before. A scheduled room whose host never came is cancelled after 30 minutes and its list is told.
 - **Large rooms:** 16 people per page of the stage, the people speaking first, and video is only subscribed for the tiles on screen.
 - Moderator action log: every moderator action is written to `RoomModLog` and shown to the host in a panel inside the Room.
-- Discover (`/rooms` public, `/app/rooms` authed): live public Rooms sorted by activity, scheduled Rooms, filters for topic and language, search by title. Public page revalidates every 30 seconds.
+- Discover (`/rooms` public, `/app/discover` authed): one query serves both, so live rooms come first and upcoming rooms follow by start time, with the same filters (topic, language, text), authorization and card shape. Cards say Live or Upcoming, show `N in room`, `N attending` or `N attended` from server data, and offer one honest action: Start room (host, once ready), Join room, Sign in to join, or `Starts in: 1 day 2h`. Choosing a card opens a details panel beside the list (a sheet on a phone) with Copy room link and Other rooms you might like (same topic, then language, then live and closeness; never itself, ended or inaccessible rooms). Filters live in a wide dialog with Reset and Apply. Public page revalidates every 30 seconds.
+- **Screen sharing** (D100 to D104): any participant can present a screen, window or tab in a call or Room with the browser picker, after a warning about private information. One presenter at a time, a deliberate handoff, host and moderators can stop a Room presentation (logged), data saver asks for reduced quality first, and an unsupported browser or phone gets an inline reason, never a silent fallback to camera or audio. Nothing is recorded or stored and no source name is logged.
 - Optional later (flagged, not Phase 5 core): Stage mode with raise hand, where only invited speakers hold the mic.
 - Video layout: adaptive grid, active speaker highlight with a green ring, pin, and only visible tiles subscribe to video.
 
 ### 9.7 Notifications (summary, details in Section 10)
 
-In-app list with unread filter, read, unread, delete, clear all. Bell with count. App icon badge through the Badge API. Preferences per type. Do Not Disturb.
+In-app list with unread filter, search, cursor pagination (Show more), read, unread, delete, clear all. Search matches the person's own notification text and names, never anyone else's rows (D109). Bell with count. App icon badge through the Badge API. Preferences per type. Do Not Disturb. Every stage a notification passes through is recorded (created, claimed, sent to a tab, pushed, rejected, skipped with a reason, retried, dropped) so a missing alert can be traced, and a failed job is retried and dropped after five tries (D95). Registered attendees can switch reminders off per room. People inactive for more than 7 days get at most one come back email and in-app notice per 30 days, only if they allow it (D105 to D108).
 
 ### 9.8 Safety and admin
 
@@ -433,7 +436,11 @@ In-app list with unread filter, read, unread, delete, clear all. Bell with count
 
 ### 9.9 Settings
 
-Profile, Privacy (discoverable, presence, read receipts, who can invite me to Rooms), Notifications (per type, previews, quiet hours, test notification button), Devices (sessions), Data saver, Install app, Export my data (a PDF report, with a notice in the list when it is downloaded), Delete account.
+Profile (email verification, permanent email and username), Privacy (discoverable, presence, read receipts, show badges next to my name, who can invite me to Rooms), Notifications (per type, previews, quiet hours, test notification button), Devices (sessions), Data saver, Install app, Export my data (a PDF report, with a notice in the list when it is downloaded), Delete account.
+
+### 9.10 Badges
+
+Ten badge families (D96), defined in `packages/shared/src/badges.ts`: First room host, Room host, Helpful host, Regular attendee, Conversation starter, Good listener, Community builder, Topic explorer, Consistent gist and Trusted reporter (private). Earned only from server facts, repeatable in fixed steps and shown as x2, x5 with an accessible text name. They appear on the profile with what each means and how it is earned, and next to a name in chat headers, the Room people list, search and friend lists. Grants are idempotent and permanent records; moderation revokes with an audit entry. A person can hide badges from public surfaces in Settings.
 
 ---
 
@@ -791,7 +798,7 @@ Sent only from the web app through Nodemailer. Realtime requests sends through t
 | Reports         | 10 per hour                              |
 | Contact form    | 5 per hour per IP                        |
 
-- Input: Zod on every route and every socket payload. Output: never return other users' emails. Public profile data is name, username, avatar and bio only.
+- Input: Zod on every route and every socket payload. Output: never return other users' emails. Public profile data is name, username, avatar, bio, date joined, active friend total, interests, email verified status and public badges only (D99).
 - Media: magic byte checks, extension and MIME allow-lists, size caps, private bucket, signed URLs, EXIF stripping, orphan sweep. Report path for abusive media and a takedown process documented in SECURITY.md and the Safety page.
 - Authorization: write one permission module per domain (friends, chat, calls, rooms) with a pure function matrix that is unit tested, and call it from both REST and sockets.
 - Secrets: validated env, no secrets in logs (pino redaction for tokens, cookies, emails in debug), structured logs with request IDs.

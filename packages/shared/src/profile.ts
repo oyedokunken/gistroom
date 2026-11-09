@@ -1,5 +1,6 @@
 import type { PublicRoomCard } from "./dto";
 import { z } from "zod";
+import type { BadgeChip } from "./badges";
 import { emailSchema, nameSchema, otpCodeSchema } from "./auth";
 import { validation } from "./content/validation";
 
@@ -24,6 +25,7 @@ export const updateProfileSchema = z
     sendReadReceipts: z.boolean(),
     roomInvitesFrom: z.enum(["FRIENDS", "EVERYONE"]),
     dataSaver: z.boolean(),
+    showBadges: z.boolean(),
     timezone: z.string().trim().min(1).max(64).refine(isValidTimeZone, validation.timezoneUnknown),
   })
   .partial();
@@ -36,6 +38,8 @@ export interface PublicUser {
   username: string;
   avatarUrl: string | null;
   bio: string | null;
+  /** Up to three public badges to show next to the name. Absent when the person hides them or has none. */
+  badges?: BadgeChip[];
 }
 
 /** The signed in person's own record. */
@@ -49,8 +53,14 @@ export interface MeUser extends PublicUser {
   sendReadReceipts: boolean;
   roomInvitesFrom: "FRIENDS" | "EVERYONE";
   dataSaver: boolean;
+  showBadges: boolean;
+  /** True once the address has been confirmed. The address itself is never shown to anyone but its owner. */
+  emailVerified: boolean;
   timezone: string;
 }
+
+/** Email and username are permanent. A request that names either one is refused. */
+export const LOCKED_PROFILE_FIELDS = ["email", "username"] as const;
 
 export type Relationship = "NONE" | "FRIENDS" | "REQUEST_SENT" | "REQUEST_RECEIVED" | "UNAVAILABLE";
 

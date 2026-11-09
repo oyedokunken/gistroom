@@ -64,6 +64,8 @@ export const pushCopy = {
   plainCall: "Incoming call. Open Gistroom to sign in and answer.",
   testTitle: "Test notification",
   testBody: "If you can read this, alerts reach this device.",
+  reengageTitle: "Come gist with us",
+  reengageBody: "See which rooms are live and catch up with your friends.",
   genericTitle: "Gistroom",
   genericBody: "You have a new notification.",
 } as const;

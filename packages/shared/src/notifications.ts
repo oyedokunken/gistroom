@@ -15,6 +15,7 @@ export const NOTIFICATION_TYPES: readonly NotificationType[] = [
   "SECURITY_NEW_DEVICE",
   "REPORT_UPDATE",
   "SYSTEM",
+  "REENGAGE",
 ];
 
 /**
@@ -45,13 +46,14 @@ export function defaultSwitches(type: NotificationType): ChannelSwitches {
   return {
     inApp: true,
     // A finished room is only worth a line in the list.
-    push: type !== "ROOM_ENDED",
+    push: type !== "ROOM_ENDED" && type !== "REENGAGE",
     email:
       type === "CALL_MISSED" ||
       type === "SECURITY_NEW_DEVICE" ||
       type === "ROOM_INVITE" ||
       type === "ROOM_STARTING" ||
-      type === "ROOM_LIVE_NOW",
+      type === "ROOM_LIVE_NOW" ||
+      type === "REENGAGE",
   };
 }
 
@@ -133,6 +135,8 @@ export function channelsFor(input: {
   );
   // The host's count of registrations is a line in the list and nothing more.
   if (input.type === "ROOM_REGISTRATIONS") return { inApp: sw.inApp, push: false, email: false };
+  // A nudge for someone who is away never rings a phone.
+  if (input.type === "REENGAGE") return { inApp: sw.inApp, push: false, email: sw.email && !quiet };
   return { inApp: sw.inApp, push: sw.push && !quiet, email: sw.email && !quiet };
 }
 
@@ -162,6 +166,8 @@ export function notificationHref(type: NotificationType, payload: Record<string,
       return str("href") ?? "/app/notifications";
     case "SECURITY_NEW_DEVICE":
       return "/app/settings/devices";
+    case "REENGAGE":
+      return "/app/discover";
     case "REPORT_UPDATE":
     case "SYSTEM":
       return "/app/notifications";
@@ -494,6 +500,14 @@ export function notificationCopy(
         kind: "GENERIC",
         title: pushCopy.reportTitle,
         body: pushCopy.reportBody,
+        ref: id,
+        url,
+      };
+    case "REENGAGE":
+      return {
+        kind: "GENERIC",
+        title: pushCopy.reengageTitle,
+        body: pushCopy.reengageBody,
         ref: id,
         url,
       };

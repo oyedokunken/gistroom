@@ -28,9 +28,11 @@ test.describe("forwarding a message", () => {
       },
     });
     await signIn(context, me);
+    // The chat list shows the same text as a preview, so every lookup stays inside the thread.
+    const thread = page.getByRole("log");
     await page.goto(`/app/chats/${sourceChat}`);
 
-    await page.getByText("Match starts at eight").click();
+    await thread.getByText("Match starts at eight").click();
     await page.getByRole("menuitem", { name: "Forward", exact: true }).click();
 
     const dialog = page.getByRole("dialog", { name: "Forward to" });
@@ -43,7 +45,7 @@ test.describe("forwarding a message", () => {
 
     await page.getByRole("button", { name: "Got it" }).first().click();
     await page.goto(`/app/chats/${targetChat}`);
-    await expect(page.getByText("Match starts at eight")).toBeVisible();
+    await expect(thread.getByText("Match starts at eight")).toBeVisible();
     await expect(page.getByText("Forwarded", { exact: true })).toBeVisible();
   });
 

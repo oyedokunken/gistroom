@@ -138,25 +138,41 @@ test.describe("suggested friends", () => {
   test.use({ viewport: { width: 1280, height: 900 } });
 
   test("shows people with plain reasons and lets you dismiss one", async ({ page, context }) => {
-    // Interests that nobody else in the shared test database picks, so only these people are suggested.
-    const mine = ["parenting", "history-and-heritage"];
-    const me = await createUser("sg1", { interests: mine });
-    const a = await createUser("sg2", { name: "Suggest Ada", interests: mine });
-    await createUser("sg3", { name: "Suggest Bayo", interests: ["parenting"] });
-    await signIn(context, me);
-    await page.goto("/app/friends?tab=find");
+    // Topics and names made for this run only, so people left behind by other specs or earlier retries never match.
+    const run = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    const topicSlugs = [`e2e-sg-${run}-a`, `e2e-sg-${run}-b`];
+    for (const slug of topicSlugs) {
+      await getDb().topic.create({
+        data: { slug, name: `E2E suggestions ${slug}`, description: "Made by a browser spec." },
+      });
+    }
+    try {
+      const adaName = `Suggest Ada ${run}`;
+      const bayoName = `Suggest Bayo ${run}`;
+      const me = await createUser("sg1", { interests: topicSlugs });
+      const a = await createUser("sg2", { name: adaName, interests: topicSlugs });
+      await createUser("sg3", { name: bayoName, interests: [topicSlugs[0]!] });
+      await signIn(context, me);
+      await page.goto("/app/friends?tab=find");
 
-    const list = page.getByRole("region", { name: "People you may know" });
-    await expect(list).toBeVisible();
-    await expect(list.getByText("Suggest Ada").first()).toBeVisible();
-    await expect(list.getByText("2 interests in common")).toBeVisible();
-    await list.getByRole("button", { name: "Not interested in Suggest Ada" }).click();
-    await expect(list.getByText("Suggest Ada")).toHaveCount(0);
-    await expect(list.getByText("Suggest Bayo").first()).toBeVisible();
-    const dismissed = await getDb().friendSuggestionDismissal.count({
-      where: { userId: me.user.id, targetId: a.user.id },
-    });
-    expect(dismissed).toBe(1);
+      const list = page.getByRole("region", { name: "People you may know" });
+      await expect(list).toBeVisible();
+      const row = (name: string) => list.getByRole("listitem").filter({ hasText: name });
+      await expect(row(adaName)).toHaveCount(1);
+      await expect(row(adaName).getByText("2 interests in common")).toBeVisible();
+      await expect(row(bayoName).getByText("1 interest in common")).toBeVisible();
+      await list.getByRole("button", { name: `Not interested in ${adaName}` }).click();
+      await expect(row(adaName)).toHaveCount(0);
+      await expect(row(bayoName)).toHaveCount(1);
+      const dismissed = await getDb().friendSuggestionDismissal.count({
+        where: { userId: me.user.id, targetId: a.user.id },
+      });
+      expect(dismissed).toBe(1);
+    } finally {
+      // The e2e people go in the global cleanup. The topics are ours, so remove them here (their interests go first).
+      await getDb().userInterest.deleteMany({ where: { topicSlug: { in: topicSlugs } } });
+      await getDb().topic.deleteMany({ where: { slug: { in: topicSlugs } } });
+    }
   });
 
   test("shows an empty state when there is nobody to suggest", async ({ page, context }) => {

@@ -11,13 +11,21 @@ test.describe("footer legal row", () => {
 
       const row = page.locator("[data-legal-row]");
       await expect(row).toBeVisible();
-      const items = await row.locator("> *").evaluateAll((els) =>
-        els.map((el) => {
-          const r = el.getBoundingClientRect();
-          return { top: r.top, bottom: r.bottom, left: r.left, right: r.right };
-        }),
-      );
-      expect(items.length).toBe(2);
+      // A wrapper with display: contents has no box of its own, so measure the items it hands to the row instead.
+      const items = await row.evaluate((rowEl) => {
+        const boxes = (el: Element): Element[] =>
+          getComputedStyle(el).display === "contents"
+            ? Array.from(el.children).flatMap(boxes)
+            : [el];
+        return Array.from(rowEl.children)
+          .flatMap(boxes)
+          .map((el) => {
+            const r = el.getBoundingClientRect();
+            return { top: r.top, bottom: r.bottom, left: r.left, right: r.right };
+          });
+      });
+      // Tablet and up lay copyright, credit and coffee link out as three columns. Phones keep two blocks.
+      expect(items.length).toBe(width < 768 ? 2 : 3);
       const tops = items.map((i) => i.top).sort((a, b) => a - b);
       if (width < 768) {
         // Phones may wrap onto a second row. Anything beyond that is a bug.

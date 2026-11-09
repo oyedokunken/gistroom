@@ -8,6 +8,7 @@ import type {
 import { defaultPrefs } from "../../packages/shared/src";
 import type {
   AckResult,
+  CallDelivery,
   NotificationBundle,
   PushSub,
   RoomDelivery,
@@ -208,10 +209,19 @@ export class FakeStore implements Store {
       : null;
     return { ...room, member: room.member ?? member };
   }
-  async callForDelivery(): Promise<null> {
-    return null;
+  calls = new Map<string, CallDelivery>();
+  addCall(call: CallDelivery): this {
+    this.calls.set(call.callId, call);
+    return this;
+  }
+  async callForDelivery(callId: string) {
+    return this.calls.get(callId) ?? null;
   }
   async subscriptionById(id: string): Promise<PushSub | null> {
+    for (const c of this.calls.values()) {
+      const hit = c.calleePush.subscriptions.find((x) => x.id === id);
+      if (hit) return hit;
+    }
     for (const b of this.notifications.values()) {
       const hit = b.subscriptions.find((x) => x.id === id);
       if (hit) return hit;

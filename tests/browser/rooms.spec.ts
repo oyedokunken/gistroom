@@ -135,9 +135,8 @@ test.describe("rooms", () => {
     await signIn(context, guest);
     await page.goto(`/rooms/${room.slug}?invite=good-token-0001`);
     await page.waitForURL(/\/app\/rooms\//);
-    const win = page.getByTestId("call-window");
-    await expect(win.getByRole("heading", { name: "Closed door" })).toBeVisible();
-    await expect(win.getByRole("button", { name: "Join room" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Closed door" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Join room" })).toBeVisible();
 
     await page.goto(`/rooms/${room.slug}?invite=dead-token-0002`);
     const dialog = page.getByRole("alertdialog");

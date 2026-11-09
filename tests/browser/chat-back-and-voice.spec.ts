@@ -25,7 +25,7 @@ test.describe("chat thread on a phone", () => {
     const box = await back.boundingBox();
     expect(box?.width ?? 0).toBeGreaterThanOrEqual(44);
     expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
-    const avatarBox = await page.getByRole("link", { name: /Profile: Back Friend/ }).boundingBox();
+    const avatarBox = await page.getByRole("link", { name: /profile: Back Friend/ }).boundingBox();
     expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual((avatarBox?.x ?? 0) + 1);
 
     await page.getByRole("textbox", { name: "Message" }).fill("half a thought");

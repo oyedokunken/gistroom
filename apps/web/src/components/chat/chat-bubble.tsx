@@ -133,7 +133,7 @@ export function ChatBubble({
       {message.type === "ROOM_INVITE" && !message.deletedForEveryone ? null : !hasMedia || body ? (
         <span className={cn(hasMedia && "mt-1.5 block")}>{body}</span>
       ) : null}
-      <span className="mt-1 flex items-center justify-end gap-1.5 text-[0.6875rem] leading-none opacity-80">
+      <span className="mt-1 flex items-center justify-end gap-1.5 text-[0.6875rem] leading-none">
         {message.editedAt ? (
           <span title={chat.edit.labelTitle(formatFull(new Date(message.editedAt)))}>
             {chat.edit.labelAt(formatClock(new Date(message.editedAt)))}

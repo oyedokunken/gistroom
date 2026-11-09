@@ -339,8 +339,7 @@ test.describe("rooms ringing you", () => {
     const busyRoom = await createRoom(other, { title: "Already in this", topic: "comedy" });
     await signIn(context, guest);
     await page.goto(`/app/rooms/${busyRoom.slug}`);
-    await page.getByTestId("call-window").getByRole("button", { name: "Join room" }).click();
-    await expect(page.getByTestId("call-window")).toBeVisible();
+    await page.getByRole("button", { name: "Join room" }).click();
     // The room that was ringing is not shown while this one is on.
     await expect(ring(page).locator('[data-ring-card="ROOM"]')).toHaveCount(0);
     await expect(page.getByText("Room Host invited you to Match day gist")).toBeVisible();

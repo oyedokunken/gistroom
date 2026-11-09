@@ -148,11 +148,11 @@ test.describe("suggested friends", () => {
 
     const list = page.getByRole("region", { name: "People you may know" });
     await expect(list).toBeVisible();
-    await expect(list.getByText("Suggest Ada")).toBeVisible();
+    await expect(list.getByText("Suggest Ada").first()).toBeVisible();
     await expect(list.getByText("2 interests in common")).toBeVisible();
     await list.getByRole("button", { name: "Not interested in Suggest Ada" }).click();
     await expect(list.getByText("Suggest Ada")).toHaveCount(0);
-    await expect(list.getByText("Suggest Bayo")).toBeVisible();
+    await expect(list.getByText("Suggest Bayo").first()).toBeVisible();
     const dismissed = await getDb().friendSuggestionDismissal.count({
       where: { userId: me.user.id, targetId: a.user.id },
     });

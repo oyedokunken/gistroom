@@ -28,3 +28,9 @@ Sign in is email and password (two steps) or Google. A one time code appears onl
 - The sweep removes sessions that expired more than 7 days ago and nothing else.
 - Export, setting a first password and similar actions need a sign in from the last 15 minutes.
 - The installed iPhone app has its own cookies. Sign in once inside it.
+
+## Email verification and permanent identity
+
+Email and username cannot be changed after sign up. Settings shows both without any control, and `PATCH /api/me` answers 400 and names the field when a body contains `email` or `username`, so a crafted request or a stale form cannot believe it changed them (`rejectLockedFields`). Both stay usable for sign in, recovery and public username links.
+
+An account whose email was never confirmed (made before codes were required, for example) sees "Your email is not verified" in Settings, Profile. `POST /api/me/email/verify/start` sends a 6 digit code with the code purpose `VERIFY_EMAIL` to the address the account already has, and `/confirm` checks it and sets `emailVerifiedAt`. The rules are the sign up rules: 10 minute expiry, 60 second resend wait, 5 sends an hour, 5 tries then a 15 minute lock, plus a per person rate limit. A verified account gets a 409 on start. Other people see only "Email verified", never the address.

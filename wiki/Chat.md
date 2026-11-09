@@ -21,3 +21,7 @@ Rules, each tested:
 - The copy has `meta.forwarded = true` and `meta.forwardedFrom` (the source type). It never carries the original sender or time, and a forward of a forward reads the same, so there is no chain of senders (decision D94).
 - Files are copied inside the private bucket to `dm/{destinationConversationId}/{forwarderId}/{uuid}` and get their own `MessageAttachment` and `FileAsset` rows. Media access is then checked against the destination chat like any other file, and deleting the original or the original sender's account does not break the copy.
 - Rate limits: 10 forward requests a minute, and each copy still counts toward the 60 messages a minute limit.
+
+## Voice note player and back button
+
+The voice note player takes every colour from `voice-styles.ts` (rest, hover, focus-visible and disabled for both bubble colours), and `tests/unit/voice-contrast.test.ts` reads the design tokens and checks each pair against WCAG AA in light and dark. On a phone the chat header has a 44 pixel Back to chats button before the avatar. Drafts are kept per conversation, so going back and returning keeps what was typed.

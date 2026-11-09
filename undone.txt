@@ -1,3 +1,15 @@
+STATUS (updated 2026-11-09)
+============================
+Every item below has been built in vertical slices with tests and docs. Items
+17 and 18 (suggested friends, badges) and 13 and 14 (profile, email
+verification) are done. Items 7 (screen sharing), 15 (notification search) and
+16 (come back notice) were built and their DB and browser specs are listed in
+CHANGELOG.md under Unreleased. Decisions D94 to D109 in wiki/Decisions.md record
+the product questions this file asked to settle first. Known gaps are listed in
+the final summary of that work and in each wiki page.
+
+Original request follows.
+
 Gistroom future improvements
 ============================
 
@@ -189,7 +201,99 @@ Tests:
 Priority 2: rooms discovery and room pages
 -------------------------------------------
 
-7. Show live and upcoming rooms on the public Rooms page
+7. Add screen sharing for calls and Rooms
+
+Product goal:
+- Let a participant share their screen, application window, or browser tab
+  during a call or live Room.
+- Match the familiar Google Meet sharing standard: a clear Present now
+  control, a browser picker, an obvious sharing indicator, and a reliable
+  Stop presenting action.
+- Screen sharing is planned system functionality and should work in both
+  1:1 calls and Rooms without replacing the existing audio session.
+
+Expected behavior:
+- The call or Room controls include a labelled "Share screen" or "Present
+  now" action when the browser and current role allow it.
+- The browser's native display-media picker chooses an entire screen, a
+  window, or a browser tab. Gistroom must not attempt to read or select a
+  source without the browser permission flow.
+- Starting presentation publishes one video track through the existing
+  LiveKit session and keeps the participant's camera and microphone state
+  independent.
+- A presenter can stop sharing from the Gistroom control or from the browser's
+  native stop-sharing control. Both paths update every participant promptly.
+- The presenter sees a local "You are presenting" indicator and a preview or
+  clear state showing what is being shared without creating a feedback loop.
+- Viewers see the shared screen as a stage tile with the presenter name,
+  presentation status, mute and camera state kept separate, and a way to pin
+  or enlarge the shared content.
+- Only one presentation is active per call or Room by default. If a second
+  person tries to present, show a clear inline explanation and provide a
+  deliberate handoff flow rather than silently replacing the first presenter.
+- The host and moderators can stop a Room presentation when moderation or
+  safety requires it. The action is logged in the Room moderator log.
+- A participant who is removed, banned, disconnected, or leaves the call
+  cannot continue publishing a presentation track.
+- Screen sharing ends when the call or Room ends, when the presenter leaves,
+  when the browser ends the source, or when the shared session is cleaned up.
+- Data saver mode starts with screen sharing disabled or a reduced quality
+  choice, with an explicit explanation before publishing.
+- Calls and Rooms remain audio first. Sharing must not force every viewer to
+  subscribe to camera video, and off-screen tiles must follow the existing
+  large-room subscription rules.
+
+Authorization and privacy:
+- Check permission for the call, Room, role, lock state, bans, removals, and
+  current presentation owner on the server and in the realtime event handler.
+- Do not store, record, upload, or expose screen contents by default.
+- Do not include the shared source name, window title, document title, or
+  potentially sensitive picker metadata in notifications, analytics, logs, or
+  Room history.
+- Browser support and permission denial must produce an inline explanation
+  with the next step. Never silently fall back to a camera or audio stream.
+- Add a clear warning before sharing that private information visible on the
+  chosen screen can be exposed to everyone in the call or Room.
+- Respect browser restrictions, including protected content and system-level
+  capture rules. The product must treat the browser's returned track as the
+  source of truth.
+
+Implementation scope:
+- Confirm LiveKit's screen-share track publishing and subscription model for
+  the versions already used by the repository. Do not add a dependency unless
+  it is necessary and maintained.
+- Add shared Zod contracts and event names for presentation started, stopped,
+  handed off, denied, and forcibly ended states.
+- Extend the live call and Room state machines with a presentation owner and
+  cleanup transitions. Keep state authoritative in the current LiveKit room
+  and server authorization model.
+- Add a reusable screen-share control and presentation tile for the call
+  window, full call screen, Room stage, participant panel, and minimized call
+  state where appropriate.
+- Define the handoff policy, maximum simultaneous presenters, quality limits,
+  fallback behavior, and whether a host can forcibly stop a presentation in
+  wiki/Decisions.md before implementation.
+- Add telemetry only for lifecycle outcomes such as started, stopped, denied,
+  and failed. Never collect screen pixels or sensitive source names.
+- Update the support documentation with browser support, mobile limitations,
+  permission steps, and the warning about visible private information.
+
+Tests:
+- Unit test the presentation permission matrix for caller, callee, host,
+  moderator, member, locked Room, removed person, banned person, and ended
+  session.
+- Unit test state transitions for start, duplicate start, browser stop,
+  disconnect, handoff, moderator stop, and call or Room cleanup.
+- Integration test authorization, realtime fan-out, moderator logging, and
+  one-presenter conflict handling with mocked LiveKit tracks.
+- Browser test the native permission denial path, start and stop controls,
+  browser-source stop, viewer rendering, pinning, and mobile fallback.
+- Add accessibility checks for labelled controls, live presentation status,
+  keyboard operation, focus, contrast, and reduced motion.
+- Add a live-tagged test against the LiveKit development project before
+  release, including a two-person handoff and reconnect scenario.
+
+8. Show live and upcoming rooms on the public Rooms page
 
 Problem:
 - /app/discover already includes live and future rooms.
@@ -213,7 +317,7 @@ Implementation scope:
 - Clearly label room state as Live or Upcoming.
 - Add tests proving parity between both routes.
 
-8. Improve room cards and room interaction
+9. Improve room cards and room interaction
 
 Room card actions:
 - Hosts see "Start room" when a scheduled room is ready for them.
@@ -245,7 +349,7 @@ Tests:
 - Responsive tests at 320, 390, 768, and 1440 widths.
 - Accessibility checks for action names, focus order, and countdown text.
 
-9. Add related rooms
+10. Add related rooms
 
 Expected behavior:
 - Every public room page includes "Related rooms" or "Other rooms you might
@@ -263,7 +367,7 @@ Tests:
 - Integration test public, private, ended, and empty recommendation cases.
 - Browser test the related-room links and mobile layout.
 
-10. Copy room links safely
+11. Copy room links safely
 
 Expected behavior:
 - A room page and room controls provide Copy room link.
@@ -282,7 +386,7 @@ Tests:
 - Browser test copy status, denied clipboard permission, and private-room
   explanation.
 
-11. Widen or redesign room filter controls
+12. Widen or redesign room filter controls
 
 Problem:
 - The filters and dropdowns on /app/rooms are cramped and visually packed.
@@ -304,7 +408,7 @@ Tests:
 Priority 3: profile identity, verification, and notifications UI
 ----------------------------------------------------------------
 
-12. Expand user profiles
+13. Expand user profiles
 
 The profile at /app/u/[username] should show, subject to privacy rules:
 - Display name
@@ -327,7 +431,7 @@ Tests:
 - Serializer tests for public, owner, blocked, deleted, and private fields.
 - Browser test owner and visitor profile views.
 
-13. Verify email and lock identity fields
+14. Verify email and lock identity fields
 
 Expected behavior:
 - Add an email verification status and verification action to
@@ -347,7 +451,7 @@ Tests:
 - API tests proving email and username mutation is rejected.
 - Browser test the settings display and verification action.
 
-14. Paginate and search notifications
+15. Paginate and search notifications
 
 Expected behavior:
 - /app/notifications supports cursor pagination with a stable page size.
@@ -374,7 +478,7 @@ Tests:
 Priority 4: engagement and recommendations
 -------------------------------------------
 
-15. Email and in-app re-engagement for inactive people
+16. Email and in-app re-engagement for inactive people
 
 Expected behavior:
 - Identify people who have been inactive for more than seven days using a
@@ -401,7 +505,7 @@ Tests:
 - Mail template test for content, links, and unsubscribe or preferences
   behavior.
 
-16. Suggested friends
+17. Suggested friends
 
 Candidate signals:
 - Shared interests
@@ -436,7 +540,7 @@ Tests:
 Priority 5: badge system, design discussion, and long-term polish
 ------------------------------------------------------------------
 
-17. User badges
+18. User badges
 
 Product shape:
 - Define ten badge families.

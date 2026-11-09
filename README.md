@@ -61,20 +61,24 @@ The full product spec and engineering rules are in [CLAUDE.md](CLAUDE.md). That 
 
 ## Features
 
-| Area               | What you get                                                                                                                                                                  |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Accounts           | Email and password, a one time code only to confirm an email or reset a password, sign in with email or username, Google sign in (built, switched off until enabled)          |
-| Onboarding         | Email, code, password, profile (name and username), then interests, then a short walkthrough                                                                                  |
-| Discover           | A "For you" page with public rooms on your topics and people who like the same things                                                                                         |
-| Friends            | Search by name or username, send, accept, reject, cancel, unfriend, block. Rejected requests cool down for 7 days                                                             |
-| Chats              | Bubbles with time on every message, typing preview, receipts, reply by swipe, edit for 15 minutes, delete, star, react, archive, voice notes, photos, video and documents     |
-| Calls              | One to one audio or video with a mid call switch, ring, glare and busy handling, multi device answer, call logs with filters                                                  |
-| Rooms              | Public or private group calls for up to 32 people, moderators, mod log, invite links, forward, rejoin grace, room chat, scheduling, topic and language filters                |
-| Notifications      | In app list plus Web Push that reaches you after the tab was closed, quiet hours, per type switches                                                                           |
-| Safety             | Block, report with the last 20 messages as evidence, private rooms, moderator tools, rate limits on every mutation                                                            |
-| PWA                | Installable, offline shell, offline send queue, badge counts, update prompt                                                                                                   |
-| Nigerian by design | Data saver and audio first, WAT aware times, Graphik with a Noto Sans fallback for Yoruba, Igbo and Hausa letters, illustrated Nigerian scenes, topics such as Gbedu and Japa |
-| Public site        | Landing page with live widgets, features, security, safety, support, install, legal pages, topic pages, rooms directory, server rendered with full SEO                        |
+| Area               | What you get                                                                                                                                                                       |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Accounts           | Email and password, a one time code only to confirm an email or reset a password, sign in with email or username, Google sign in (built, switched off until enabled)               |
+| Onboarding         | Email, code, password, profile (name and username), then interests, then a short walkthrough                                                                                       |
+| Discover           | One list of live and upcoming rooms with cards, a details panel, related rooms, copy link and a filter dialog, plus people who like the same things                                |
+| Profiles           | Date joined, active friend total, interests, verified email status and badges. Email and username are permanent                                                                    |
+| Badges             | Ten badge families earned from server facts, shown as x2 and x5 next to a name, revocable only by moderation with an audit entry                                                   |
+| Suggested friends  | Up to 12 people from interests, mutual friends and public rooms, with plain reasons and Not interested                                                                             |
+| Screen sharing     | Present a screen, window or tab in a call or room, one presenter at a time, moderator stop, data saver aware                                                                       |
+| Friends            | Search by name or username, send, accept, reject, cancel, unfriend, block. Rejected requests cool down for 7 days                                                                  |
+| Chats              | Bubbles with time on every message, typing preview, receipts, reply by swipe, edit for 15 minutes, delete, star, react, archive, forward, voice notes, photos, video and documents |
+| Calls              | One to one audio or video with a mid call switch, ring, glare and busy handling, multi device answer, call logs with filters                                                       |
+| Rooms              | Public or private group calls for up to 32 people, moderators, mod log, invite links, forward, rejoin grace, room chat, scheduling, topic and language filters                     |
+| Notifications      | In app list with search and paging plus Web Push that reaches you after the tab was closed, a delivery trail for diagnosis, quiet hours, per type switches, a come back notice     |
+| Safety             | Block, report with the last 20 messages as evidence, private rooms, moderator tools, rate limits on every mutation                                                                 |
+| PWA                | Installable, offline shell, offline send queue, badge counts, update prompt                                                                                                        |
+| Nigerian by design | Data saver and audio first, WAT aware times, Graphik with a Noto Sans fallback for Yoruba, Igbo and Hausa letters, illustrated Nigerian scenes, topics such as Gbedu and Japa      |
+| Public site        | Landing page with live widgets, features, security, safety, support, install, legal pages, topic pages, rooms directory, server rendered with full SEO                             |
 
 ## How a person uses it
 
@@ -424,6 +428,10 @@ erDiagram
   Topic ||--o{ Room : tags
   User ||--o{ CallLogEntry : sees
   User ||--o{ Report : files
+  User ||--o{ BadgeGrant : earns
+  User ||--o{ ActivityDay : active
+  User ||--o{ FriendSuggestionDismissal : dismisses
+  Notification ||--o{ NotificationDelivery : traces
 ```
 
 ### Deployment
@@ -550,19 +558,22 @@ All routes are under `https://gistroom.oyedokun.dev/api`. Every mutating route c
 
 ### Profile, friends and discovery
 
-| Method    | Path                                      | Purpose                                        |
-| --------- | ----------------------------------------- | ---------------------------------------------- |
-| GET, PUT  | `/me`                                     | Read or update my profile and privacy settings |
-| POST      | `/me/password`                            | Change password                                |
-| GET, PUT  | `/me/interests`                           | Read or replace my interests                   |
-| GET       | `/discover`                               | Rooms and people that match my interests       |
-| GET       | `/people/search`                          | Search by name or username                     |
-| GET       | `/users/:username`                        | A public profile                               |
-| POST      | `/avatar/sign`, `/avatar/commit`          | Upload a profile photo                         |
-| GET, POST | `/friends`, `/friends/requests`           | List friends, send a request                   |
-| POST      | `/friends/requests/:id/accept`, `/reject` | Answer a request                               |
-| DELETE    | `/friends/:userId`                        | Unfriend                                       |
-| POST      | `/blocks`, DELETE `/blocks/:userId`       | Block and unblock                              |
+| Method     | Path                                      | Purpose                                                                                    |
+| ---------- | ----------------------------------------- | ------------------------------------------------------------------------------------------ |
+| GET, PATCH | `/me`                                     | Read or update my profile and privacy settings. A body naming email or username is refused |
+| POST       | `/me/email/verify/start`, `/confirm`      | Verify my email with a 6 digit code                                                        |
+| GET        | `/friends/suggestions`                    | Suggested friends with plain reasons                                                       |
+| POST       | `/friends/suggestions/dismiss`            | Not interested                                                                             |
+| POST       | `/me/password`                            | Change password                                                                            |
+| GET, PUT   | `/me/interests`                           | Read or replace my interests                                                               |
+| GET        | `/discover`                               | Rooms and people that match my interests                                                   |
+| GET        | `/people/search`                          | Search by name or username                                                                 |
+| GET        | `/users/:username`                        | A public profile                                                                           |
+| POST       | `/avatar/sign`, `/avatar/commit`          | Upload a profile photo                                                                     |
+| GET, POST  | `/friends`, `/friends/requests`           | List friends, send a request                                                               |
+| POST       | `/friends/requests/:id/accept`, `/reject` | Answer a request                                                                           |
+| DELETE     | `/friends/:userId`                        | Unfriend                                                                                   |
+| POST       | `/blocks`, DELETE `/blocks/:userId`       | Block and unblock                                                                          |
 
 ### Chat and media
 
@@ -577,6 +588,7 @@ All routes are under `https://gistroom.oyedokun.dev/api`. Every mutating route c
 | PATCH, DELETE      | `/messages/:id`                                 | Edit within 15 minutes, delete for me or everyone |
 | PUT, DELETE        | `/messages/:id/star`, `/messages/:id/reactions` | Star and react                                    |
 | GET                | `/starred`                                      | Starred messages                                  |
+| POST               | `/messages/forward`                             | Forward messages to friends (idempotent on batch) |
 | POST               | `/media/sign`                                   | Signed upload URL                                 |
 | GET                | `/media/:id`                                    | Authorized redirect to a short lived URL          |
 
@@ -586,37 +598,41 @@ All routes are under `https://gistroom.oyedokun.dev/api`. Every mutating route c
 | --------- | -------------------------------------------------------------- | ---------------------- |
 | GET, POST | `/calls`                                                       | Call log, start a call |
 | GET       | `/calls/:id`                                                   | One call               |
+| GET, POST | `/calls/:id/present`                                           | Screen sharing         |
 | POST      | `/calls/:id/accept`, `/decline`, `/cancel`, `/end`, `/timeout` | Call lifecycle         |
 
 ### Rooms
 
-| Method             | Path                    | Purpose                            |
-| ------------------ | ----------------------- | ---------------------------------- |
-| GET, POST          | `/rooms`                | My rooms, create a room            |
-| GET, PATCH, DELETE | `/rooms/:slug`          | View, edit or lock, end            |
-| POST               | `/rooms/:slug/join`     | Join and get a LiveKit token       |
-| GET, POST          | `/rooms/:slug/session`  | Seat and rejoin handling           |
-| GET                | `/rooms/:slug/people`   | Members                            |
-| POST               | `/rooms/:slug/moderate` | Mute, remove, ban, promote, demote |
-| GET, POST          | `/rooms/:slug/chat`     | Room chat                          |
-| GET, POST          | `/rooms/:slug/invites`  | Invite links, invite or forward    |
-| GET                | `/public/rooms`         | Public live and scheduled rooms    |
-| GET                | `/public/stats`         | Count of live public rooms         |
+| Method             | Path                    | Purpose                                                   |
+| ------------------ | ----------------------- | --------------------------------------------------------- |
+| GET, POST          | `/rooms`                | My rooms, create a room                                   |
+| GET, PATCH, DELETE | `/rooms/:slug`          | View, edit or lock, end                                   |
+| POST               | `/rooms/:slug/join`     | Join and get a LiveKit token                              |
+| GET, POST          | `/rooms/:slug/session`  | Seat and rejoin handling                                  |
+| GET                | `/rooms/:slug/people`   | Members                                                   |
+| POST               | `/rooms/:slug/moderate` | Mute, remove, ban, promote, demote                        |
+| GET, POST          | `/rooms/:slug/chat`     | Room chat                                                 |
+| GET, POST          | `/rooms/:slug/invites`  | Invite links, invite or forward                           |
+| GET                | `/rooms/:slug/related`  | Related rooms, same authorization                         |
+| GET, POST          | `/rooms/:slug/present`  | Screen sharing state and actions                          |
+| GET                | `/public/rooms`         | Public live then upcoming rooms, same filters as Discover |
+| GET                | `/public/stats`         | Count of live public rooms                                |
 
 ### Notifications, push and system
 
-| Method    | Path                               | Purpose                                  |
-| --------- | ---------------------------------- | ---------------------------------------- |
-| GET, POST | `/notifications`                   | List, mark read or delete                |
-| GET, PUT  | `/notifications/preferences`       | Per type switches, previews, quiet hours |
-| GET       | `/notifications/unread`, `/unread` | Unread counts                            |
-| POST      | `/push/subscribe`                  | Register a Web Push subscription         |
-| POST      | `/notifications/test`              | Send myself a test notification          |
-| POST      | `/consent`                         | Store cookie consent                     |
-| POST      | `/contact`                         | Contact form                             |
-| POST      | `/csp-report`                      | Content Security Policy reports          |
-| GET       | `/health`                          | Liveness plus a database read            |
-| GET       | `/internal/jobs/sweep`             | Daily cleanup and catch up (cron secret) |
+| Method    | Path                               | Purpose                                              |
+| --------- | ---------------------------------- | ---------------------------------------------------- |
+| GET, POST | `/notifications`                   | List with ?q= search and cursor, mark read or delete |
+| GET, PUT  | `/notifications/preferences`       | Per type switches, previews, quiet hours             |
+| GET       | `/notifications/deliveries`        | My recent delivery stages (no text)                  |
+| GET       | `/notifications/unread`, `/unread` | Unread counts                                        |
+| POST      | `/push/subscribe`                  | Register a Web Push subscription                     |
+| POST      | `/notifications/test`              | Send myself a test notification                      |
+| POST      | `/consent`                         | Store cookie consent                                 |
+| POST      | `/contact`                         | Contact form                                         |
+| POST      | `/csp-report`                      | Content Security Policy reports                      |
+| GET       | `/health`                          | Liveness plus a database read                        |
+| GET       | `/internal/jobs/sweep`             | Daily cleanup and catch up (cron secret)             |
 
 ## Realtime events
 

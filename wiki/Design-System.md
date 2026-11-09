@@ -18,3 +18,7 @@ The fallback family is `Noto Sans Gistroom`, declared in `globals.css` with `uni
 ## Page position (ScrollWave)
 
 No floating back to top button (Decisions D27). `components/ui/scroll-wave.tsx` draws 36 bars like a voice note. Green bars are played, the yellow bar is where you are. Drag or tap to seek. It is an ARIA slider: arrows move 5 percent (25 with Shift), Page keys 25, Home and End jump to the ends. On desktop it is a horizontal pill fixed at the bottom centre of the page. On phones the same position is shown as a speedometer gauge (ticks and a needle) around the centre chat button of the dock. It fades when idle. The footer wordmark is a button that scrolls to the top.
+
+## Badges and room cards
+
+Badge chips use a yellow fill with ink text and a Lucide icon, with the count as x2 and a full text name for screen readers. Room cards use one action per card and a stretched button for the details panel, so the card has a single clear target and the action stays reachable by keyboard.

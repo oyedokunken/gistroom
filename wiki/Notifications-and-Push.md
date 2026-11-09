@@ -1,6 +1,6 @@
 # Notifications and Push
 
-Status: Planned, Phase 2.
+Status: Built. In app list with search and paging, Web Push with a service worker, quiet hours, per type switches, a delivery trail and retry, room reminders and a come back notice.
 
 Web Push is what reaches someone whose tab has been closed since last night. Sockets cannot do that.
 

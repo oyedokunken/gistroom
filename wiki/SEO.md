@@ -1,6 +1,6 @@
 # SEO
 
-Status: Home page only so far. Public pages arrive in Phase 6.
+Status: Built (Phase 6). Every public page is server rendered with metadata, canonical URLs, Open Graph images, JSON-LD, a sitemap and robots rules, and the SEO checks run in the browser suite.
 
 The public site must rank and share well. The app shell is private.
 

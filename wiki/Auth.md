@@ -1,14 +1,14 @@
 # Auth
 
-Status: Started. The pure logic is built and unit tested. Routes and database writes wait for the Supabase project.
+Status: Built and live. Email and password, a one time code at sign up, reset and account deletion, Google sign in (switched on in production with `GOOGLE_AUTH_ENABLED=true`), database backed sessions, email verification from Settings and permanent email and username.
 
-Passwordless by default (D1): email OTP and Google OAuth, database backed sessions, no passwords.
+Email and password plus Google (D1, changed by the owner on 2026-10-10). A code is never a sign in method.
 
 - OTP: 6 digits, HMAC hashed with a pepper, 10 minute life, 60 second resend cooldown, 5 sends per hour per email, 5 verify attempts then a 15 minute lock.
-- Responses never reveal whether an email already has an account.
+- Owner decision D38: the forms say plainly whether an email has an account. Rate limits still apply to every check.
 - Session: opaque random token stored hashed, cookie `gr_session` (httpOnly, Secure, SameSite Lax), 30 day sliding expiry, Origin check on every mutating route, run by `api()` for POST, PUT, PATCH and DELETE (a route can opt out with `csrf: "none"` only if it checks its own credential; the LiveKit webhook and the sweep do, and `tests/unit/route-csrf.test.ts` lists them).
 - Realtime pass: a 15 minute signed JWT from `GET /api/realtime/pass`. Cookies are never used across the two domains.
-- Google: authorization code flow with PKCE, state and nonce, ID token verified on the server. `GOOGLE_MODE=mock` is for dev and tests and is refused in production.
+- Google (live): authorization code flow with PKCE, state and nonce, ID token verified on the server. `GOOGLE_MODE=mock` is for dev and tests and is refused in production.
 
 ## Built so far
 
@@ -18,7 +18,7 @@ Passwordless by default (D1): email OTP and Google OAuth, database backed sessio
 
 ## Update 2026-10-10: passwords
 
-Sign in is email and password (two steps) or Google. A one time code appears only at sign up, in forgot password and when deleting an account. Hashing: scrypt (N 16384, r 8, p 1) from Node, parameters stored in the hash so they can be raised later. Login is rate limited per email (8 per 15 minutes) and per address (30 per 15 minutes). An unknown email costs the same time as a wrong password. A sign in from a device the person has not used before creates a security notification and an email.
+Sign in is email and password (two steps) or Google. A one time code appears only at sign up, in forgot password and when deleting an account. Hashing: scrypt (N 2^17, r 8, p 1 since D89, old hashes upgrade at the next sign in) from Node, parameters stored in the hash so they can be raised later. Login is rate limited per email (8 per 15 minutes) and per address (30 per 15 minutes). An unknown email costs the same time as a wrong password. A sign in from a device the person has not used before creates a security notification and an email.
 
 ## Sessions (30 days, sliding)
 

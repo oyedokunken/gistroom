@@ -1,6 +1,6 @@
 # Chat
 
-Status: Planned, Phases 2 and 3.
+Status: Built (Phases 2 and 3): text, receipts, typing, presence, replies, edit, delete, stars, reactions, archive, voice notes, photos, video, files, forwarding, offline queue.
 
 DMs only, between accepted friends with no block in either direction.
 

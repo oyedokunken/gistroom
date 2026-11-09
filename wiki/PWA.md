@@ -1,6 +1,6 @@
 # PWA
 
-Status: Manifest and icons are built. Service worker, offline queue and install card arrive in Phase 2.
+Status: Built. Manifest, icons, service worker (Serwist), offline shell, offline send queue, install card and update prompt.
 
 Manifest: `apps/web/src/app/manifest.ts`. Icons come from `npm run brand`.
 

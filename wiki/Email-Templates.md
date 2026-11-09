@@ -1,6 +1,6 @@
 # Email Templates
 
-Status: Started. Two templates and the transports are built.
+Status: Built. The template registry covers sign up and reset codes, security notices, friends, rooms (registration, reminders, live now, moved, cancelled, summary), calls, data export, account deletion, reports, contact, the digest and the come back email. Preview them with `npm run mail:preview`.
 
 Email is sent only from the web app through Nodemailer.
 

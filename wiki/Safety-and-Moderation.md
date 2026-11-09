@@ -1,6 +1,6 @@
 # Safety and Moderation
 
-Status: Planned, Phases 5 and 7.
+Status: Block, report, private rooms, moderator tools and the mod log are built (Phases 2 to 5), and badge revocation exists as a server function. The admin console and audit views arrive in Phase 7.
 
 Block, report, moderators, private Rooms and rate limits.
 

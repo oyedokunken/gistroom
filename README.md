@@ -63,7 +63,7 @@ The full product spec and engineering rules are in [CLAUDE.md](CLAUDE.md). That 
 
 | Area               | What you get                                                                                                                                                                       |
 | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Accounts           | Email and password, a one time code only to confirm an email or reset a password, sign in with email or username, Google sign in (built, switched off until enabled)               |
+| Accounts           | Email and password, a one time code only to confirm an email or reset a password, sign in with email or username, Google sign in (live)                                            |
 | Onboarding         | Email, code, password, profile (name and username), then interests, then a short walkthrough                                                                                       |
 | Discover           | One list of live and upcoming rooms with cards, a details panel, related rooms, copy link and a filter dialog, plus people who like the same things                                |
 | Profiles           | Date joined, active friend total, interests, verified email status and badges. Email and username are permanent                                                                    |
@@ -547,7 +547,7 @@ All routes are under `https://gistroom.oyedokun.dev/api`. Every mutating route c
 | POST   | `/auth/reset/start`       | Send a reset code. Says when there is no account                          | none    |
 | POST   | `/auth/reset/verify`      | Code plus new password, signs other devices out                           | none    |
 | POST   | `/auth/logout`            | End this session                                                          | session |
-| GET    | `/auth/google`            | Start Google sign in (404 while switched off)                             | none    |
+| GET    | `/auth/google`            | Start Google sign in (404 only if `GOOGLE_AUTH_ENABLED` is off)           | none    |
 | GET    | `/auth/google/callback`   | Finish Google sign in                                                     | none    |
 | POST   | `/onboarding`             | Name, username, age and terms                                             | session |
 | GET    | `/username/check`         | Is this username free                                                     | session |
@@ -755,7 +755,7 @@ What the free tiers and the current design can and cannot do. None of this is hi
 - [x] Vercel and Render projects live, health checks green
 - [x] Uptime keepalive on both services
 - [ ] `gistroom.ng` DNS, `www` redirect to the apex
-- [ ] Google consent screen published to production, then `GOOGLE_AUTH_ENABLED=true`
+- [x] Google consent screen published to production, `GOOGLE_AUTH_ENABLED=true` (Google sign in is live)
 - [x] Gmail app password, mail transport set to `smtp`
 - [x] VAPID keys generated and set on both services
 - [ ] All illustrations reviewed and approved

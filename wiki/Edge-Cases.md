@@ -1,6 +1,6 @@
 # Edge Cases
 
-Status: Grows with each phase.
+Status: Grows with each phase. See also Call-and-Room-Edge-Cases and Network-States.
 
 Known edge cases and how the product handles them.
 

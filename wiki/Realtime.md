@@ -1,6 +1,6 @@
 # Realtime
 
-Status: Skeleton only. Handlers arrive in Phase 2.
+Status: Built. Socket.IO service with presence, typing, receipts, notification fan-out, Web Push sending, call and room events, ring and reminder scheduling, and screen sharing hints.
 
 Event names and Zod payloads live in `packages/shared/src/events.ts` (not written yet).
 

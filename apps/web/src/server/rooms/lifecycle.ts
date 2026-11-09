@@ -1,4 +1,5 @@
 import { randomBytes, randomUUID } from "node:crypto";
+import { grantBadgesFor } from "../badges";
 import { getDb, type Room, type User } from "@gistroom/db";
 import {
   LIMITS,
@@ -13,6 +14,7 @@ import {
 import { AppError, forbidden, notFound } from "../http";
 import { isBlockedEitherWay } from "../friends/relations";
 import { closeLiveKitRoom } from "../livekit";
+import { releasePresenter } from "../presentation";
 import { notify } from "../notifications/service";
 import { enforce, policies } from "../rate-limit";
 import { publish } from "../realtime";
@@ -300,6 +302,9 @@ export async function finishRoom(room: Room, actorId: string | null): Promise<vo
       dedupeKey: `room-ended:${room.id}`,
     }).catch(() => null);
   }
+  // Badges for the host and the people who were in the room (a batch, so a huge room cannot stall the end).
+  void grantBadgesFor([room.hostId, ...attended.map((m) => m.userId)].slice(0, 60));
+  void releasePresenter("room", room.id, null, "session-ended").catch(() => null);
   void closeLiveKitRoom(room.livekitRoom);
   void publish({ type: "room", roomId: room.id, change: "ended" });
 }

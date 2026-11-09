@@ -77,3 +77,16 @@ One component (`components/rings/ring-host.tsx`) draws every ring, for calls and
 | You are already in a call or room      | No card, a quiet chip "{name} is calling"                                                                          |
 
 The window state machine has a RINGING state (HIDDEN to RINGING on a ring, RINGING to EXPANDED on answer, RINGING to HIDDEN on every other way out).
+
+## Screen sharing
+
+Either person can present their screen, a window or a browser tab during an active call (D100 to D104). The rules are pure code in `packages/shared/src/presentation.ts` (the permission matrix and the state machine), unit tested in `tests/unit/presentation.test.ts`.
+
+- The control says "Present now" (and "Stop presenting" while you share). The browser's own picker opens first, so Gistroom never reads or picks a source. Closing the picker and a blocked permission look the same to the browser, so one inline message covers both.
+- Before the first share a modal warns that private information on the chosen screen is visible to the other person. "Do not show this again on this device" is kept in local storage only as a per-viewer convenience. With data saver on, or after a weak connection for 10 seconds, the modal instead explains the reduced quality (at most 540p and 5 frames a second) and asks first.
+- One presenter at a time. A second person is told who presents and can press "Ask to present". The presenter gets a modal (Allow or Not now). Allow opens a 30 second handoff in which only the asker may start. Nothing replaces a presenter silently, and in a 1:1 call nobody can stop the other person's screen. The other person can hide the tile for themselves.
+- Server side: `POST /api/calls/{id}/present` with `start`, `stop`, `request`, `cancel-request`, `accept`, `decline`. `Call.presenterId` is claimed with a conditional update. The screen share source is not in the LiveKit token. The server grants it to the presenter with UpdateParticipant and takes it back on stop, handoff or end, so LiveKit drops the track.
+- The track is published through the same LiveKit session (`captureScreen`, `publishScreen`, `stopScreen` in `lib/live/live-session.ts`), with the microphone and camera untouched. The browser's own "Stop sharing" button ends the track and tells the server. Leaving the call runs the same single cleanup as everything else.
+- Viewers see a stage tile with the presenter's name, a "Presenting" badge and the presenter's microphone and camera state shown separately. The presenter sees "You are presenting" and a Stop button, not their own screen. A minimized call window shows a "Presenting" mark.
+- Browser support: Chrome, Edge, Firefox and Safari on a computer. Most phone browsers cannot share a screen, and the person is told so, never given the camera or audio instead. On a Mac the browser also needs Screen Recording permission.
+- Privacy: no pixels, window titles or source names are stored, logged, notified or sent in any event. The server logs only lifecycle outcomes (started, stopped, denied, failed) with ids.

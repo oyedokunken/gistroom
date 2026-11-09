@@ -235,6 +235,7 @@ export const roomCopy = {
       LINK_CREATED: "made an invite link",
       LINK_REVOKED: "revoked an invite link",
       MESSAGE_DELETED: "deleted a chat message from",
+      PRESENT_STOP: "stopped the presentation of",
       SETTINGS: "changed the room settings",
       END: "ended the room",
     },

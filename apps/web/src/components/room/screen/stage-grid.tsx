@@ -1,6 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { PresentationTile } from "@/components/live/presentation-tile";
+import type { Presenter } from "@/lib/live/use-presenter";
 import { roomCopy as copy } from "@/content/rooms";
 import { cn } from "@/lib/cn";
 import { stageColumns, stageRows } from "@/lib/rooms/grid";
@@ -25,6 +28,7 @@ export function StageGrid({
   page,
   pages,
   setPage,
+  presenter,
 }: {
   peopleCount: number;
   visible: StagePerson[];
@@ -38,20 +42,47 @@ export function StageGrid({
   page: number;
   pages: number;
   setPage: (update: (n: number) => number) => void;
+  presenter: Presenter;
 }) {
+  // Someone else is presenting: their screen is a stage tile. Viewers can enlarge it or put it back in the grid.
+  const [pinned, setPinned] = useState(true);
+  const sharer = presenter.remoteSharer
+    ? lk.participants.find((x) => x.identity === presenter.remoteSharer)
+    : undefined;
+  const enlarged = Boolean(sharer) && pinned;
+  const cells = visible.length + (sharer && !enlarged ? 1 : 0);
+  const tile = sharer ? (
+    <PresentationTile
+      participant={sharer}
+      version={lk.version}
+      p={presenter}
+      pinned={pinned}
+      onTogglePin={() => setPinned((v) => !v)}
+      className="h-full flex-1"
+    />
+  ) : null;
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
+      {sharer && enlarged ? (
+        <div className="flex min-h-0 flex-[3] p-3 pb-0 sm:p-4 sm:pb-0">{tile}</div>
+      ) : null}
       <ul
         className={cn(
-          "grid min-h-0 flex-1 gap-3 overflow-y-auto p-3 sm:p-4",
-          peopleCount <= 1 && "mx-auto w-full max-w-4xl",
+          "grid gap-3 p-3 sm:p-4",
+          enlarged ? "max-h-44 shrink-0 overflow-x-auto" : "min-h-0 flex-1 overflow-y-auto",
+          peopleCount <= 1 && !enlarged && "mx-auto w-full max-w-4xl",
         )}
-        style={{
-          gridTemplateColumns: `repeat(${stageColumns(visible.length, viewportWidth)}, minmax(0, 1fr))`,
-          gridTemplateRows: `repeat(${stageRows(visible.length, stageColumns(visible.length, viewportWidth))}, minmax(10rem, 1fr))`,
-        }}
+        style={
+          enlarged
+            ? { gridAutoFlow: "column", gridAutoColumns: "11rem", gridTemplateRows: "8.5rem" }
+            : {
+                gridTemplateColumns: `repeat(${stageColumns(cells, viewportWidth)}, minmax(0, 1fr))`,
+                gridTemplateRows: `repeat(${stageRows(cells, stageColumns(cells, viewportWidth))}, minmax(10rem, 1fr))`,
+              }
+        }
       >
-        {visible.map(({ p, id, role: r, avatarUrl }) => (
+        {sharer && !enlarged ? <li className="flex min-h-40">{tile}</li> : null}
+        {visible.map(({ p, id, role: r, avatarUrl, badges }) => (
           <ParticipantTile
             key={p.identity}
             participant={p}
@@ -63,6 +94,7 @@ export function StageGrid({
             }
             version={lk.version}
             avatarUrl={avatarUrl}
+            badges={badges}
             reactions={floating.filter((f) => f.userId === id)}
             onReactionDone={(rid) => dropReaction(slug, rid)}
           />

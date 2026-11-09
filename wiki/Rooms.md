@@ -45,3 +45,14 @@ A plain click on a room anywhere (Discover, the room list, search, an invite car
 ## Rooms that ring you
 
 A host or moderator rings an invited person from the People panel. The ringed person sees the same card as for a call (see wiki/Calls.md), with the room title, topic, language, Audio or Video, a lock mark, the host, who is inside and the three buttons Join, Decline and Don't ring me for this room. The card reads the room each time the list is fetched, so it says "This room is full", "This room is locked right now" or "This room has ended" and turns Join off. Joining on one device closes the card on the others (`ring:answered_elsewhere`).
+
+## Screen sharing
+
+Anyone inside a live room can present a screen, window or browser tab from a computer, one person at a time (D100 to D104). The matrix (host, moderator, member, locked room, removed, banned, ended) is the pure `presentationRules` in `packages/shared/src/presentation.ts`. A lock only decides who may enter, so people already inside keep the right to present.
+
+- `POST /api/rooms/{slug}/present` takes `start`, `stop`, `request`, `cancel-request`, `accept`, `decline`, `take-over` and `force-stop`. `Room.presenterId` is claimed with a conditional update. The screen share source is never in a token. The server grants it to the presenter and takes it back, so a removed, banned or departed person cannot keep publishing (removal and leaving release the turn, and LiveKit removes the track).
+- Handoff: a second person presses "Ask to present". The presenter allows or declines, and an allowed handoff reserves the turn for the asker for 30 seconds. The host and moderators can also "Take over" or stop a presentation ("Stop their presentation"). A moderator acts on members only and nobody acts on the host. Both are written to the moderator log as `PRESENT_STOP` ("stopped the presentation of") and never carry a source name.
+- Viewers get a stage tile that can be enlarged (pinned above a strip of people), put back in the grid, hidden for themselves or taken full screen. Only tiles on screen are attached, so a share does not make anyone subscribe to everyone's camera. The 16 people per page rule is unchanged.
+- The presenter sees a "You are presenting" bar with Stop presenting. People's microphone and camera stay independent of the share.
+- Hints: `presentation:changed` (`started`, `stopped`, `requested`, `handed`, `denied`, `force-ended`) goes to people inside the room. It only asks tabs to refetch `GET /api/rooms/{slug}/present`. A presenter whose tab vanished is cleared when their seat is released, within the heartbeat window.
+- Browser support, data saver, mobile limits and the privacy warning are the same as in `wiki/Calls.md`.

@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { touchActivity } from "../activity";
 import { callDto, dmKeyOf, getDb, type Call, type Prisma, type User } from "@gistroom/db";
 import {
   applyCallAction,
@@ -22,6 +23,7 @@ import { decodeCursor, encodeCursor } from "../cursor";
 import { isSerializationFailure } from "../db-errors";
 import { AppError, conflict, notFound } from "../http";
 import { mintJoin } from "../livekit";
+import { releasePresenter } from "../presentation";
 import { notify } from "../notifications/service";
 import { enforce, policies } from "../rate-limit";
 import { publish } from "../realtime";
@@ -85,6 +87,8 @@ async function join(row: CallRow, me: User): Promise<CallJoin> {
     room: row.livekitRoom,
     // A call can go on for hours. The token covers it, so a late reconnect still works.
     ttlSec: 6 * 3600,
+    // The screen is granted to one presenter at a time by the presentation module, never by the token (D101).
+    canPublishSources: ["microphone", "camera"],
   });
   return { call, token, url };
 }
@@ -178,6 +182,9 @@ async function finish(
   });
   const fresh = await load(row.id);
   if (claimed.count === 0) return fresh;
+  // Screen sharing ends with the call (D101). LiveKit drops the tracks when the room closes.
+  if (fresh.presenterId)
+    void releasePresenter("call", fresh.id, null, "session-ended").catch(() => null);
 
   const entries = [logRow(fresh, "caller", next), logRow(fresh, "callee", next)].filter(
     (e): e is NonNullable<typeof e> => e !== null,
@@ -270,6 +277,7 @@ export async function startCall(
   input: StartCallInput,
 ): Promise<CallJoin & { merged: boolean }> {
   await enforce(policies.callStart, me.id);
+  void touchActivity(me.id);
   const access = await accessFor(me.id, input.conversationId);
   await assertCanInteract(me.id, access.peerId);
   const db = getDb();

@@ -146,6 +146,30 @@ export async function setPublishSources(
   }
 }
 
+/**
+ * Sets what one person may publish and says whether LiveKit accepted it. Screen sharing goes through this, so it fails
+ * closed: when LiveKit is set up and does not answer, the caller treats the share as not allowed (D101). With no LiveKit
+ * keys there are no tracks at all, so there is nothing to grant and it reports success.
+ */
+export async function grantPublishSources(
+  room: string,
+  identity: string,
+  sources: readonly PublishSource[],
+): Promise<boolean> {
+  if (!livekitConfigured()) return true;
+  const done = await roomService(room, "UpdateParticipant", {
+    room,
+    identity,
+    permission: {
+      can_subscribe: true,
+      can_publish: sources.length > 0,
+      can_publish_data: true,
+      can_publish_sources: sources.map((s) => s.toUpperCase()),
+    },
+  });
+  return done !== null;
+}
+
 /** Who LiveKit says is connected right now. Null when LiveKit is not set up or did not answer, so callers never guess. */
 export async function listIdentities(room: string): Promise<string[] | null> {
   const list = await roomService<{ participants?: Participant[] }>(room, "ListParticipants", {

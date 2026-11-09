@@ -7,6 +7,8 @@ import { roomCopy as copy } from "@/content/rooms";
 import { cn } from "@/lib/cn";
 import { useRoomLiveKit } from "@/lib/rooms/use-room-livekit";
 import { DevicePicker } from "@/components/session/device-picker";
+import { PresentButton } from "@/components/live/present-ui";
+import type { Presenter } from "@/lib/live/use-presenter";
 import { type Panel, type StagePanel } from "./shared";
 
 /** The round buttons along the bottom: mic, camera, devices, reactions, the panels and leave. */
@@ -22,6 +24,7 @@ export function ControlsBar({
   toggleCamera,
   sendReaction,
   leave,
+  presenter,
 }: {
   lk: ReturnType<typeof useRoomLiveKit>;
   room: RoomDto;
@@ -34,6 +37,7 @@ export function ControlsBar({
   toggleCamera: () => Promise<void>;
   sendReaction: (emoji: string) => Promise<void>;
   leave: () => Promise<void>;
+  presenter: Presenter;
 }) {
   return (
     <nav
@@ -64,6 +68,7 @@ export function ControlsBar({
           <CameraOff aria-hidden className="size-6" />
         )}
       </Round>
+      <PresentButton p={presenter} />
       <DevicePicker mirror={mirror} onMirror={setMirror} />
       {room.settings.reactionsOn ? (
         <Popover>

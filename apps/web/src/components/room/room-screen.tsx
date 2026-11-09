@@ -18,6 +18,8 @@ import { useRoomLiveKit } from "@/lib/rooms/use-room-livekit";
 import { showRoomEnded } from "@/lib/live/room-outcomes";
 import { loadPrejoin, type PrejoinPrefs } from "@/lib/session/prefs";
 import { useLive } from "@/lib/live/live-session";
+import { useScreenPresenter } from "@/lib/live/use-presenter";
+import { PresentDialogs, PresentStatus, PresenterBanner } from "@/components/live/present-ui";
 import { EndedRoom } from "./room-summary";
 import { ControlsBar } from "./screen/controls-bar";
 import { LeaveDialog, MuteAllDialog } from "./screen/dialogs";
@@ -335,6 +337,22 @@ export function RoomScreen({
 
   const { people, states } = useStagePeople({ lk, members, room, meId, role });
 
+  // Screen sharing: one presenter at a time, decided by the server and carried by LiveKit (D100 to D104).
+  const presenter = useScreenPresenter({
+    scope: "room",
+    refId: slug,
+    role,
+    memberState: myMember?.state ?? "JOINED",
+    locked: room?.locked ?? false,
+    joined: inRoom,
+    active: lk.connected,
+    dataSaver,
+    roleOf: (id) =>
+      id === room?.host.id
+        ? "HOST"
+        : (members.data?.members.find((m) => m.user.id === id)?.role ?? null),
+  });
+
   // Big rooms show a page of people at a time. The people speaking come first, so they are never on a hidden page.
   const [page, setPage] = useState(0);
   const [mirror, setMirror] = useState(true);
@@ -480,6 +498,10 @@ export function RoomScreen({
         onDismiss={() => setNotice(slug, undefined)}
       />
 
+      <div className="flex justify-center pt-3 empty:hidden">
+        <PresenterBanner p={presenter} />
+      </div>
+
       <div className="flex min-h-0 flex-1">
         <StageGrid
           peopleCount={people.length}
@@ -494,6 +516,7 @@ export function RoomScreen({
           page={page}
           pages={pages}
           setPage={setPage}
+          presenter={presenter}
         />
         {panel ? (
           <SidePanel
@@ -509,7 +532,9 @@ export function RoomScreen({
         ) : null}
       </div>
 
+      <PresentStatus p={presenter} />
       <ControlsBar
+        presenter={presenter}
         lk={lk}
         room={room}
         panels={panels}
@@ -523,6 +548,7 @@ export function RoomScreen({
         leave={leave}
       />
 
+      <PresentDialogs p={presenter} inRoom />
       <MuteAllDialog
         open={muteAllOpen}
         onOpenChange={setMuteAllOpen}

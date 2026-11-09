@@ -35,6 +35,14 @@ import { startRingtone, stopRingtone } from "@/lib/calls/ringtone";
 import { useCallStore } from "@/lib/calls/store";
 import { useLiveKit } from "@/lib/calls/use-livekit";
 import { onLiveEvent, useLive } from "@/lib/live/live-session";
+import { useScreenPresenter } from "@/lib/live/use-presenter";
+import { PresentationTile } from "@/components/live/presentation-tile";
+import {
+  PresentButton,
+  PresentDialogs,
+  PresentStatus,
+  PresenterBanner,
+} from "@/components/live/present-ui";
 import { formatDuration } from "@/lib/chat/voice";
 import { cn } from "@/lib/cn";
 
@@ -109,6 +117,21 @@ export function CallScreen({
     startMuted: answerMuted,
     lowData: dataSaver,
   });
+
+  // Screen sharing: either person can present, one at a time, and nobody can stop the other person's screen.
+  const presenter = useScreenPresenter({
+    scope: "call",
+    refId: callId,
+    role: call ? (call.direction === "INCOMING" ? "CALLEE" : "CALLER") : null,
+    joined: status === "ACTIVE",
+    active: lk.state.connected,
+    dataSaver,
+  });
+  const livePeople = useLive((s) => s.participants);
+  const shareVersion = useLive((s) => s.version);
+  const sharerParticipant = presenter.remoteSharer
+    ? livePeople.find((x) => x.identity === presenter.remoteSharer)
+    : undefined;
 
   // M mutes and unmutes, V turns the camera on and off, when the call is on and you are not typing.
   useEffect(() => {
@@ -375,6 +398,16 @@ export function CallScreen({
           ) : null}
         </div>
 
+        {sharerParticipant && status === "ACTIVE" ? (
+          <PresentationTile
+            participant={sharerParticipant}
+            version={shareVersion}
+            p={presenter}
+            pinned
+            className="absolute inset-0 z-[15] h-full"
+          />
+        ) : null}
+
         <div aria-hidden className="pointer-events-none absolute inset-0 z-30 overflow-hidden">
           <AnimatePresence>
             {floating.map((r) => (
@@ -405,6 +438,10 @@ export function CallScreen({
           )}
         />
       </div>
+
+      <PresenterBanner p={presenter} />
+      <PresentStatus p={presenter} />
+      <PresentDialogs p={presenter} inRoom={false} />
 
       {lk.state.reconnecting || (status === "ACTIVE" && lk.state.failed) ? (
         <p
@@ -532,6 +569,7 @@ export function CallScreen({
                   <CameraOff aria-hidden className="size-6" />
                 )}
               </RoundButton>
+              {status === "ACTIVE" ? <PresentButton p={presenter} size="lg" /> : null}
               <DevicePicker
                 mirror={mirror}
                 onMirror={setMirror}

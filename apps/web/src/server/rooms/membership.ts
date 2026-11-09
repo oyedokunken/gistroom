@@ -1,4 +1,5 @@
 import { getDb, toPublicUser, type Prisma, type Room, type User } from "@gistroom/db";
+import { touchActivity } from "../activity";
 import {
   LIMITS,
   canDo,
@@ -13,6 +14,7 @@ import {
 import { notFound } from "../http";
 import { isBlockedEitherWay } from "../friends/relations";
 import { mintJoin } from "../livekit";
+import { releasePresenter } from "../presentation";
 import { enforce, policies } from "../rate-limit";
 import { publish } from "../realtime";
 import {
@@ -34,6 +36,7 @@ export async function joinRoom(
   slug: string,
   linkToken?: string | null,
 ): Promise<RoomJoin> {
+  void touchActivity(me.id);
   const db = getDb();
   const room = await loadBySlug(slug);
   const now = new Date();
@@ -169,6 +172,9 @@ export async function leaveRoom(
       graceUntil: new Date(now.getTime() + LIMITS.ROOM_REJOIN_GRACE_SEC * 1000),
     },
   });
+
+  // Whoever leaves stops presenting, and the permission to share the screen goes with them.
+  void releasePresenter("room", room.id, me.id, "left").catch(() => null);
 
   // A host who dropped keeps the room for the grace period. Everyone sees "Host is reconnecting" until it passes.
   if (room.hostId === me.id && room.status === "LIVE" && !opts.dropped) {

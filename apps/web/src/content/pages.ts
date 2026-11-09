@@ -26,6 +26,11 @@ export const faqItems: readonly FaqItem[] = [
       "Yes, once you turn alerts on for that device. Calls, messages and friend requests reach you through your browser or your installed app. On iPhone, add Gistroom to your Home Screen first.",
   },
   {
+    question: "Can I share my screen?",
+    answer:
+      "Yes, in a call or a live room, from a computer. Press Present now and choose a screen, a window or a browser tab in your browser's own picker. One person presents at a time, and you can ask for the next turn. Everyone in the call or room can see what you share, so close anything private first. Gistroom never records or stores your screen.",
+  },
+  {
     question: "How does it work on mobile data?",
     answer:
       "Audio comes first. Data saver starts calls with audio only and keeps video at a lower quality. You can switch to video in the middle of a call when you want to.",
@@ -63,6 +68,16 @@ export const troubleshooting: readonly FaqItem[] = [
     question: "My camera is blocked",
     answer:
       "You stay in the call with audio. Allow the camera for Gistroom in your browser settings, then switch to video.",
+  },
+  {
+    question: "I cannot share my screen",
+    answer:
+      "Use a recent Chrome, Edge, Firefox or Safari on a computer. Most phone browsers can not share a screen, but you can still watch when someone else presents. When the browser asks, choose a screen, a window or a tab. If you closed that box or blocked it, allow screen sharing for Gistroom in the site settings and try again. On a Mac, also allow your browser under System Settings, Privacy and Security, Screen Recording. With data saver on, your screen goes out smaller and slower to use less data.",
+  },
+  {
+    question: "Someone else is already presenting",
+    answer:
+      "Only one person presents at a time. Press Present now and choose Ask to present. The presenter can allow it or say not now, and nothing changes until they answer. In a room, the host and moderators can also take over.",
   },
   {
     question: "I cannot find the install option",

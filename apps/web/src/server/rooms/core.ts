@@ -119,16 +119,16 @@ export async function toDto(
 }
 
 /**
- * What a person may publish. Moderators and the host always may everything. Members lose the microphone while
- * "only moderators can unmute" is on, and the camera while cameras are not allowed.
+ * What a person may publish. Moderators and the host always may the microphone and camera. Members lose the microphone
+ * while "only moderators can unmute" is on, and the camera while cameras are not allowed. The screen is never in this
+ * list: it is granted to the one presenter by the presentation module and taken back when they stop (D101).
  */
 export function publishSources(room: Room, role: RoomRole): PublishSource[] {
-  const all: PublishSource[] = ["microphone", "camera", "screen_share"];
+  const all: PublishSource[] = ["microphone", "camera"];
   if (role !== "MEMBER") return all;
   return all.filter((s) => {
     if (s === "microphone") return !room.unmuteLocked;
-    if (s === "camera") return room.cameraAllowed;
-    return true;
+    return room.cameraAllowed;
   });
 }
 
@@ -139,11 +139,23 @@ export async function applyPublishRules(room: Room): Promise<void> {
     select: { userId: true },
   });
   if (members.length === 0) return;
-  await setPublishSources(
-    room.livekitRoom,
-    members.map((m) => liveKitIdentity(m.userId)),
-    publishSources(room, "MEMBER"),
-  );
+  const base = publishSources(room, "MEMBER");
+  // The presenter keeps the screen while the rules for the microphone and camera change.
+  const others = members.filter((m) => m.userId !== room.presenterId);
+  if (others.length > 0) {
+    await setPublishSources(
+      room.livekitRoom,
+      others.map((m) => liveKitIdentity(m.userId)),
+      base,
+    );
+  }
+  if (others.length !== members.length) {
+    await setPublishSources(
+      room.livekitRoom,
+      [liveKitIdentity(room.presenterId ?? "")],
+      [...base, "screen_share"],
+    );
+  }
 }
 
 /** Why a link no longer works, so the person is told "turned off" or "expired" and not left guessing. */

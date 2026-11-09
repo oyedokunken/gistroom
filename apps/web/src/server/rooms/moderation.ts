@@ -14,6 +14,7 @@ import {
 } from "@gistroom/shared";
 import { AppError, forbidden } from "../http";
 import { muteInLiveKit, removeFromLiveKit } from "../livekit";
+import { releasePresenter } from "../presentation";
 import { notify } from "../notifications/service";
 import { enforce, policies } from "../rate-limit";
 import { publish } from "../realtime";
@@ -86,6 +87,7 @@ export async function moderate(me: User, slug: string, input: ModActionInput): P
         data: { state: "REMOVED", leftAt: new Date(), graceUntil: null },
       });
       await hideMessagesOf(room.id, target.userId, me.id);
+      await releasePresenter("room", room.id, target.userId, "removed").catch(() => null);
       void removeFromLiveKit(room.livekitRoom, identity);
       await log(room.id, me.id, "REMOVE", target.userId);
       void notify({
@@ -100,6 +102,7 @@ export async function moderate(me: User, slug: string, input: ModActionInput): P
         data: { state: "BANNED", leftAt: new Date(), graceUntil: null },
       });
       await hideMessagesOf(room.id, target.userId, me.id);
+      await releasePresenter("room", room.id, target.userId, "removed").catch(() => null);
       void removeFromLiveKit(room.livekitRoom, identity);
       await log(room.id, me.id, "BAN", target.userId);
       void notify({

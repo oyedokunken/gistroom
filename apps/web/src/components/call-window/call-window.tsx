@@ -1,10 +1,21 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Expand, Maximize2, Mic, MicOff, Minimize2, PhoneOff, Shrink, X } from "lucide-react";
+import {
+  Expand,
+  Maximize2,
+  Mic,
+  MicOff,
+  Minimize2,
+  MonitorUp,
+  PhoneOff,
+  Shrink,
+  X,
+} from "lucide-react";
 import { CallScreen } from "@/components/call/call-screen";
 import { RoomScreen } from "@/components/room/room-screen";
 import { callWindow as copy } from "@/content/call-window";
+import { presentCopy } from "@/content/present";
 import { session as sessionCopy } from "@/content/session";
 import { cn } from "@/lib/cn";
 import { formatDuration } from "@/lib/chat/voice";
@@ -455,6 +466,12 @@ function MinimizedBar({
         {phone ? label : title}
         {elapsed ? <span className="tabular ml-2 font-normal text-white/80">{elapsed}</span> : null}
       </button>
+      {s.localSharing ? (
+        <span className="flex shrink-0 items-center gap-1 rounded-full bg-yellow-400 px-2 py-1 text-xs font-bold text-ink-950">
+          <MonitorUp aria-hidden className="size-4" />
+          {presentCopy.live.mini}
+        </span>
+      ) : null}
       <button
         type="button"
         aria-label={s.micOn ? sessionCopy.controls.mute : sessionCopy.controls.unmute}

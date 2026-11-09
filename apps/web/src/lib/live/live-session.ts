@@ -1,8 +1,8 @@
 "use client";
 
 import { create } from "zustand";
-import type { Participant, Room } from "livekit-client";
-import { isReactionEmoji } from "@gistroom/shared";
+import type { LocalVideoTrack, Participant, Room } from "livekit-client";
+import { isReactionEmoji, type PresentQuality } from "@gistroom/shared";
 import { setLiveKitStatus } from "@/lib/session/connection";
 import { unsupportedReason } from "@/lib/session/browser";
 
@@ -52,6 +52,10 @@ export interface LiveState {
   hostIdentity: string | null;
   /** The device I speak through changed, for the "Switched to" note. */
   deviceNote: string | null;
+  /** The LiveKit identity of whoever has a screen share track published right now, you included. Null when nobody. */
+  screenSharer: string | null;
+  /** You are publishing your screen. The browser track is the truth, not a flag the server set. */
+  localSharing: boolean;
   /** Bumps on every change so tiles re-attach tracks. */
   version: number;
 }
@@ -79,6 +83,8 @@ const idle: LiveState = {
   peerLostSince: null,
   hostIdentity: null,
   deviceNote: null,
+  screenSharer: null,
+  localSharing: false,
   version: 0,
 };
 
@@ -90,6 +96,8 @@ export type LiveEvent =
   | { type: "reaction"; identity: string | null; emoji: string }
   | { type: "reconnecting" }
   | { type: "reconnected" }
+  /** Your screen share ended without you pressing stop: the browser ended it, or the server took the turn away. */
+  | { type: "screen-ended"; cause: "browser" | "revoked" }
   | { type: "connected" }
   | { type: "disconnected"; reason: DisconnectReason }
   | { type: "left" };
@@ -151,6 +159,21 @@ const realDeps: LiveDeps = {
   clearTimeout: (id) => window.clearTimeout(id as number),
 };
 
+/** What a screen capture can end as. Closing the picker is not an error and says nothing. */
+export type ScreenCapture = "ok" | "cancelled" | "denied" | "unsupported" | "failed";
+
+function captureOutcome(e: unknown): ScreenCapture {
+  const name = (e as { name?: string } | null)?.name ?? "";
+  const message = String((e as { message?: string } | null)?.message ?? "");
+  // Browsers report a closed picker and a blocked permission the same way, so both get the same helpful words.
+  if (/cancel|dismiss/i.test(message) || name === "AbortError") return "cancelled";
+  if (name === "NotAllowedError" || name === "PermissionDeniedError" || name === "SecurityError") {
+    return "denied";
+  }
+  if (name === "NotSupportedError" || name === "TypeError") return "unsupported";
+  return "failed";
+}
+
 const qualityOf = (lk: LiveKitModule, q: unknown): QualityLabel => {
   if (q === lk.ConnectionQuality.Excellent) return "excellent";
   if (q === lk.ConnectionQuality.Good) return "good";
@@ -191,6 +214,11 @@ export class LiveSession {
   private detachers: (() => void)[] = [];
   private titleTimer: unknown = null;
   private baseTitle = "";
+  private screenTrack: LocalVideoTrack | null = null;
+  private screenQuality: PresentQuality | null = null;
+  private screenDetach: (() => void) | null = null;
+  /** True while we unpublish on purpose, so our own stop is not read as the server taking the turn. */
+  private screenStopping = false;
 
   constructor(private readonly deps: LiveDeps = realDeps) {}
 
@@ -324,6 +352,11 @@ export class LiveSession {
       attach: (el?: HTMLMediaElement) => HTMLMediaElement;
     }) => {
       if (!alive()) return;
+      // A shared screen draws on its own tile, never on the camera picture of a 1:1 call.
+      if ((track as { source?: string }).source === lk.Track.Source.ScreenShare) {
+        this.sync();
+        return;
+      }
       if (track.kind === lk.Track.Kind.Audio) this.audioHost?.appendChild(track.attach());
       else if (track.kind === lk.Track.Kind.Video && this.remoteVideoEl)
         track.attach(this.remoteVideoEl);
@@ -342,15 +375,28 @@ export class LiveSession {
       lk.RoomEvent.TrackUnmuted,
       lk.RoomEvent.TrackPublished,
       lk.RoomEvent.TrackUnpublished,
-      lk.RoomEvent.LocalTrackUnpublished,
     ]) {
       on(ev, changed);
     }
+    on(lk.RoomEvent.LocalTrackUnpublished, ((pub: { source: string }) => {
+      if (!alive()) return;
+      // The server took the screen share permission away (a handoff, a moderator, a removal) and LiveKit dropped it.
+      if (pub.source === lk.Track.Source.ScreenShare && this.screenTrack && !this.screenStopping) {
+        this.releaseScreen();
+        emit({ type: "screen-ended", cause: "revoked" });
+      }
+      this.sync();
+    }) as never);
     on(lk.RoomEvent.LocalTrackPublished, ((pub: {
       source: string;
       track?: { mediaStreamTrack?: MediaStreamTrack; attach: (el: HTMLMediaElement) => void };
     }) => {
       if (!alive()) return;
+      // The screen has its own end handling in publishScreen. It must never read as a lost microphone or camera.
+      if (pub.source === lk.Track.Source.ScreenShare) {
+        this.sync();
+        return;
+      }
       if (pub.source === lk.Track.Source.Camera && pub.track && this.localVideoEl)
         pub.track.attach(this.localVideoEl);
       // A device that is pulled out or whose permission is taken away ends its track by itself.
@@ -511,6 +557,8 @@ export class LiveSession {
     if (!lk || !room) return;
     for (const p of room.remoteParticipants.values()) {
       for (const pub of p.videoTrackPublications.values()) {
+        // A shared screen stays as sharp as the line allows, text is unreadable at the smallest size.
+        if (pub.source === lk.Track.Source.ScreenShare) continue;
         pub.setVideoQuality(low ? lk.VideoQuality.LOW : lk.VideoQuality.HIGH);
       }
     }
@@ -558,13 +606,116 @@ export class LiveSession {
     const remote = [...room.remoteParticipants.values()];
     for (const p of remote)
       if (!this.joinedAt.has(p.identity)) this.joinedAt.set(p.identity, this.deps.now());
+    const source = this.lk?.Track.Source.ScreenShare;
+    const sharing = (p: Participant) =>
+      source !== undefined && Boolean(p.getTrackPublication(source)?.track);
+    const sharer = [lp, ...remote].find(sharing)?.identity ?? null;
     useLive.setState((s) => ({
       participants: [lp, ...remote],
       micOn: lp.isMicrophoneEnabled,
       camOn: lp.isCameraEnabled,
       remoteCam: remote.some((p) => p.isCameraEnabled),
+      screenSharer: sharer,
+      localSharing: this.screenTrack !== null && sharing(lp),
       version: s.version + 1,
     }));
+  }
+
+  // ----- Screen sharing -----
+
+  /**
+   * Opens the browser's own picker (a user gesture must be on the stack) and holds the result. Nothing is read or
+   * chosen for the person, and nothing is published until `publishScreen`. Video only: screen audio is never shared.
+   */
+  async captureScreen(quality: PresentQuality): Promise<ScreenCapture> {
+    const lk = this.lk;
+    if (!lk || !this.room) return "failed";
+    this.discardScreen();
+    try {
+      const tracks = await lk.createLocalScreenTracks({
+        audio: false,
+        resolution: { width: quality.width, height: quality.height, frameRate: quality.frameRate },
+        selfBrowserSurface: "exclude",
+        surfaceSwitching: "include",
+      });
+      const video = tracks.find((t) => t.kind === lk.Track.Kind.Video);
+      for (const t of tracks) if (t !== video) t.stop();
+      if (!video) return "failed";
+      this.screenTrack = video as LocalVideoTrack;
+      this.screenQuality = quality;
+      return "ok";
+    } catch (e) {
+      return captureOutcome(e);
+    }
+  }
+
+  /** Publishes the captured screen on the live room. The browser's own "stop sharing" ends it through the track. */
+  async publishScreen(): Promise<boolean> {
+    const lk = this.lk;
+    const room = this.room;
+    const track = this.screenTrack;
+    const quality = this.screenQuality;
+    if (!lk || !room || !track || !quality) return false;
+    const generation = this.generation;
+    const media = track.mediaStreamTrack;
+    const ended = () => {
+      if (generation !== this.generation || this.screenTrack !== track) return;
+      void this.stopScreen();
+      emit({ type: "screen-ended", cause: "browser" });
+    };
+    media.addEventListener("ended", ended);
+    this.screenDetach = () => media.removeEventListener("ended", ended);
+    try {
+      await room.localParticipant.publishTrack(track, {
+        source: lk.Track.Source.ScreenShare,
+        name: "screen",
+        simulcast: false,
+        videoEncoding: {
+          maxBitrate: quality.reduced ? 250_000 : 1_500_000,
+          maxFramerate: quality.frameRate,
+        },
+        degradationPreference: "maintain-resolution",
+      });
+    } catch {
+      this.releaseScreen();
+      return false;
+    }
+    if (generation !== this.generation || this.screenTrack !== track) return false;
+    this.sync();
+    return true;
+  }
+
+  /** Stops a capture that was never published, for example when the server said someone else is presenting. */
+  discardScreen(): void {
+    if (this.screenTrack && !this.screenPublished()) this.releaseScreen();
+  }
+
+  private screenPublished(): boolean {
+    const lk = this.lk;
+    const lp = this.room?.localParticipant;
+    return Boolean(lk && lp?.getTrackPublication(lk.Track.Source.ScreenShare));
+  }
+
+  /** Ends the share: unpublishes the track and stops the capture, so the browser's sharing indicator goes away. */
+  async stopScreen(): Promise<void> {
+    const track = this.screenTrack;
+    const lp = this.room?.localParticipant;
+    this.screenStopping = true;
+    try {
+      if (track && lp) await lp.unpublishTrack(track, true).catch(() => undefined);
+    } finally {
+      this.screenStopping = false;
+    }
+    this.releaseScreen();
+    this.sync();
+  }
+
+  private releaseScreen(): void {
+    this.screenDetach?.();
+    this.screenDetach = null;
+    this.screenTrack?.stop();
+    this.screenTrack = null;
+    this.screenQuality = null;
   }
 
   // ----- Controls -----
@@ -774,6 +925,8 @@ export class LiveSession {
     this.peerTimer = null;
     this.removeUnload();
     for (const detach of this.detachers.splice(0)) detach();
+    // One cleanup for everything: the shared screen goes with the call or room, so the browser's indicator clears.
+    this.releaseScreen();
     if (room) {
       // Every local track is stopped, so the camera light goes off and the microphone is released.
       for (const pub of room.localParticipant.trackPublications.values()) {

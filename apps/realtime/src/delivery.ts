@@ -247,6 +247,8 @@ export function createDelivery(deps: DeliveryDeps) {
       }
       case "room":
         return handleRoom(event);
+      case "presentation":
+        return handlePresentation(event);
       case "badge": {
         const counts = await store.counts(event.userId);
         emitTo(io, event.userId, "badge:update", counts);
@@ -313,6 +315,33 @@ export function createDelivery(deps: DeliveryDeps) {
           data: { callId: loaded.callId, ...(missed ? {} : { reason: "dismiss" }) },
         }),
       );
+    }
+  }
+
+  /** A presentation changed. A hint to the people in that call or room only, with an id and a change, never a source name. */
+  async function handlePresentation(
+    event: Extract<InternalEvent, { type: "presentation" }>,
+  ): Promise<void> {
+    if (event.scope === "call") {
+      const loaded = await store.callForDelivery(event.refId);
+      if (!loaded) return;
+      for (const userId of loaded.dtoFor.keys()) {
+        emitTo(io, userId, "presentation:changed", {
+          scope: "call",
+          ref: loaded.callId,
+          change: event.change,
+        });
+      }
+      return;
+    }
+    const room = await store.roomForDelivery({ roomId: event.refId });
+    if (!room) return;
+    for (const id of room.joinedIds) {
+      emitTo(io, id, "presentation:changed", {
+        scope: "room",
+        ref: room.slug,
+        change: event.change,
+      });
     }
   }
 

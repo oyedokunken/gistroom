@@ -19,12 +19,6 @@ const ALLOW = [
       "deepmerge-ts is used by the Prisma CLI to merge our own non recursive config at build time.",
     expires: "2027-01-10",
   },
-  {
-    id: "GHSA-mrhx-c7xc-m3w5",
-    reason:
-      "zod can exhaust memory on oversized arrays. It is patched only in zod 4.6.6, there is no 3.x patch, and moving to Zod 4 is its own migration. Every array schema has a max length and sits behind sign in, so only a signed in account can send one. Tracked in the Migrate to Zod 4 issue.",
-    expires: "2026-11-23",
-  },
 ];
 
 const result = spawnSync("npm audit --omit=dev --json", {

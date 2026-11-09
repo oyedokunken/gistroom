@@ -33,7 +33,11 @@ function schemaFor(hasPassword: boolean) {
 export function PasswordForm({ hasPassword, email }: { hasPassword: boolean; email: string }) {
   const { showError } = useFeedback();
   const [saved, setSaved] = useState(false);
-  const form = useForm<{ currentPassword?: string; newPassword: string; confirm: string }>({
+  const form = useForm<{
+    currentPassword: string | undefined;
+    newPassword: string;
+    confirm: string;
+  }>({
     resolver: zodResolver(schemaFor(hasPassword)),
     defaultValues: { currentPassword: "", newPassword: "", confirm: "" },
   });

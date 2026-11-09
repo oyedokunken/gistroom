@@ -45,6 +45,8 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ### Changed
 
+- Zod moved from 3.25.76 to 4.6.7, which clears the high severity advisory GHSA-mrhx-c7xc-m3w5 (oversized arrays exhausting memory) and removes its audit exception. Messages for a missing required field are unchanged (`requiredMessage` in `packages/shared`), array length limits are unchanged and an oversized array now stops at the length check. Zod's own wording for a value of the wrong type changed, which only shows for hand made requests (D112).
+
 - Upgraded Next.js from 16.4.3 to 16.4.5 (latest patched stable), pinned exactly in `apps/web`. No code changes were needed.
 - The voice note player uses explicit token styles for rest, hover, focus and disabled on both bubble colours, so white text can no longer land on a white or pale background. A unit test checks every pairing against WCAG AA in light and dark.
 

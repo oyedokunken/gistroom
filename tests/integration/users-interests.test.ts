@@ -291,8 +291,6 @@ describe.skipIf(!requireTestDb())("users and interests", () => {
       discoverable: false,
       timezone: "Africa/Lagos",
       role: "ADMIN",
-      email: "attacker@example.com",
-      username: "taken",
       id: other.id,
       status: "SUSPENDED",
     });
@@ -310,6 +308,21 @@ describe.skipIf(!requireTestDb())("users and interests", () => {
     });
     const untouched = await m.db.user.findUniqueOrThrow({ where: { id: other.id } });
     expect(untouched.name).toBe(other.name);
+  });
+
+  it("refuses a request that names the email or the username", async () => {
+    const me = await person("locked");
+    signedIn.user = me;
+    for (const body of [
+      { email: "attacker@example.com" },
+      { username: "taken" },
+      { name: "Ada", username: "x" },
+    ]) {
+      const res = await call("meRoute", "PATCH", body);
+      expect(res.status).toBe(400);
+    }
+    const after = await m.db.user.findUniqueOrThrow({ where: { id: me.id } });
+    expect(after).toMatchObject({ email: me.email, username: me.username, name: me.name });
   });
 
   it("refuses a bad profile, another origin and a missing session", async () => {

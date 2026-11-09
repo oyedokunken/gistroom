@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { getDb, type User } from "@gistroom/db";
+import { avatarUrl, getDb, type User } from "@gistroom/db";
 import { checkUpload, errors, extensionOf, type SignedUpload } from "@gistroom/shared";
 import { AppError } from "../http";
 import { enforce, policies } from "../rate-limit";
@@ -25,14 +25,24 @@ export async function signAvatarUpload(
 }
 
 /** Step two: confirm the stored file is an image, make it the profile photo and delete the old one. */
-export async function commitAvatar(me: User, assetId: string): Promise<{ path: string }> {
+export async function commitAvatar(
+  me: User,
+  assetId: string,
+): Promise<{ path: string; avatarUrl: string | null }> {
   const asset = await getDb().fileAsset.findUnique({ where: { id: assetId } });
-  if (
-    !asset ||
-    asset.ownerId !== me.id ||
-    asset.status !== "PENDING" ||
-    !asset.path.startsWith(folder(me.id))
-  ) {
+  // Another person's asset looks exactly like a missing one.
+  if (!asset || asset.ownerId !== me.id || !asset.path.startsWith(folder(me.id))) {
+    throw new AppError(404, "NOT_FOUND", errors.uploadMissing);
+  }
+  if (asset.status === "ATTACHED") {
+    // A retry of a commit that already worked is a success. A stale asset that was replaced since is not.
+    const fresh = await getDb().user.findUnique({
+      where: { id: me.id },
+      select: { avatarPath: true },
+    });
+    if (fresh?.avatarPath === asset.path) {
+      return { path: asset.path, avatarUrl: avatarUrl(asset.path) };
+    }
     throw new AppError(404, "NOT_FOUND", errors.uploadMissing);
   }
   const stored = await readHead(asset.bucket, asset.path);
@@ -49,17 +59,34 @@ export async function commitAvatar(me: User, assetId: string): Promise<{ path: s
     await getDb().fileAsset.delete({ where: { id: asset.id } });
     throw uploadError(verdict.reason);
   }
-  const previous = me.avatarPath;
-  await getDb().$transaction([
-    getDb().user.update({ where: { id: me.id }, data: { avatarPath: asset.path } }),
-    getDb().fileAsset.update({ where: { id: asset.id }, data: { status: "ATTACHED" } }),
-  ]);
-  if (previous && previous !== asset.path) await removeObjects(asset.bucket, [previous]);
-  return { path: asset.path };
+  // The previous path is read inside the transaction so a stale session copy never decides what gets deleted.
+  const previous = await getDb().$transaction(async (tx) => {
+    const fresh = await tx.user.findUnique({
+      where: { id: me.id },
+      select: { avatarPath: true },
+    });
+    await tx.user.update({ where: { id: me.id }, data: { avatarPath: asset.path } });
+    await tx.fileAsset.update({ where: { id: asset.id }, data: { status: "ATTACHED" } });
+    return fresh?.avatarPath ?? null;
+  });
+  // The old file goes only after the database points at the new one, so a failure never erases a photo.
+  if (previous && previous !== asset.path) {
+    await removeObjects(asset.bucket, [previous]);
+    await getDb().fileAsset.deleteMany({
+      where: { ownerId: me.id, bucket: asset.bucket, path: previous },
+    });
+  }
+  return { path: asset.path, avatarUrl: avatarUrl(asset.path) };
 }
 
 export async function removeAvatar(me: User): Promise<void> {
-  if (!me.avatarPath) return;
+  const fresh = await getDb().user.findUnique({
+    where: { id: me.id },
+    select: { avatarPath: true },
+  });
+  const path = fresh?.avatarPath;
+  if (!path) return;
   await getDb().user.update({ where: { id: me.id }, data: { avatarPath: null } });
-  await removeObjects(buckets.avatars(), [me.avatarPath]);
+  await removeObjects(buckets.avatars(), [path]);
+  await getDb().fileAsset.deleteMany({ where: { ownerId: me.id, path } });
 }

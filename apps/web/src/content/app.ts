@@ -446,9 +446,11 @@ export const avatarUploader = {
   add: "Add a photo",
   remove: "Remove photo",
   uploading: "Uploading",
+  uploadingPercent: "Uploading {percent} percent",
+  retry: "Try again",
   help: "JPEG, PNG or WebP, up to 5 MB.",
   removeTitle: "Remove your photo?",
-  removeBody: "People will see your initials again.",
+  removeBody: "People will see your illustrated picture again.",
   removeConfirm: "Remove",
   failed: "We could not save that photo. Check your connection and try again.",
 } as const;

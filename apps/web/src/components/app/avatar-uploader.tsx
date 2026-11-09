@@ -25,6 +25,9 @@ export function AvatarUploader({
   const { confirm, showError } = useFeedback();
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [lastFile, setLastFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(avatarUrl);
   // The illustrated default is not a photo the person uploaded.
   const hasPhoto = Boolean(preview) && !isDefaultAvatar(preview);
@@ -37,23 +40,30 @@ export function AvatarUploader({
       purpose: "avatar",
     });
     if (!verdict.ok) {
-      showError(verdict.reason === "TOO_BIG" ? errors.uploadTooBig : errors.uploadNotImage);
+      setLastFile(null);
+      setError(verdict.reason === "TOO_BIG" ? errors.uploadTooBig : errors.uploadNotImage);
       return;
     }
+    setError(null);
+    setLastFile(file);
     setBusy(true);
+    setProgress(0);
     try {
       const prepared = await prepareImage(file);
       const blob = prepared?.blob ?? file;
       const mime = prepared ? "image/jpeg" : file.type;
       const upName = prepared ? "avatar.jpg" : file.name;
-      await uploadAvatar(blob, upName, mime);
-      setPreview(URL.createObjectURL(blob));
+      // The old photo stays on screen until the server confirms the new one is saved.
+      const saved = await uploadAvatar(blob, upName, mime, setProgress);
+      setPreview(saved.avatarUrl ?? URL.createObjectURL(blob));
+      setLastFile(null);
       router.refresh();
       onChanged?.();
     } catch (e) {
-      showError(e instanceof ApiClientError ? e.message : copy.failed);
+      setError(e instanceof ApiClientError ? e.message : copy.failed);
     } finally {
       setBusy(false);
+      setProgress(null);
     }
   }
 
@@ -98,6 +108,26 @@ export function AvatarUploader({
             </Button>
           ) : null}
         </div>
+        {progress !== null ? (
+          <span role="status" className="tabular text-xs text-text-muted">
+            {copy.uploadingPercent.replace("{percent}", String(Math.round(progress * 100)))}
+          </span>
+        ) : null}
+        {error ? (
+          <div role="alert" className="flex flex-wrap items-center gap-2 text-sm text-danger-600">
+            <span>{error}</span>
+            {lastFile ? (
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={busy}
+                onClick={() => void pick(lastFile)}
+              >
+                {copy.retry}
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
         <span className="text-xs text-text-muted">{copy.help}</span>
       </div>
       <input

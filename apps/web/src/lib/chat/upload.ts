@@ -98,10 +98,17 @@ export async function uploadToChat(input: ChatUploadInput): Promise<MessageDto> 
 }
 
 /** Upload a profile photo to the public avatars bucket and make it the current one. */
-export async function uploadAvatar(file: Blob, name: string, mime: string): Promise<void> {
+export async function uploadAvatar(
+  file: Blob,
+  name: string,
+  mime: string,
+  onProgress?: (fraction: number) => void,
+): Promise<{ avatarUrl: string | null }> {
   const slot = await apiFetch<SignedUpload>("/api/avatar/sign", {
     body: { name, mime, size: file.size },
   });
-  await putFile(slot.uploadUrl, file, mime);
-  await apiFetch("/api/avatar/commit", { body: { assetId: slot.assetId } });
+  await putFile(slot.uploadUrl, file, mime, onProgress);
+  return apiFetch<{ avatarUrl: string | null }>("/api/avatar/commit", {
+    body: { assetId: slot.assetId },
+  });
 }

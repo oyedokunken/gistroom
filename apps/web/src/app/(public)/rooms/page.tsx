@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Mic } from "lucide-react";
+import { publicRoomsQuerySchema } from "@gistroom/shared";
 import { RoomMock } from "@/components/mock/screens";
 import { PublicPage } from "@/components/public/public-page";
 import { RoomsExplorer } from "@/components/public/rooms-explorer";
@@ -28,10 +29,16 @@ export const metadata: Metadata = pageMetadata({
 export default async function RoomsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; topic?: string; language?: string }>;
 }) {
-  const q = ((await searchParams).q ?? "").trim().slice(0, 60);
-  const { rooms, failed } = await listPublicRooms(q ? { q } : {});
+  const raw = await searchParams;
+  const parsed = publicRoomsQuerySchema.parse({
+    q: raw.q,
+    topic: raw.topic,
+    language: raw.language,
+  });
+  const q = parsed.q ?? "";
+  const { rooms, failed } = await listPublicRooms(parsed);
 
   return (
     <PublicPage
@@ -60,7 +67,16 @@ export default async function RoomsPage({
         }
         visual={<RoomMock />}
       />
-      <RoomsExplorer initialRooms={rooms} initialQuery={q} initialFailed={failed} />
+      <RoomsExplorer
+        initialRooms={rooms}
+        initialQuery={q}
+        initialFilters={{
+          topic: parsed.topic ?? "",
+          language: parsed.language ?? "all",
+          sort: "active",
+        }}
+        initialFailed={failed}
+      />
 
       <Band tone="soft" labelledBy="browse-h" className="[&>div]:px-0">
         <div className="px-6">

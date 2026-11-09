@@ -5,9 +5,17 @@ import { useEffect, useRef, useState } from "react";
 import { Loader2, Search, X } from "lucide-react";
 import type { PublicRoomCard } from "@gistroom/shared";
 import { RoomCard } from "@/components/public/room-card";
-import { buttonStyles } from "@/components/ui/button";
+import { Button, buttonStyles } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import {
+  ActiveFilters,
+  NO_FILTERS,
+  RoomFilterButton,
+  type RoomFilterValue,
+} from "@/components/rooms/room-filters";
+import { RoomsLayout } from "@/components/rooms/room-selection";
 import { roomsSearch as copy } from "@/content/marketing";
+import { roomCards } from "@/content/room-cards";
 import { roomsPage } from "@/content/pages";
 import { cn } from "@/lib/cn";
 
@@ -17,18 +25,21 @@ const DEBOUNCE_MS = 250;
 export function RoomsExplorer({
   initialRooms,
   initialQuery,
+  initialFilters = NO_FILTERS,
   initialFailed,
   hrefBase,
   bare,
 }: {
   initialRooms: PublicRoomCard[];
   initialQuery: string;
+  initialFilters?: RoomFilterValue;
   initialFailed: boolean;
   hrefBase?: string;
   /** Drop the wide page padding when it sits inside the app. */
   bare?: boolean;
 }) {
   const [query, setQuery] = useState(initialQuery);
+  const [filters, setFilters] = useState<RoomFilterValue>(initialFilters);
   const [rooms, setRooms] = useState(initialRooms);
   const [failed, setFailed] = useState(initialFailed);
   const [loading, setLoading] = useState(false);
@@ -45,7 +56,11 @@ export function RoomsExplorer({
     const timer = window.setTimeout(async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/public/rooms?q=${encodeURIComponent(query.trim())}`, {
+        const params = new URLSearchParams();
+        if (query.trim()) params.set("q", query.trim());
+        if (filters.topic) params.set("topic", filters.topic);
+        if (filters.language !== "all") params.set("language", filters.language);
+        const res = await fetch(`/api/public/rooms?${params.toString()}`, {
           signal: controller.signal,
         });
         if (!res.ok) throw new Error("bad status");
@@ -53,8 +68,11 @@ export function RoomsExplorer({
         setRooms(data.rooms);
         setFailed(data.failed);
         const url = new URL(window.location.href);
-        if (query.trim()) url.searchParams.set("q", query.trim());
-        else url.searchParams.delete("q");
+        const sync = (key: string, value: string | null) =>
+          value ? url.searchParams.set(key, value) : url.searchParams.delete(key);
+        sync("q", query.trim() || null);
+        sync("topic", filters.topic || null);
+        sync("language", filters.language !== "all" ? filters.language : null);
         window.history.replaceState(null, "", url);
       } catch (e) {
         if (!(e instanceof DOMException && e.name === "AbortError")) setFailed(true);
@@ -66,7 +84,7 @@ export function RoomsExplorer({
       controller.abort();
       window.clearTimeout(timer);
     };
-  }, [query, retryTick]);
+  }, [query, filters, retryTick]);
 
   // A failed request is retried quietly: once after 5 seconds, and again when the tab is focused.
   useEffect(() => {
@@ -83,6 +101,7 @@ export function RoomsExplorer({
   const live = rooms.filter((r) => r.status === "LIVE");
   const soon = rooms.filter((r) => r.status === "SCHEDULED");
   const term = query.trim();
+  const activeCount = (filters.topic ? 1 : 0) + (filters.language !== "all" ? 1 : 0);
 
   return (
     <div className={cn("mx-auto w-full", bare ? "" : "max-w-[1200px] px-6 py-12 md:py-16")}>
@@ -140,60 +159,86 @@ export function RoomsExplorer({
         ))}
       </div>
 
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <RoomFilterButton value={filters} onApply={setFilters} />
+        <ActiveFilters value={filters} onChange={setFilters} />
+      </div>
+
       <p role="status" aria-live="polite" className="mt-8 text-sm font-medium text-text-muted">
         {loading ? copy.searching : failed || rooms.length === 0 ? "" : copy.results(rooms.length)}
       </p>
 
-      {rooms.length === 0 && !loading ? (
-        <EmptyState
-          icon="open-gist"
-          title={term ? copy.noResultsTitle(term) : roomsPage.emptyTitle}
-          body={term ? copy.noResultsBody : roomsPage.emptyBody}
-          action={
-            <div className="flex flex-col items-center gap-2">
-              <Link href="/app/rooms?new=1" className={buttonStyles("primary")}>
-                {roomsPage.start}
-              </Link>
-              {bare ? (
-                <button
-                  type="button"
-                  onClick={() => setRetryTick((n) => n + 1)}
-                  className="min-h-11 px-3 text-sm font-semibold text-green-700 underline-offset-4 hover:underline"
-                >
-                  {roomsPage.refresh}
-                </button>
-              ) : null}
-            </div>
-          }
-        />
-      ) : (
-        <div className={cn("transition-opacity", loading && "opacity-60")}>
-          {live.length > 0 ? (
-            <section className="mt-6" aria-labelledby="live-h">
-              <h2 id="live-h" className="text-2xl font-bold text-text">
-                {roomsPage.liveHeading}
-              </h2>
-              <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {live.map((r) => (
-                  <RoomCard key={r.slug} room={r} hrefBase={hrefBase} />
-                ))}
-              </ul>
-            </section>
-          ) : null}
-          {soon.length > 0 ? (
-            <section className="mt-10" aria-labelledby="soon-h">
-              <h2 id="soon-h" className="text-2xl font-bold text-text">
-                {roomsPage.soonHeading}
-              </h2>
-              <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {soon.map((r) => (
-                  <RoomCard key={r.slug} room={r} hrefBase={hrefBase} />
-                ))}
-              </ul>
-            </section>
-          ) : null}
-        </div>
-      )}
+      <RoomsLayout rooms={rooms}>
+        {failed && rooms.length === 0 && !loading ? (
+          <div role="alert" className="flex flex-col items-center gap-3 py-12 text-center">
+            <p className="max-w-md text-text-muted">{roomCards.list.error}</p>
+            <Button variant="secondary" onClick={() => setRetryTick((n) => n + 1)}>
+              {roomCards.list.retry}
+            </Button>
+          </div>
+        ) : rooms.length === 0 && !loading ? (
+          <EmptyState
+            icon="open-gist"
+            title={
+              term
+                ? copy.noResultsTitle(term)
+                : activeCount > 0
+                  ? roomCards.list.noMatchTitle
+                  : roomsPage.emptyTitle
+            }
+            body={
+              term
+                ? copy.noResultsBody
+                : activeCount > 0
+                  ? roomCards.list.noMatchBody
+                  : roomsPage.emptyBody
+            }
+            action={
+              <div className="flex flex-col items-center gap-2">
+                <Link href="/app/rooms?new=1" className={buttonStyles("primary")}>
+                  {roomsPage.start}
+                </Link>
+                {bare ? (
+                  <button
+                    type="button"
+                    onClick={() => setRetryTick((n) => n + 1)}
+                    className="min-h-11 px-3 text-sm font-semibold text-green-700 underline-offset-4 hover:underline"
+                  >
+                    {roomsPage.refresh}
+                  </button>
+                ) : null}
+              </div>
+            }
+          />
+        ) : (
+          <div className={cn("transition-opacity", loading && "opacity-60")}>
+            {live.length > 0 ? (
+              <section className="mt-6" aria-labelledby="live-h">
+                <h2 id="live-h" className="text-2xl font-bold text-text">
+                  {roomsPage.liveHeading}
+                </h2>
+                <ul className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {live.map((r) => (
+                    <RoomCard key={r.slug} room={r} hrefBase={hrefBase} />
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+            {soon.length > 0 ? (
+              <section className="mt-10" aria-labelledby="soon-h">
+                <h2 id="soon-h" className="text-2xl font-bold text-text">
+                  {roomsPage.soonHeading}
+                </h2>
+                <ul className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {soon.map((r) => (
+                    <RoomCard key={r.slug} room={r} hrefBase={hrefBase} />
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+          </div>
+        )}
+      </RoomsLayout>
     </div>
   );
 }

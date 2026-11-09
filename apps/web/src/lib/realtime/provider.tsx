@@ -287,6 +287,13 @@ export function RealtimeProvider({ userId, children }: { userId: string; childre
         if (name) pushChip({ text: sessionCopy.chips.mutedBy(name), kind: "mod" });
       }
     });
+    // A hint that a presentation changed. The tab asks the server for the state, and LiveKit carries the track.
+    on("presentation:changed", ({ scope, ref, change }) => {
+      void queryClient.invalidateQueries({ queryKey: ["presentation", scope, ref] });
+      if (scope === "room" && change === "force-ended") {
+        void queryClient.invalidateQueries({ queryKey: ["room-log", ref] });
+      }
+    });
     on("session:revoked", () => {
       void confirmSignedOut().then((out) => {
         if (out) {

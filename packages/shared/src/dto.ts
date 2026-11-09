@@ -170,4 +170,6 @@ export interface PublicRoomCard {
   media: "AUDIO" | "VIDEO";
   /** A few of the people inside, for the avatar stack. */
   people: PublicUser[];
+  /** People who put their name down for a scheduled room. Counted on the server, never by the browser. */
+  attending: number;
 }

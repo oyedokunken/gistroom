@@ -1,69 +1,20 @@
 import { logger } from "../logger";
 import { unstable_cache } from "next/cache";
-import { getDb, type Language } from "@gistroom/db";
 import type { PublicRoomCard } from "@gistroom/shared";
-import { toPublicUser } from "@gistroom/db";
+import { fetchRoomCards, without, type RoomFilters } from "./listing";
 
-export type { PublicRoomCard };
+export type { PublicRoomCard, RoomFilters };
 
-export interface RoomFilters {
-  topic?: string;
-  language?: Language;
-  q?: string;
-}
-
+/** What a signed out visitor sees: public rooms only, no viewer, so the result is the same for everyone and can be cached. */
 async function query(filters: RoomFilters): Promise<PublicRoomCard[]> {
-  const rooms = await getDb().room.findMany({
-    where: {
-      visibility: "PUBLIC",
-      host: { isInternal: false },
-      status: { in: ["LIVE", "SCHEDULED"] },
-      ...(filters.topic ? { topic: { slug: filters.topic } } : {}),
-      ...(filters.language ? { language: filters.language } : {}),
-      ...(filters.q
-        ? {
-            OR: [
-              { title: { contains: filters.q, mode: "insensitive" as const } },
-              { description: { contains: filters.q, mode: "insensitive" as const } },
-              { topic: { name: { contains: filters.q, mode: "insensitive" as const } } },
-            ],
-          }
-        : {}),
-    },
-    include: {
-      host: true,
-      topic: true,
-      members: {
-        where: { state: "JOINED", user: { isInternal: false } },
-        include: { user: true },
-        orderBy: { joinedAt: "asc" },
-        take: 4,
-      },
-      _count: { select: { members: { where: { state: "JOINED" } } } },
-    },
-    orderBy: [{ status: "asc" }, { startedAt: "desc" }, { scheduledFor: "asc" }],
-    take: 60,
-  });
-  return rooms.map((r) => ({
-    slug: r.slug,
-    title: r.title,
-    description: r.description,
-    topicSlug: r.topic?.slug ?? null,
-    topicName: r.topic?.name ?? null,
-    language: r.language,
-    status: r.status === "LIVE" ? "LIVE" : "SCHEDULED",
-    scheduledFor: r.scheduledFor?.toISOString() ?? null,
-    startedAt: r.startedAt?.toISOString() ?? null,
-    host: toPublicUser(r.host),
-    listeners: r._count.members,
-    media: r.media,
-    people: r.members.map((m) => toPublicUser(m.user)),
-  }));
+  const cards = await fetchRoomCards(null, filters, "active");
+  // Visitors get the public card. Fields that only matter to a signed in viewer are dropped.
+  return cards.map((card) => without(card, "invitedOnly"));
 }
 
 const cached = unstable_cache(query, ["public-rooms"], { revalidate: 30 });
 
-/** Live and scheduled public Rooms, sorted by activity. Cached for 30 seconds (Section 9.6). Empty on any failure. */
+/** Live rooms first, then upcoming ones by start time. Cached for 30 seconds (Section 9.6). Empty on any failure. */
 export async function listPublicRooms(
   filters: RoomFilters = {},
 ): Promise<{ rooms: PublicRoomCard[]; failed: boolean }> {

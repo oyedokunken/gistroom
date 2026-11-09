@@ -6,6 +6,12 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ### Added
 
+- Rooms lists share one query. `/rooms`, Discover and the new related rooms list use the same authorization, filters (topic, language, text), ordering (live rooms first, then upcoming by start time) and card shape, so they cannot disagree, and many upcoming rooms can no longer push a live room off the list. `/rooms` now takes topic and language like Discover.
+- Room cards say Live or Upcoming, show the count that fits (`2 in room`, `2 attending`, `2 attended`) from server data, and offer one honest action: Start room for a host once the room is ready, Join room for a live room, Sign in to join for a signed out visitor, or `Starts in: 1 day 2h` for an upcoming room. Choosing a card opens a details panel beside the list (a sheet with a back button on a phone) with the host, time in your zone, people inside, Copy room link and Other rooms you might like.
+- `GET /api/rooms/[slug]/related` ranks related rooms by topic, then language, then live before upcoming and the closest start time. It never recommends the room itself, an ended room, or a private room you cannot see, and answers an empty list for a room you cannot see.
+- Copy room link copies the plain page address (never an invite), explains who can enter a private room, shows a manual copy dialog when the browser blocks the clipboard, and reports success inline.
+- Room filters moved into a wide dialog with grouped controls, Reset and Apply, and removable chips for what is on.
+
 - Forward messages. Choose one message from its menu (Forward) or several (Select), pick up to five friends, recent chats first, and send. Text, photos, videos, voice notes and files can be forwarded. Each copy is a new message from you with a new client id, marked Forwarded, with no original sender or time carried over, and files are copied to a path inside the destination chat so media access stays with that chat. A retry of the same request never creates a second copy. `POST /api/messages/forward`.
 
 - Notification delivery trail and retry. Every stage a notification passes through (created, claimed, sent to a tab, pushed, rejected, skipped with a reason, retried, dropped) is recorded in `NotificationDelivery` and shown at `GET /api/notifications/deliveries`. A scheduled job that fails is put back with a growing wait and dropped after five tries, instead of being lost after the claim. Registered people can switch the 15 minute and live now reminders off for a room, and the room page shows the next reminder.

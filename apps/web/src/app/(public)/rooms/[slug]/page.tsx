@@ -4,6 +4,10 @@ import { notFound, redirect } from "next/navigation";
 import { getDb, toPublicUser } from "@gistroom/db";
 import { LANGUAGE_LABELS } from "@gistroom/shared";
 import { PublicPage } from "@/components/public/public-page";
+import { CopyRoomLink } from "@/components/rooms/copy-room-link";
+import { RelatedRooms } from "@/components/rooms/related-rooms";
+import { roomCountLabel } from "@/components/rooms/room-detail";
+import { RoomAction } from "@/components/rooms/room-action";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { buttonStyles } from "@/components/ui/button";
@@ -22,6 +26,10 @@ async function loadRoom(slug: string) {
         host: true,
         topic: true,
         _count: { select: { members: { where: { state: "JOINED" } } } },
+        members: {
+          where: { state: "INVITED", registeredAt: { not: null }, user: { isInternal: false } },
+          select: { id: true },
+        },
       },
     });
   } catch {
@@ -65,7 +73,6 @@ export default async function PublicRoomPage({
   const ctx = await getSessionContext().catch(() => null);
   // Rooms of internal QA accounts do not exist for anyone else.
   if (room.host.isInternal && !ctx?.user.isInternal) notFound();
-  const joinPath = `/app/rooms/${room.slug}`;
 
   // The same screen for a private room and for one that does not exist for you: no title, host or member leaks.
   if (room.visibility === "PRIVATE") {
@@ -122,22 +129,31 @@ export default async function PublicRoomPage({
             <span className="font-semibold text-text">{host.name}</span>
             <span className="text-sm text-text-muted">@{host.username}</span>
           </div>
-          {live ? (
-            <span className="tabular ml-auto text-sm text-text-muted">
-              {room._count.members} in the room
-            </span>
-          ) : null}
+          <span className="tabular ml-auto text-sm text-text-muted">
+            {roomCountLabel({
+              status: live ? "LIVE" : "SCHEDULED",
+              listeners: room._count.members,
+              attending: room.members.length,
+            })}
+          </span>
         </div>
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Link
-            href={ctx ? joinPath : `/login?next=${encodeURIComponent(joinPath)}`}
-            className={buttonStyles("primary", "min-h-12 px-7")}
-          >
-            {ctx ? roomsPage.join : "Sign in to join"}
-          </Link>
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          <RoomAction
+            size="md"
+            room={{
+              slug: room.slug,
+              status: live ? "LIVE" : "SCHEDULED",
+              scheduledFor: room.scheduledFor?.toISOString() ?? null,
+              host,
+            }}
+          />
           <Link href="/rooms" className={buttonStyles("secondary", "min-h-12 px-7")}>
             {roomsPage.title}
           </Link>
+        </div>
+        <CopyRoomLink slug={room.slug} visibility="PUBLIC" className="mt-8" />
+        <div className="mt-10">
+          <RelatedRooms slug={room.slug} />
         </div>
       </article>
     </PublicPage>

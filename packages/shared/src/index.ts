@@ -22,3 +22,4 @@ export * from "./password";
 export * from "./topics";
 export * from "./notes";
 export * from "./reactions";
+export * from "./room-listing";

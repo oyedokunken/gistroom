@@ -1,125 +1,36 @@
-import { getDb, toPublicUser, type Prisma, type User } from "@gistroom/db";
-import {
-  TOPICS,
-  canonicalTopicSlug,
-  type DiscoverFeed,
-  type DiscoverQuery,
-  type DiscoverRoom,
-} from "@gistroom/shared";
+import { getDb, type User } from "@gistroom/db";
+import { TOPICS, type DiscoverFeed, type DiscoverQuery, type Language } from "@gistroom/shared";
 import { getInterests, suggestedPeople } from "../interests/service";
-
-const ROOM_LIMIT = 120;
-const STACK = 4;
-
-type Row = Prisma.RoomGetPayload<{
-  include: {
-    host: true;
-    topic: true;
-    members: { include: { user: true } };
-    _count: { select: { members: true } };
-  };
-}>;
-
-/**
- * Rooms the viewer is allowed to see on Discover: every public room that is live or coming up, plus private rooms
- * they are invited to or already in. Anything else is invisible, so a private room never leaks its title.
- */
-function visibleTo(viewerId: string, viewerInternal = false): Prisma.RoomWhereInput {
-  return {
-    status: { in: ["LIVE", "SCHEDULED"] },
-    // Rooms run by internal QA accounts are only seen by other internal accounts.
-    ...(viewerInternal ? {} : { host: { isInternal: false } }),
-    OR: [
-      { visibility: "PUBLIC" },
-      {
-        visibility: "PRIVATE",
-        members: { some: { userId: viewerId, state: { in: ["INVITED", "JOINED"] } } },
-      },
-    ],
-  };
-}
-
-function toCard(row: Row, viewerId: string): DiscoverRoom {
-  const mine = row.members.find((m) => m.userId === viewerId);
-  return {
-    slug: row.slug,
-    title: row.title,
-    description: row.description,
-    topicSlug: row.topic?.slug ?? null,
-    topicName: row.topic?.name ?? null,
-    language: row.language,
-    status: row.status === "LIVE" ? "LIVE" : "SCHEDULED",
-    scheduledFor: row.scheduledFor?.toISOString() ?? null,
-    startedAt: row.startedAt?.toISOString() ?? null,
-    host: toPublicUser(row.host),
-    listeners: row._count.members,
-    media: row.media,
-    people: row.members
-      .filter((m) => m.state === "JOINED")
-      .slice(0, STACK)
-      .map((m) => toPublicUser(m.user)),
-    invitedOnly: row.visibility === "PRIVATE" && mine !== undefined,
-  };
-}
-
-/** How busy a room is, for the "most active" sort. */
-export const byActivity = (a: DiscoverRoom, b: DiscoverRoom): number =>
-  b.listeners - a.listeners ||
-  (b.startedAt ?? "").localeCompare(a.startedAt ?? "") ||
-  a.title.localeCompare(b.title);
-
-export const byNewest = (a: DiscoverRoom, b: DiscoverRoom): number =>
-  (b.startedAt ?? b.scheduledFor ?? "").localeCompare(a.startedAt ?? a.scheduledFor ?? "");
-
-/** Soonest first for rooms that have not started yet. */
-export const bySoonest = (a: DiscoverRoom, b: DiscoverRoom): number =>
-  (a.scheduledFor ?? "").localeCompare(b.scheduledFor ?? "");
+import { fetchRoomCards, visibleRooms, type RoomFilters } from "../rooms/listing";
 
 /** Everything the Discover page shows, from one pass over the rooms the viewer may see. */
 export async function discoverFeed(viewer: User, query: DiscoverQuery): Promise<DiscoverFeed> {
   const db = getDb();
   const interests = await getInterests(viewer.id);
 
-  const filters: Prisma.RoomWhereInput[] = [];
-  if (query.topic) filters.push({ topic: { slug: canonicalTopicSlug(query.topic) } });
-  if (query.language && query.language !== "all") {
-    filters.push({ language: query.language.toUpperCase() as Row["language"] });
-  }
-  if (query.q) filters.push({ title: { contains: query.q, mode: "insensitive" } });
-
-  const include = {
-    host: true,
-    topic: true,
-    members: {
-      where: { state: { in: ["JOINED", "INVITED"] as ("JOINED" | "INVITED")[] } },
-      include: { user: true },
-      orderBy: { joinedAt: "asc" as const },
-    },
-    _count: { select: { members: { where: { state: "JOINED" as const } } } },
+  const sort = query.sort === "newest" ? "newest" : "active";
+  const filters: RoomFilters = {
+    ...(query.topic ? { topic: query.topic } : {}),
+    ...(query.language && query.language !== "all"
+      ? { language: query.language.toUpperCase() as Language }
+      : {}),
+    ...(query.q ? { q: query.q } : {}),
   };
 
-  const [rows, topicRows, people] = await Promise.all([
-    db.room.findMany({
-      where: { AND: [visibleTo(viewer.id, viewer.isInternal), ...filters] },
-      include,
-      orderBy: [{ startedAt: "desc" }, { scheduledFor: "asc" }],
-      take: ROOM_LIMIT,
-    }),
+  // The same query, authorization and ordering as the public Rooms page, with the viewer's private rooms added.
+  const [all, topicRows, people] = await Promise.all([
+    fetchRoomCards(viewer, filters, sort),
     db.room.groupBy({
       by: ["topicId"],
-      where: visibleTo(viewer.id, viewer.isInternal),
+      where: visibleRooms(viewer),
       _count: { _all: true },
     }),
     suggestedPeople(viewer.id, interests, viewer.isInternal),
   ]);
-
-  const all = rows.map((r) => toCard(r, viewer.id));
-  const sort = query.sort === "newest" ? byNewest : byActivity;
-  const live = all.filter((r) => r.status === "LIVE").sort(sort);
-  const soon = all.filter((r) => r.status === "SCHEDULED").sort(bySoonest);
+  const live = all.filter((r) => r.status === "LIVE");
+  const soon = all.filter((r) => r.status === "SCHEDULED");
   const forYou = all
     .filter((r) => r.topicSlug !== null && interests.includes(r.topicSlug))
-    .sort(sort)
     .slice(0, 6);
 
   const topicIds = topicRows.map((t) => t.topicId).filter((id): id is string => id !== null);

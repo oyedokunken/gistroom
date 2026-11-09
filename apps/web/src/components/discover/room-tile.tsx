@@ -1,8 +1,14 @@
-import { RoomLink } from "@/components/call-window/room-link";
+"use client";
+
 import { CalendarClock, Lock, Mic, Users, Video } from "lucide-react";
 import { LANGUAGE_LABELS, type DiscoverRoom } from "@gistroom/shared";
+import { RoomLink } from "@/components/call-window/room-link";
+import { roomCountLabel } from "@/components/rooms/room-detail";
+import { RoomAction } from "@/components/rooms/room-action";
+import { useRoomSelection } from "@/components/rooms/room-selection";
 import { Avatar } from "@/components/ui/avatar";
 import { discover as copy } from "@/content/discover";
+import { roomCards } from "@/content/room-cards";
 import { cn } from "@/lib/cn";
 
 const when = new Intl.DateTimeFormat("en-NG", {
@@ -15,21 +21,28 @@ const when = new Intl.DateTimeFormat("en-NG", {
 });
 
 /**
- * One room on Discover. The whole card is one link, so it works with a keyboard and a screen reader. It lifts a little
- * on hover, and shows who is inside, how many, what it is about and whether it is audio or video.
+ * One room on Discover. Choosing the card opens its details beside the list (a sheet on a phone). The one action sits on
+ * top of the card and says what will happen: join, start, sign in, or how long is left. Outside a RoomsLayout the whole
+ * card simply opens the room page.
  */
 export function RoomTile({ room }: { room: DiscoverRoom }) {
+  const selection = useRoomSelection();
   const live = room.status === "LIVE";
   const MediaIcon = room.media === "VIDEO" ? Video : Mic;
-  const count = room.listeners;
+  const on = selection?.selected === room.slug;
+  const overlay =
+    "absolute inset-0 rounded-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600";
   return (
-    <li className="h-full">
-      <RoomLink
-        slug={room.slug}
+    <li className="relative h-full">
+      <div
         className={cn(
           "group flex h-full flex-col gap-3 rounded-card border bg-surface p-5 transition-all",
-          "hover:-translate-y-0.5 hover:shadow-lift focus-visible:-translate-y-0.5 focus-visible:shadow-lift motion-reduce:transition-none motion-reduce:hover:translate-y-0",
-          room.invitedOnly ? "border-green-600" : "border-border",
+          "hover:-translate-y-0.5 hover:shadow-lift motion-reduce:transition-none motion-reduce:hover:translate-y-0",
+          on
+            ? "border-green-600 shadow-lift"
+            : room.invitedOnly
+              ? "border-green-600"
+              : "border-border",
         )}
       >
         <span className="flex flex-wrap items-center gap-2 text-xs font-bold">
@@ -39,14 +52,14 @@ export function RoomTile({ room }: { room: DiscoverRoom }) {
                 aria-hidden
                 className="size-1.5 rounded-full bg-ink-950 motion-safe:animate-pulse"
               />
-              {copy.card.live}
+              {roomCards.status.live}
             </span>
           ) : (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-2 px-2.5 py-1 text-text">
               <CalendarClock aria-hidden className="size-3.5" />
               {room.scheduledFor
                 ? copy.card.starts(when.format(new Date(room.scheduledFor)))
-                : "Scheduled"}
+                : roomCards.status.upcoming}
             </span>
           )}
           <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-1 text-green-700">
@@ -88,9 +101,9 @@ export function RoomTile({ room }: { room: DiscoverRoom }) {
           </span>
         </span>
 
-        <span className="flex items-center justify-between gap-3 border-t border-border pt-3">
+        <span className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
           <span className="flex items-center gap-2">
-            {room.people.length > 0 ? (
+            {room.people.length > 0 && live ? (
               <span className="flex -space-x-2" aria-hidden>
                 {room.people.map((p) => (
                   <span key={p.id} className="rounded-full ring-2 ring-surface">
@@ -101,15 +114,28 @@ export function RoomTile({ room }: { room: DiscoverRoom }) {
             ) : (
               <Users aria-hidden className="size-4 text-text-muted" />
             )}
-            <span className="tabular text-sm font-semibold text-text">
-              {count > 0 ? copy.card.people(count) : copy.card.nobodyYet}
-            </span>
+            <span className="tabular text-sm font-semibold text-text">{roomCountLabel(room)}</span>
           </span>
-          <span className="inline-flex min-h-9 items-center rounded-full bg-green-600 px-4 text-sm font-semibold text-white group-hover:bg-green-700">
-            {copy.card.join}
+          <span className="relative z-10">
+            <RoomAction room={room} />
           </span>
         </span>
-      </RoomLink>
+      </div>
+      {selection ? (
+        <button
+          type="button"
+          aria-pressed={on}
+          aria-label={`${roomCards.action.details}: ${room.title}`}
+          onClick={() => selection.select(on ? null : room.slug)}
+          className={overlay}
+        />
+      ) : (
+        <RoomLink
+          slug={room.slug}
+          aria-label={`${copy.card.open}: ${room.title}`}
+          className={overlay}
+        />
+      )}
     </li>
   );
 }

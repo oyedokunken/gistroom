@@ -178,6 +178,8 @@ Render free sleeps. A free external pinger (UptimeRobot or cron-job.org) hits `/
 
 Prisma migrations never run in either build. Run `npm run db:migrate` from the owner machine or CI.
 
+Never deploy or promote to production manually. Production changes only through a merge to main.
+
 ### 5.2 Environment variables
 
 Validate with Zod at boot in both apps (`SKIP_ENV_VALIDATION` allowed in CI builds only). Provide `.env.example` with every key, grouped and commented.

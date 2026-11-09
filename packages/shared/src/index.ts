@@ -1,5 +1,6 @@
 export * from "./limits";
 export * from "./env";
+export * from "./required-message";
 export * from "./auth";
 export * from "./profile";
 export * from "./dto";

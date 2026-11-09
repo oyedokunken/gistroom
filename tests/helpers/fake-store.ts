@@ -3,6 +3,7 @@ import type {
   NotificationDto,
   NotificationPrefs,
   PublicUser,
+  DeliveryRecord,
 } from "../../packages/shared/src";
 import { defaultPrefs } from "../../packages/shared/src";
 import type {
@@ -33,8 +34,17 @@ export class FakeStore implements Store {
   notifications = new Map<string, NotificationBundle>();
   jobs = new Map<
     string,
-    { id: string; kind: string; payload: unknown; processedAt: Date | null; dueAt: Date }
+    {
+      id: string;
+      kind: string;
+      payload: unknown;
+      processedAt: Date | null;
+      dueAt: Date;
+      attempts: number;
+      lastError?: string;
+    }
   >();
+  deliveries: DeliveryRecord[] = [];
   pushResults: { subscriptionId: string; ok: boolean; revoke: boolean }[] = [];
   lastSeen = new Map<string, Date>();
   counts_ = { notifications: 0, chats: 0 };
@@ -87,6 +97,7 @@ export class FakeStore implements Store {
       payload: { notificationId },
       processedAt: null,
       dueAt,
+      attempts: 0,
     });
     return this;
   }
@@ -220,6 +231,19 @@ export class FakeStore implements Store {
     if (!j || j.processedAt) return false;
     j.processedAt = new Date();
     return true;
+  }
+  async releaseJob(id: string, input: { retryAt: Date | null; error: string }) {
+    const j = this.jobs.get(id);
+    if (!j) return;
+    j.attempts += 1;
+    j.lastError = input.error;
+    if (input.retryAt) {
+      j.processedAt = null;
+      j.dueAt = input.retryAt;
+    }
+  }
+  async recordDelivery(records: DeliveryRecord[]) {
+    this.deliveries.push(...records);
   }
   async claimJobsForNotification(notificationId: string) {
     const claimed: string[] = [];

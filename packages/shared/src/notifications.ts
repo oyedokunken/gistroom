@@ -507,3 +507,32 @@ export function notificationCopy(
       };
   }
 }
+
+/** Stages a notification passes through. Each one is recorded so a missing alert can be traced (never message text). */
+export const DELIVERY_STAGES = [
+  "CREATED",
+  "CLAIMED",
+  "SOCKET_SENT",
+  "PUSH_SENT",
+  "PUSH_REJECTED",
+  "PUSH_SKIPPED",
+  "EMAIL_SENT",
+  "RETRY",
+  "DROPPED",
+] as const;
+export type DeliveryStage = (typeof DELIVERY_STAGES)[number];
+
+export interface DeliveryRecord {
+  notificationId: string | null;
+  userId: string;
+  stage: DeliveryStage;
+  detail?: string | null;
+  subscriptionId?: string | null;
+}
+
+/** A scheduled job that fails is put back with a growing wait, and dropped after five failures. */
+export const JOB_MAX_ATTEMPTS = 5;
+export function jobRetryDelaySec(failedAttempts: number): number | null {
+  if (failedAttempts >= JOB_MAX_ATTEMPTS) return null;
+  return Math.min(30 * 2 ** Math.max(0, failedAttempts - 1), 600);
+}

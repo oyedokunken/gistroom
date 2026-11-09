@@ -206,6 +206,18 @@ export function RoomScreen({
     }
   }
 
+  async function toggleReminders(next: boolean) {
+    setReminding(true);
+    try {
+      await roomApi.session(slug, next ? "reminders-on" : "reminders-off");
+      await queryClient.invalidateQueries({ queryKey: ["room", slug] });
+    } catch (e) {
+      showError(e instanceof ApiClientError ? e.message : copy.stage.failed);
+    } finally {
+      setReminding(false);
+    }
+  }
+
   async function startNow() {
     try {
       await roomApi.session(slug, "start");
@@ -413,6 +425,7 @@ export function RoomScreen({
         meName={meName}
         meAvatar={meAvatar}
         onToggleGoing={toggleGoing}
+        onToggleReminders={toggleReminders}
         onStartNow={startNow}
         onJoin={enter}
       />

@@ -147,6 +147,68 @@ describe.skipIf(!requireTestDb())("room registration and reminders", () => {
     expect(mine[0]?.subject).toBe("Match talk starts in 15 minutes");
   });
 
+  it("does not send the reminder again after the person reads or deletes it", async () => {
+    const host = await person("h20");
+    const ada = await person("a20");
+    const room = await scheduled(host, 120);
+    await m.rooms.setGoing(ada, room.slug, true);
+    await m.db.room.update({
+      where: { slug: room.slug },
+      data: { scheduledFor: new Date(Date.now() + 12 * MIN) },
+    });
+    await m.db.roomMember.updateMany({
+      where: { userId: ada.id },
+      data: { registeredAt: new Date(Date.now() - 3_600_000) },
+    });
+    const notes = await import("../../apps/web/src/server/notifications/service");
+    await m.registration.processRoomSchedule();
+    const row = await m.db.notification.findFirstOrThrow({
+      where: { userId: ada.id, type: "ROOM_STARTING" },
+    });
+    await notes.markRead(ada.id, [row.id]);
+    expect((await m.registration.processRoomSchedule()).reminded).toBe(0);
+    await m.db.notification.delete({ where: { id: row.id } });
+    expect((await m.registration.processRoomSchedule()).reminded).toBe(0);
+    expect(await count(ada.id, "ROOM_STARTING")).toBe(0);
+    const trail = await m.db.notificationDelivery.count({
+      where: { userId: ada.id, stage: "CREATED" },
+    });
+    expect(trail).toBeGreaterThan(0);
+  });
+
+  it("leaves out people who switched reminders off, but still tells them when the host starts moving things", async () => {
+    const host = await person("h21");
+    const ada = await person("a21");
+    const bola = await person("b21");
+    const room = await scheduled(host, 120);
+    await m.rooms.setGoing(ada, room.slug, true);
+    await m.rooms.setGoing(bola, room.slug, true);
+    const off = await m.rooms.setReminders(bola, room.slug, false);
+    expect(off.remindMe).toBe(false);
+    expect(off.nextReminderAt).toBeNull();
+    const on = await m.rooms.setReminders(ada, room.slug, true);
+    expect(on.nextReminderAt).not.toBeNull();
+    await m.db.room.update({
+      where: { slug: room.slug },
+      data: { scheduledFor: new Date(Date.now() + 12 * MIN) },
+    });
+    await m.db.roomMember.updateMany({
+      where: { roomId: room.id },
+      data: { registeredAt: new Date(Date.now() - 3_600_000) },
+    });
+    await m.registration.processRoomSchedule();
+    expect(await count(ada.id, "ROOM_STARTING")).toBe(1);
+    expect(await count(bola.id, "ROOM_STARTING")).toBe(0);
+    expect(await count(host.id, "ROOM_STARTING")).toBe(1);
+  });
+
+  it("refuses reminder changes from someone who is not registered", async () => {
+    const host = await person("h22");
+    const eve = await person("e22");
+    const room = await scheduled(host, 120);
+    await expect(m.rooms.setReminders(eve, room.slug, false)).rejects.toBeTruthy();
+  });
+
   it("skips people who registered with under 15 minutes left, and a reminder that is too late", async () => {
     const host = await person("h4");
     const late = await person("l4");

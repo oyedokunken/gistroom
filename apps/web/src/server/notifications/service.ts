@@ -69,6 +69,14 @@ export async function notify(input: NotifyInput): Promise<Notification | null> {
       },
     });
   } else {
+    // A one time notice the person already deleted must not come back when a sweep runs again.
+    if (input.dedupeKey && !input.aggregate) {
+      const sent = await db.notificationDelivery.findFirst({
+        where: { userId: input.userId, stage: "CREATED", dedupeKey: input.dedupeKey },
+        select: { id: true },
+      });
+      if (sent) return null;
+    }
     row = await db.notification.create({
       data: {
         userId: input.userId,
@@ -82,16 +90,37 @@ export async function notify(input: NotifyInput): Promise<Notification | null> {
   await db.scheduledJob.create({
     data: { kind: "notify", dueAt: new Date(), payload: { notificationId: row.id } },
   });
+  await db.notificationDelivery
+    .create({
+      data: {
+        notificationId: row.id,
+        userId: row.userId,
+        stage: "CREATED",
+        detail: row.type,
+        dedupeKey: input.dedupeKey ?? null,
+      },
+    })
+    .catch(() => null);
   void publish({ type: "notify", notificationId: row.id });
   return row;
 }
 
-/** Mark rows read. Clearing the dedupe key lets the next aggregated event start a fresh row. */
+/** Types that merge into one unread row. Reading one frees its key so the next event starts a fresh row. */
+const AGGREGATED_TYPES = ["DM_MESSAGE", "ROOM_REGISTRATIONS"];
+
+/**
+ * Mark rows read. Only aggregated rows give up their dedupe key. A one time notice (a room reminder, a live now notice)
+ * keeps it, otherwise reading the notice would let the next sweep send the same reminder a second time.
+ */
 export async function markRead(userId: string, ids: string[] | "all"): Promise<number> {
-  const r = await getDb().notification.updateMany({
-    where: { userId, readAt: null, ...(ids === "all" ? {} : { id: { in: ids } }) },
-    data: { readAt: new Date(), dedupeKey: null },
+  const where = { userId, readAt: null, ...(ids === "all" ? {} : { id: { in: ids } }) };
+  const now = new Date();
+  const aggregated = await getDb().notification.updateMany({
+    where: { ...where, type: { in: AGGREGATED_TYPES } },
+    data: { readAt: now, dedupeKey: null },
   });
-  if (r.count > 0) void publish({ type: "badge", userId });
-  return r.count;
+  const rest = await getDb().notification.updateMany({ where, data: { readAt: now } });
+  const count = aggregated.count + rest.count;
+  if (count > 0) void publish({ type: "badge", userId });
+  return count;
 }

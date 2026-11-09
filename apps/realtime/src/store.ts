@@ -10,6 +10,7 @@ import type {
   RoomChatDto,
   RoomMemberState,
   RoomRole,
+  DeliveryRecord,
 } from "@gistroom/shared";
 
 /** One stored push subscription. */
@@ -114,8 +115,15 @@ export interface Store {
   subscriptionById(id: string): Promise<PushSub | null>;
 
   /** Jobs that are due and not yet claimed. */
-  dueJobs(now: Date, limit: number): Promise<{ id: string; kind: string; payload: unknown }[]>;
+  dueJobs(
+    now: Date,
+    limit: number,
+  ): Promise<{ id: string; kind: string; payload: unknown; attempts: number }[]>;
   /** True only for the caller that wins the claim, so a job runs once even with two claimers. */
   claimJob(id: string): Promise<boolean>;
   claimJobsForNotification(notificationId: string): Promise<string[]>;
+  /** Puts a failed job back for a later try, or leaves it closed when retryAt is null (dropped). */
+  releaseJob(id: string, input: { retryAt: Date | null; error: string }): Promise<void>;
+  /** Writes the stages a notification passed through. Never throws into delivery. */
+  recordDelivery(records: DeliveryRecord[]): Promise<void>;
 }

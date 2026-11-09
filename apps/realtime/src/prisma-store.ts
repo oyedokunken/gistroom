@@ -392,7 +392,12 @@ export function createPrismaStore(): Store {
         orderBy: { dueAt: "asc" },
         take: limit,
       });
-      return rows.map((r) => ({ id: r.id, kind: r.kind, payload: r.payload }));
+      return rows.map((r) => ({
+        id: r.id,
+        kind: r.kind,
+        payload: r.payload,
+        attempts: r.attempts,
+      }));
     },
 
     async claimJob(id) {
@@ -401,6 +406,35 @@ export function createPrismaStore(): Store {
         data: { processedAt: new Date() },
       });
       return r.count === 1;
+    },
+
+    async releaseJob(id, { retryAt, error }) {
+      await db.scheduledJob.update({
+        where: { id },
+        data: {
+          attempts: { increment: 1 },
+          lastError: error.slice(0, 200),
+          processedAt: retryAt ? null : new Date(),
+          ...(retryAt ? { dueAt: retryAt } : {}),
+        },
+      });
+    },
+
+    async recordDelivery(records) {
+      if (records.length === 0) return;
+      try {
+        await db.notificationDelivery.createMany({
+          data: records.map((r) => ({
+            notificationId: r.notificationId,
+            userId: r.userId,
+            stage: r.stage,
+            detail: r.detail ?? null,
+            subscriptionId: r.subscriptionId ?? null,
+          })),
+        });
+      } catch {
+        // Observability must never stop an alert.
+      }
     },
 
     async claimJobsForNotification(notificationId) {

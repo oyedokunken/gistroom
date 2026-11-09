@@ -90,14 +90,18 @@ export async function resetRoomJobs(room: Room, now = new Date()): Promise<void>
   await ensureRoomJobs(room, now);
 }
 
-/** The people who put their name down and are not inside. The host is never one of them. */
-async function registrants(room: Room) {
+/**
+ * The people who put their name down and are not inside. The host is never one of them. With remindersOnly, people who
+ * switched reminders off for this room are left out (moved and cancelled notices still go to everyone).
+ */
+async function registrants(room: Room, opts: { remindersOnly?: boolean } = {}) {
   const rows = await getDb().roomMember.findMany({
     where: {
       roomId: room.id,
       registeredAt: { not: null },
       state: "INVITED",
       userId: { not: room.hostId },
+      ...(opts.remindersOnly ? { remindMe: true } : {}),
     },
     select: { userId: true, registeredAt: true },
   });
@@ -155,7 +159,7 @@ export async function onUnregistered(room: Room, userId: string): Promise<void> 
 /** The host started the room: tell the registrants who are not already inside. */
 export async function notifyLive(room: RoomWithPeople): Promise<number> {
   let sent = 0;
-  for (const r of await registrants(room)) {
+  for (const r of await registrants(room, { remindersOnly: true })) {
     const row = await notify({
       userId: r.userId,
       type: "ROOM_LIVE_NOW",
@@ -171,13 +175,7 @@ export async function notifyLive(room: RoomWithPeople): Promise<number> {
 
 /** The host moved the room. Old reminders are cancelled, new ones are set, registrants hear the new time. */
 export async function notifyRescheduled(room: RoomWithPeople, now = new Date()): Promise<void> {
-  const db = getDb();
   await resetRoomJobs(room, now);
-  // Let the reminders fire again for the new time.
-  await db.notification.updateMany({
-    where: { dedupeKey: { startsWith: `room:${room.id}:remind15:` } },
-    data: { dedupeKey: null },
-  });
   const epoch = room.scheduledFor?.getTime() ?? 0;
   for (const r of await registrants(room)) {
     const when = room.scheduledFor ? whenText(room.scheduledFor, await zoneOf(r.userId), now) : "";
@@ -249,7 +247,7 @@ export async function processRoomSchedule(now = new Date()): Promise<ScheduleSwe
     if (!startsAt) continue;
     const people = [
       { userId: room.hostId, registeredAt: null as Date | null },
-      ...(await registrants(room)),
+      ...(await registrants(room, { remindersOnly: true })),
     ];
     for (const p of people) {
       // Someone who registered with under 15 minutes left was already told when it starts.
@@ -258,7 +256,7 @@ export async function processRoomSchedule(now = new Date()): Promise<ScheduleSwe
         userId: p.userId,
         type: "ROOM_STARTING",
         payload: roomPayload(room),
-        dedupeKey: `room:${room.id}:remind15:${p.userId}`,
+        dedupeKey: `room:${room.id}:remind15:${p.userId}:${startsAt.getTime()}`,
       }).catch(() => null);
       if (!row) continue;
       result.reminded += 1;

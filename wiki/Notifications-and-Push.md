@@ -19,3 +19,22 @@ Web Push is what reaches someone whose tab has been closed since last night. Soc
 - At 768 px and wider the page is two columns: the list (about 340 to 400 px) and the detail. Nothing opens by itself. The selection is the `n` query value, so refresh and back work, and the opened item is marked read after one second.
 - The detail comes from `GET /api/notifications/[id]`, which returns the notification and what is true now (friend request status, room status). A deleted notification is a 404 shown as "This is no longer available", never an error screen.
 - Below 768 px the list is one column and the detail is a modal.
+
+## Diagnosing a missing notification
+
+Every notification leaves a trail in `NotificationDelivery` (also at `GET /api/notifications/deliveries` for the signed in person). The stages are CREATED (web wrote the row), CLAIMED (realtime took the job), SOCKET_SENT (a live tab got it), PUSH_SENT, PUSH_REJECTED (with the push service status code), PUSH_SKIPPED (with a reason), RETRY and DROPPED. Records hold reasons only, never message text, and are kept for 30 days.
+
+Read the trail from the top:
+
+1. No CREATED row: the event never reached `notify()`. Check notification preferences (in app switch) and that the account is ACTIVE.
+2. CREATED but no CLAIMED: the realtime service did not run the job. Check `ScheduledJob` for the notification (processedAt empty means waiting, attempts and lastError show failures). The web sweep and the 30 second poll both pick it up, and a failed run is put back with a growing wait and dropped after five attempts.
+3. PUSH_SKIPPED with `focused-socket`: a focused tab got it in the app. `push-off-or-quiet-hours`: the person turned push off for that type or quiet hours were on (quiet hours hold back push and email only, never the in app row). `no-active-device`: no subscription, or the device was signed out for more than 30 days. `push-not-configured`: VAPID keys are missing on realtime.
+4. PUSH_REJECTED with 404 or 410: the browser dropped the subscription. The row is revoked and the person resubscribes on the next signed in load. Other codes count toward the three failure rule that marks a device unhealthy.
+
+## One time notices stay one time
+
+A notice with a dedupe key (a 15 minute reminder, a live now notice, a moved or cancelled notice) is sent once per person. Reading it does not free the key, and deleting the row does not either: the CREATED delivery record is the tombstone, so a later sweep cannot send it again. Only rows that merge on purpose (DM_MESSAGE and ROOM_REGISTRATIONS) give up their key when read. The 15 minute reminder key includes the start time, so a rescheduled room reminds again for the new time.
+
+## Room reminders
+
+A registered person can switch the 15 minute and live now reminders off for one room (`reminders-off`). Moved and cancelled notices still arrive, because they change what the person has planned. The host always gets the 15 minute reminder and the due now notice. The room page shows the next reminder time. The reminder survives a sleeping realtime service because the sweep reads the rooms, not the jobs, and the daily Vercel cron runs the same sweep.

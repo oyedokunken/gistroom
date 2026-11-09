@@ -20,6 +20,7 @@ export function RoomLobby({
   meName,
   meAvatar,
   onToggleGoing,
+  onToggleReminders,
   onStartNow,
   onJoin,
 }: {
@@ -31,6 +32,7 @@ export function RoomLobby({
   meName: string;
   meAvatar: string | null;
   onToggleGoing: (next: boolean) => Promise<void>;
+  onToggleReminders: (next: boolean) => Promise<void>;
   onStartNow: () => Promise<void>;
   onJoin: (prefs?: PrejoinPrefs) => Promise<void>;
 }) {
@@ -91,6 +93,15 @@ export function RoomLobby({
           <p className={`max-w-sm text-sm ${secondaryText}`}>
             {room.going ? copy.stage.goingBody : copy.stage.waitingNote}
           </p>
+          {room.going ? (
+            <p role="status" className={`text-sm ${secondaryText}`}>
+              {room.nextReminderAt
+                ? copy.stage.nextReminder(formatFull(new Date(room.nextReminderAt)))
+                : room.remindMe
+                  ? null
+                  : copy.stage.noReminder}
+            </p>
+          ) : null}
           <Button
             className="min-h-12 px-10"
             variant={room.going ? "secondary" : "primary"}
@@ -99,6 +110,16 @@ export function RoomLobby({
           >
             {room.going ? copy.stage.notGoing : copy.stage.remindMe}
           </Button>
+          {room.going ? (
+            <Button
+              variant="ghost"
+              disabled={reminding}
+              aria-pressed={room.remindMe}
+              onClick={() => void onToggleReminders(!room.remindMe)}
+            >
+              {room.remindMe ? copy.stage.turnRemindersOff : copy.stage.turnRemindersOn}
+            </Button>
+          ) : null}
         </div>
       ) : scheduled ? (
         <Button className="min-h-12 px-10" loading={joining} onClick={() => void onStartNow()}>

@@ -50,3 +50,11 @@ export async function purgeExpiredActivity(now = new Date()): Promise<number> {
   });
   return done.count;
 }
+
+/** Delivery records are a trace for diagnosis, and the tombstone that stops a deleted reminder coming back. Kept 30 days. */
+export async function purgeOldDeliveries(now = new Date()): Promise<number> {
+  const done = await getDb().notificationDelivery.deleteMany({
+    where: { createdAt: { lt: new Date(now.getTime() - 30 * 86_400_000) } },
+  });
+  return done.count;
+}

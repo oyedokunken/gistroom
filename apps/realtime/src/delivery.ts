@@ -8,6 +8,8 @@ import {
   type PushPayload,
   pushCopy,
   shouldRevoke,
+  type DeliveryRecord,
+  jobRetryDelaySec,
   type InternalEvent,
 } from "@gistroom/shared";
 import type { Hub } from "./hub";
@@ -45,6 +47,9 @@ export function createDelivery(deps: DeliveryDeps) {
     const copy = notificationCopy(notification.type, notification.payload, notification.id);
     const plan = deliveryPlan({ hasFocusedSocket: hub.hasFocused(userId), kind: copy.kind });
 
+    const trail: DeliveryRecord[] = [{ notificationId: notification.id, userId, stage: "CLAIMED" }];
+    const flush = () => store.recordDelivery(trail);
+
     // Any live socket gets the list update. Only a focused one suppresses the system notification.
     if (hub.isOnline(userId)) {
       emitTo(io, userId, "notification:new", { notification });
@@ -52,9 +57,23 @@ export function createDelivery(deps: DeliveryDeps) {
         notifications: bundle.unread,
         chats: bundle.chatsUnread,
       });
+      trail.push({ notificationId: notification.id, userId, stage: "SOCKET_SENT" });
     }
 
-    if (!plan.push || !channels.push || notification.payload.noPush === true) return;
+    const skip = !plan.push
+      ? "focused-socket"
+      : !channels.push
+        ? "push-off-or-quiet-hours"
+        : notification.payload.noPush === true
+          ? "in-app-only"
+          : notification.readAt
+            ? "already-read"
+            : null;
+    if (skip) {
+      trail.push({ notificationId: notification.id, userId, stage: "PUSH_SKIPPED", detail: skip });
+      await flush();
+      return;
+    }
     const payload = buildPushPayload({
       type: copy.kind,
       title: copy.title,
@@ -66,17 +85,47 @@ export function createDelivery(deps: DeliveryDeps) {
       data: { notificationId: notification.id },
     });
 
-    await sendToAll(bundle.subscriptions, payload);
+    if (bundle.subscriptions.filter((s) => !s.skip).length === 0) {
+      trail.push({
+        notificationId: notification.id,
+        userId,
+        stage: "PUSH_SKIPPED",
+        detail: "no-active-device",
+      });
+    }
+    await sendToAll(
+      bundle.subscriptions,
+      payload,
+      { notificationId: notification.id, userId },
+      trail,
+    );
+    await flush();
   }
 
   /** Full text for signed in devices, plain text for devices whose session ended, nothing past the grace period. */
-  async function sendToAll(subs: PushSub[], payload: PushPayload) {
+  async function sendToAll(
+    subs: PushSub[],
+    payload: PushPayload,
+    who?: { notificationId: string | null; userId: string },
+    trail?: DeliveryRecord[],
+  ) {
     await Promise.all(
       subs
         .filter((s) => !s.skip)
         .map(async (sub) => {
           const result = await push.send(sub, sub.plain ? plainPushPayload(payload) : payload);
-          if (result.disabled) return;
+          if (result.disabled) {
+            if (who) trail?.push({ ...who, stage: "PUSH_SKIPPED", detail: "push-not-configured" });
+            return;
+          }
+          if (who) {
+            trail?.push({
+              ...who,
+              stage: result.ok ? "PUSH_SENT" : "PUSH_REJECTED",
+              detail: result.ok ? null : String(result.statusCode ?? "network"),
+              subscriptionId: sub.id,
+            });
+          }
           const failures = result.ok ? 0 : sub.failureCount + 1;
           await store.recordPushResult({
             subscriptionId: sub.id,
@@ -116,7 +165,18 @@ export function createDelivery(deps: DeliveryDeps) {
   async function runNotify(notificationId: string): Promise<void> {
     const claimed = await store.claimJobsForNotification(notificationId);
     if (claimed.length === 0) return;
-    await deliverNotification(notificationId);
+    try {
+      await deliverNotification(notificationId);
+    } catch (error) {
+      // The jobs were claimed, so put them back. Otherwise a failure here would lose the alert for good.
+      const retryAt = new Date(now().getTime() + (jobRetryDelaySec(1) ?? 30) * 1000);
+      await Promise.all(
+        claimed.map((id) =>
+          store.releaseJob(id, { retryAt, error: String(error) }).catch(() => undefined),
+        ),
+      );
+      throw error;
+    }
   }
 
   async function handle(event: InternalEvent): Promise<void> {

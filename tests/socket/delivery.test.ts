@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { NotificationDto, NotificationType } from "../../packages/shared/src";
-import { defaultPrefs } from "../../packages/shared/src";
+import { clientEvents, defaultPrefs } from "../../packages/shared/src";
 import { FakeStore, sub } from "../helpers/fake-store";
 import { arrives, once, sleep, startHarness, type Harness } from "../helpers/realtime";
 
@@ -247,5 +247,58 @@ describe("copy for each notification type", () => {
       tag: "sec:sess9",
     });
     expect(h.push.sent[1]!.payload.body).toContain("Chrome on Windows");
+  });
+});
+
+describe("delivery records and job retry", () => {
+  it("records the stages of a push so a missing alert can be traced", async () => {
+    h.store.addNotification({ userId: "bayo", notification: dm(), subscriptions: [sub("phone")] });
+    h.store.addJob("j1", "n1");
+    await h.rt.scheduler.runOnce();
+    const stages = h.store.deliveries.map((d) => d.stage);
+    expect(stages).toContain("CLAIMED");
+    expect(stages).toContain("PUSH_SENT");
+    expect(h.store.deliveries.every((d) => d.notificationId === "n1")).toBe(true);
+  });
+
+  it("records why a push was held back for a focused tab", async () => {
+    const ada = await h.client("bayo");
+    ada.emit(clientEvents.appFocus, { focused: true });
+    await sleep(50);
+    h.store.addNotification({ userId: "bayo", notification: dm(), subscriptions: [sub("phone")] });
+    h.store.addJob("j1", "n1");
+    await h.rt.scheduler.runOnce();
+    const skipped = h.store.deliveries.find((d) => d.stage === "PUSH_SKIPPED");
+    expect(skipped?.detail).toBe("focused-socket");
+    expect(h.push.sent).toHaveLength(0);
+  });
+
+  it("records a rejected push with its status code", async () => {
+    h.push.result = { ok: false, statusCode: 410 };
+    h.store.addNotification({ userId: "bayo", notification: dm(), subscriptions: [sub("phone")] });
+    h.store.addJob("j1", "n1");
+    await h.rt.scheduler.runOnce();
+    const rejected = h.store.deliveries.find((d) => d.stage === "PUSH_REJECTED");
+    expect(rejected?.detail).toBe("410");
+  });
+
+  it("puts a failed job back and tries again, instead of losing the alert", async () => {
+    h.store.addNotification({ userId: "bayo", notification: dm(), subscriptions: [sub("phone")] });
+    h.store.addJob("j1", "n1");
+    const original = h.store.notificationBundle.bind(h.store);
+    let calls = 0;
+    h.store.notificationBundle = async (id: string) => {
+      calls += 1;
+      if (calls === 1) throw new Error("database blip");
+      return original(id);
+    };
+    await h.rt.scheduler.runOnce();
+    const job = h.store.jobs.get("j1")!;
+    expect(job.processedAt).toBeNull();
+    expect(job.attempts).toBe(1);
+    expect(job.dueAt.getTime()).toBeGreaterThan(Date.now());
+    job.dueAt = new Date(0);
+    await h.rt.scheduler.runOnce();
+    expect(h.push.sent).toHaveLength(1);
   });
 });

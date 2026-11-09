@@ -286,6 +286,10 @@ export interface RoomDto {
   myRole: RoomRole | null;
   /** True when the viewer asked to be told when this scheduled room starts. */
   going: boolean;
+  /** Reminders (15 minutes before, and when the host starts it) are on for the viewer. Always true for the host. */
+  remindMe: boolean;
+  /** When the next reminder is due for the viewer, or null when none is coming. */
+  nextReminderAt: string | null;
   /** The viewer was in this live room and still holds their seat, so the screen joins again by itself. */
   rejoin: boolean;
 }

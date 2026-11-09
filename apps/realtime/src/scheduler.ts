@@ -1,3 +1,4 @@
+import { jobRetryDelaySec } from "@gistroom/shared";
 import type { Delivery } from "./delivery";
 import type { Logger } from "./sockets";
 import type { Store } from "./store";
@@ -50,6 +51,15 @@ export function createScheduler(deps: SchedulerDeps) {
           }
         } catch (error) {
           log.error({ err: String(error), kind: job.kind }, "job failed");
+          // A failed run goes back with a growing wait instead of being lost. Five failures and it is dropped.
+          const delay = jobRetryDelaySec(job.attempts + 1);
+          await store
+            .releaseJob(job.id, {
+              retryAt: delay === null ? null : new Date(now().getTime() + delay * 1000),
+              error: String(error),
+            })
+            .catch(() => undefined);
+          if (delay === null) log.error({ kind: job.kind, jobId: job.id }, "job dropped");
         }
       }
     } catch (error) {

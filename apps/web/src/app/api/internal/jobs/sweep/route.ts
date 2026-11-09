@@ -5,7 +5,7 @@ import { purgeRateLimits } from "@/server/rate-limit";
 import { expireDueCalls, reconcileStuckCalls } from "@/server/calls/service";
 import { sendFriendDigests } from "@/server/mail/notify-email";
 import { sweepSessions, sweepSubscriptions } from "@/server/auth/sweep";
-import { purgeExpiredActivity } from "@/server/notifications/activity";
+import { purgeExpiredActivity, purgeOldDeliveries } from "@/server/notifications/activity";
 import { processRoomSchedule } from "@/server/rooms/registration";
 import {
   endEmptyRooms,
@@ -42,6 +42,7 @@ async function run(request: Request): Promise<Response> {
     expiredRings: await expireRings(),
     purgedRoomChat: await purgeEndedRoomChat(),
     purgedActivity: await purgeExpiredActivity(),
+    purgedDeliveries: await purgeOldDeliveries(),
     purgedRateLimits: await purgeRateLimits(),
     sessions: await sweepSessions(),
     subscriptions: await sweepSubscriptions(),

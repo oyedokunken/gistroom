@@ -6,6 +6,8 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ### Added
 
+- Notification delivery trail and retry. Every stage a notification passes through (created, claimed, sent to a tab, pushed, rejected, skipped with a reason, retried, dropped) is recorded in `NotificationDelivery` and shown at `GET /api/notifications/deliveries`. A scheduled job that fails is put back with a growing wait and dropped after five tries, instead of being lost after the claim. Registered people can switch the 15 minute and live now reminders off for a room, and the room page shows the next reminder.
+
 - Gistroom now lives at `https://gistroom.oyedokun.dev`. The old `gistroom.vercel.app` address redirects to it (pages only, API routes stay), canonical URLs, Open Graph and the README use the new address, and the Render blueprint allows it as a realtime origin next to `gistroom.ng` (D93).
 
 - Security hardening from the audit: chat media is only signed or opened while its bucket is private and separate from avatars (D39 resolved in code, with `npm run storage:check` and `npm run storage:migrate-media`), the same origin check now runs inside every mutating route, scrypt moved to N=2^17 with old hashes upgraded at sign in, forwarded client addresses are trusted only on Vercel or with `TRUST_PROXY=true`, a search containing a NUL byte no longer returns a server error, search paging no longer skips tied results, the profile time zone must be a real zone, and pressing Call twice at once can no longer start two calls (the checks and the insert are one serializable transaction).
@@ -20,6 +22,11 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 - Registering for a scheduled room now sends a confirmation (an Activity line and an email with an .ics calendar file and an Add to calendar link), tells the host with one aggregated line per room, reminds registrants 15 minutes before in app, by push and by email, says "live now" when the host starts it, nudges the host at the scheduled time, cancels a room whose host never came after 30 minutes, and tells registrants about a new time or a cancellation. New email templates: room-registration-confirmed, room-live-now, room-rescheduled, room-cancelled, and a fuller room-starting-soon. New settings switches: Room reminders and Room is live.
 - `GET /api/rooms/[slug]/calendar` returns the .ics for a scheduled room, and the host can move a scheduled room with the settings call (`scheduledFor`).
+
+### Fixed
+
+- A room reminder could be sent again after the person read or deleted it, because reading cleared its dedupe key. One time notices now keep their key, a deleted notice is not recreated by a later sweep, and the reminder key includes the start time so a moved room reminds again for the new time.
+- Replacing a profile photo is idempotent: a repeated commit succeeds, a stale or another person's upload is refused, the old file is removed only after the new one is saved, and the uploader shows progress and inline errors with a retry.
 
 ### Changed
 

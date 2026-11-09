@@ -74,6 +74,7 @@ export async function resetTestDb(): Promise<void> {
   await db.conversationMember.deleteMany();
   await db.conversation.deleteMany();
   await db.fileAsset.deleteMany();
+  await db.notificationDelivery.deleteMany();
   await db.notification.deleteMany();
   await db.notificationPreference.deleteMany();
   await db.pushSubscription.deleteMany();

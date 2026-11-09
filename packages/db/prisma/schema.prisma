@@ -568,10 +568,34 @@ model ScheduledJob {
   dueAt       DateTime
   payload     Json
   processedAt DateTime?
+  /// How many times a run failed and was put back. Five failures and the job is dropped and recorded.
+  attempts    Int       @default(0)
+  lastError   String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
   @@index([processedAt, dueAt])
+}
+
+/// One row per stage a notification passed through, so a missing alert can be traced instead of guessed at.
+/// Stages: CREATED, CLAIMED, SOCKET_SENT, PUSH_SENT, PUSH_REJECTED, PUSH_SKIPPED, EMAIL_SENT, RETRY, DROPPED.
+/// Never holds message text, endpoints or keys.
+model NotificationDelivery {
+  id             String   @id @default(cuid(2))
+  notificationId String?
+  userId         String
+  stage          String
+  /// Short machine readable reason, for example "quiet-hours", "focused-socket" or "410".
+  detail         String?
+  subscriptionId String?
+  /// The notification's dedupe key, kept on CREATED rows so a notice the person deleted is not sent again.
+  dedupeKey      String?
+  createdAt      DateTime @default(now())
+
+  @@index([userId, dedupeKey])
+  @@index([userId, createdAt])
+  @@index([notificationId, createdAt])
+  @@index([createdAt])
 }
 
 // ---------- Calls and Rooms ----------
@@ -681,6 +705,8 @@ model RoomMember {
   noRing       Boolean         @default(false)
   /// When the person put their name down for a scheduled room. Null for people who were only invited.
   registeredAt DateTime?
+  /// Registered people can switch the 15 minute and live now reminders off for this room.
+  remindMe     Boolean         @default(true)
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
   room         Room            @relation(fields: [roomId], references: [id], onDelete: Cascade)

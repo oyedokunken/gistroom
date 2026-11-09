@@ -199,3 +199,13 @@ describe("receipts", () => {
     expect(advanceCursor(sent, later)).toEqual(later);
   });
 });
+
+describe("job retry policy", () => {
+  it("waits longer after each failure and gives up after five", async () => {
+    const { jobRetryDelaySec, JOB_MAX_ATTEMPTS } = await import("../../packages/shared/src");
+    expect(jobRetryDelaySec(1)).toBe(30);
+    expect(jobRetryDelaySec(2)).toBe(60);
+    expect(jobRetryDelaySec(4)).toBe(240);
+    expect(jobRetryDelaySec(JOB_MAX_ATTEMPTS)).toBeNull();
+  });
+});

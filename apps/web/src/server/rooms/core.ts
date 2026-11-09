@@ -8,6 +8,7 @@ import {
   type User,
 } from "@gistroom/db";
 import {
+  LIMITS,
   canDo,
   errors,
   linkState,
@@ -73,7 +74,13 @@ export async function toDto(
   viewerRole: RoomRole | null,
   going = false,
   rejoin = false,
+  remindMe = true,
 ): Promise<RoomDto> {
+  const listed = going || viewerRole === "HOST";
+  const reminderAt =
+    room.status === "SCHEDULED" && room.scheduledFor
+      ? new Date(room.scheduledFor.getTime() - LIMITS.ROOM_REMINDER_LEAD_MIN * 60_000)
+      : null;
   return {
     id: room.id,
     slug: room.slug,
@@ -102,6 +109,11 @@ export async function toDto(
     },
     myRole: viewerRole,
     going,
+    remindMe,
+    nextReminderAt:
+      listed && remindMe && reminderAt && reminderAt.getTime() > Date.now()
+        ? reminderAt.toISOString()
+        : null,
     rejoin,
   };
 }

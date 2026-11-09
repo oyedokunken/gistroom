@@ -163,7 +163,26 @@ export async function setGoing(me: User, slug: string, going: boolean): Promise<
     void onUnregistered(room, me.id);
   }
   const now = await memberOf(room.id, me.id);
-  return toDto(room, now?.role ?? null, Boolean(now?.registeredAt));
+  return toDto(room, now?.role ?? null, Boolean(now?.registeredAt), false, now?.remindMe ?? true);
+}
+
+/** A registered person switches the 15 minute and live now reminders for one room on or off. Moved and cancelled notices still arrive. */
+export async function setReminders(me: User, slug: string, on: boolean): Promise<RoomDto> {
+  await enforce(policies.roomGoing, me.id);
+  const db = getDb();
+  const room = await db.room.findUnique({
+    where: { slug },
+    include: { host: true, topic: { select: { slug: true, name: true } } },
+  });
+  if (!room || room.status === "ENDED") throw notFound();
+  if (room.hostId === me.id) return toDto(room, "HOST");
+  const member = await memberOf(room.id, me.id);
+  if (!member?.registeredAt || member.state !== "INVITED") throw denied("NOT_INVITED");
+  const updated = await db.roomMember.update({
+    where: { id: member.id },
+    data: { remindMe: on },
+  });
+  return toDto(room, updated.role, true, false, updated.remindMe);
 }
 
 // ---------- Viewing ----------
@@ -206,7 +225,13 @@ export async function viewRoom(
       (member?.state === "LEFT" && member.graceUntil !== null && member.graceUntil > now));
   return {
     state: "OK",
-    room: await toDto(room, isHost ? "HOST" : (member?.role ?? null), going, Boolean(holdsSeat)),
+    room: await toDto(
+      room,
+      isHost ? "HOST" : (member?.role ?? null),
+      going,
+      Boolean(holdsSeat),
+      member?.remindMe ?? true,
+    ),
   };
 }
 

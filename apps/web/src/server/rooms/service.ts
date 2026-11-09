@@ -1,4 +1,12 @@
-export { createRoom, startRoom, setGoing, viewRoom, endRoom, endEmptyRooms } from "./lifecycle";
+export {
+  createRoom,
+  startRoom,
+  setGoing,
+  setReminders,
+  viewRoom,
+  endRoom,
+  endEmptyRooms,
+} from "./lifecycle";
 export type { RoomView } from "./lifecycle";
 export { joinRoom, leaveRoom, listMembers, heartbeatRoom } from "./membership";
 export {

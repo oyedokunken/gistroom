@@ -35,7 +35,17 @@ export const roomApi = {
     apiFetch<RoomJoin>(`${base(slug)}/join`, { body: { invite: invite ?? null } }),
   session: (
     slug: string,
-    action: "leave" | "start" | "end" | "mute-all" | "lock" | "unlock" | "going" | "not-going",
+    action:
+      | "leave"
+      | "start"
+      | "end"
+      | "mute-all"
+      | "lock"
+      | "unlock"
+      | "going"
+      | "not-going"
+      | "reminders-on"
+      | "reminders-off",
     extra: { lockUnmute?: boolean } = {},
   ) =>
     apiFetch<{ ok?: boolean; room?: RoomDto }>(`${base(slug)}/session`, {

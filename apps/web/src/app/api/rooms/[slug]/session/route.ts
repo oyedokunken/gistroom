@@ -6,12 +6,24 @@ import {
   leaveRoom,
   muteAll,
   setGoing,
+  setReminders,
   setLocked,
   startRoom,
 } from "@/server/rooms/service";
 
 const schema = z.object({
-  action: z.enum(["leave", "start", "end", "mute-all", "lock", "unlock", "going", "not-going"]),
+  action: z.enum([
+    "leave",
+    "start",
+    "end",
+    "mute-all",
+    "lock",
+    "unlock",
+    "going",
+    "not-going",
+    "reminders-on",
+    "reminders-off",
+  ]),
   /** With mute-all: only moderators can unmute people afterwards. */
   lockUnmute: z.boolean().optional(),
 });
@@ -33,6 +45,9 @@ export const POST = api(async (request, ctx: { params: Promise<{ slug: string }>
     case "going":
     case "not-going":
       return json({ room: await setGoing(user, slug, action === "going") });
+    case "reminders-on":
+    case "reminders-off":
+      return json({ room: await setReminders(user, slug, action === "reminders-on") });
     case "mute-all":
       await muteAll(user, slug, { lockUnmute });
       return json({ ok: true });

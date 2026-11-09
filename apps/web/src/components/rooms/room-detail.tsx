@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { CalendarClock, Lock, Mic, Users, Video } from "lucide-react";
 import {
-  attendanceLabel,
   LANGUAGE_LABELS,
+  roomCountLabel,
   type DiscoverRoom,
   type PublicRoomCard,
 } from "@gistroom/shared";
@@ -18,15 +18,6 @@ import { RelatedRooms } from "./related-rooms";
 import { RoomAction } from "./room-action";
 
 export type DetailRoom = PublicRoomCard & Partial<Pick<DiscoverRoom, "invitedOnly">>;
-
-/** The count that fits the room: people in it when live, people who put their name down when upcoming. */
-export function roomCountLabel(
-  room: Pick<PublicRoomCard, "status" | "listeners" | "attending">,
-): string {
-  return room.status === "LIVE"
-    ? attendanceLabel("LIVE", room.listeners)
-    : attendanceLabel("SCHEDULED", room.attending);
-}
 
 /**
  * Everything about one room in one panel: what it is, who hosts it, who is in it, the one action, a link to copy, and

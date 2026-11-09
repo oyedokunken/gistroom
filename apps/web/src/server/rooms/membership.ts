@@ -84,29 +84,54 @@ export async function joinRoom(
   }
 
   const wasIn = member?.state === "JOINED";
-  await db.roomMember.upsert({
-    where: { roomId_userId: { roomId: room.id, userId: me.id } },
-    create: {
-      roomId: room.id,
-      userId: me.id,
-      role: verdict.role,
-      state: "JOINED",
-      joinedAt: now,
-      heartbeatAt: now,
-      invitedById: link?.createdById ?? null,
-    },
-    update: {
-      state: "JOINED",
-      role: verdict.role,
-      leftAt: null,
-      graceUntil: null,
-      heartbeatAt: now,
-      ringStatus: null,
-      ...(wasIn
-        ? {}
-        : { joinedAt: member?.joinedAt && member.state === "LEFT" ? member.joinedAt : now }),
-    },
-  });
+  // Taking a seat is one serializable step: count who is in, refuse when the room is full, then take the seat. Two
+  // people asking for the last seat at once cannot both pass, because the database makes one of them retry and the
+  // retry sees the full room.
+  const takeSeat = () =>
+    db.$transaction(
+      async (tx) => {
+        if (!isHost && !wasIn) {
+          const seated = await tx.roomMember.count({ where: { roomId: room.id, state: "JOINED" } });
+          if (seated >= room.maxParticipants) return false;
+        }
+        await tx.roomMember.upsert({
+          where: { roomId_userId: { roomId: room.id, userId: me.id } },
+          create: {
+            roomId: room.id,
+            userId: me.id,
+            role: verdict.role,
+            state: "JOINED",
+            joinedAt: now,
+            heartbeatAt: now,
+            invitedById: link?.createdById ?? null,
+          },
+          update: {
+            state: "JOINED",
+            role: verdict.role,
+            leftAt: null,
+            graceUntil: null,
+            heartbeatAt: now,
+            ringStatus: null,
+            ...(wasIn
+              ? {}
+              : { joinedAt: member?.joinedAt && member.state === "LEFT" ? member.joinedAt : now }),
+          },
+        });
+        return true;
+      },
+      { isolationLevel: "Serializable" },
+    );
+  let seated = false;
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      seated = await takeSeat();
+      break;
+    } catch (error) {
+      // A serialization failure means another join won the race. Ask again and the full room is seen.
+      if ((error as { code?: string }).code !== "P2034" || attempt === 3) throw error;
+    }
+  }
+  if (!seated) throw denied("FULL");
   // Joining answers a ring: the card closes on this person's other devices.
   if (member?.ringStatus === "RINGING" && member.ringedAt) {
     void publish({
@@ -116,25 +141,6 @@ export async function joinRoom(
       roomSlug: room.slug,
       change: "joined",
     });
-  }
-  // Two people taking the last seat together both pass the check above. The database has the final say: the seats
-  // are counted in the order people came in, and whoever is past the limit steps back out.
-  if (!isHost && !wasIn) {
-    const seated = await db.roomMember.findMany({
-      where: { roomId: room.id, state: "JOINED" },
-      orderBy: [{ joinedAt: "asc" }, { id: "asc" }],
-      select: { userId: true },
-    });
-    const place = seated.findIndex((s) => s.userId === me.id);
-    if (place >= room.maxParticipants) {
-      await db.roomMember.update({
-        where: { roomId_userId: { roomId: room.id, userId: me.id } },
-        data: member
-          ? { state: member.state, leftAt: member.leftAt, graceUntil: member.graceUntil }
-          : { state: "LEFT", leftAt: now, graceUntil: null },
-      });
-      throw denied("FULL");
-    }
   }
   void publish({ type: "room", roomId: room.id, change: "member", userId: me.id });
 

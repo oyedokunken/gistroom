@@ -138,9 +138,11 @@ test.describe("suggested friends", () => {
   test.use({ viewport: { width: 1280, height: 900 } });
 
   test("shows people with plain reasons and lets you dismiss one", async ({ page, context }) => {
-    const me = await createUser("sg1", { interests: ["football", "comedy"] });
-    const a = await createUser("sg2", { name: "Suggest Ada", interests: ["football", "comedy"] });
-    await createUser("sg3", { name: "Suggest Bayo", interests: ["football"] });
+    // Interests that nobody else in the shared test database picks, so only these people are suggested.
+    const mine = ["parenting", "history-and-heritage"];
+    const me = await createUser("sg1", { interests: mine });
+    const a = await createUser("sg2", { name: "Suggest Ada", interests: mine });
+    await createUser("sg3", { name: "Suggest Bayo", interests: ["parenting"] });
     await signIn(context, me);
     await page.goto("/app/friends?tab=find");
 

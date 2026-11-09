@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { CalendarClock, Mic, Users } from "lucide-react";
-import { LANGUAGE_LABELS, type PublicRoomCard } from "@gistroom/shared";
-import { roomCountLabel } from "@/components/rooms/room-detail";
+import { LANGUAGE_LABELS, roomCountLabel, type PublicRoomCard } from "@gistroom/shared";
 import { RoomAction } from "@/components/rooms/room-action";
 import { useRoomSelection } from "@/components/rooms/room-selection";
 import { Avatar } from "@/components/ui/avatar";

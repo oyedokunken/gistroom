@@ -221,9 +221,14 @@ test.describe("rooms in the call window", () => {
     const room = await createRoom(host, { title: "Window talk", topic: "football" });
     await signIn(context, guest);
     await page.goto("/app/discover");
+    // A card opens its details beside the list, and Join room goes to the full page.
     await page
-      .getByRole("link", { name: /Window talk/ })
+      .getByRole("button", { name: /View details: Window talk/ })
       .first()
+      .click();
+    await page
+      .getByRole("complementary", { name: "Room details" })
+      .getByRole("link", { name: "Join room" })
       .click();
     await expect(page).toHaveURL(new RegExp(`/app/rooms/${room.slug}`));
     await expect(page.getByTestId("call-window")).toHaveCount(0);

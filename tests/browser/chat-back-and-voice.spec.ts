@@ -87,7 +87,7 @@ test.describe("voice note in a chat", () => {
     await speed.focus();
     await expect(speed).toBeFocused();
 
-    const results = await new AxeBuilder({ page }).include("main").analyze();
+    const results = await new AxeBuilder({ page }).analyze();
     expect(results.violations.filter((v) => v.id === "color-contrast")).toEqual([]);
   });
 });

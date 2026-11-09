@@ -66,7 +66,7 @@ test.describe("sell the platform, not the builder", () => {
       });
       if (route === "/changelog") {
         // The changelog records the attribution decision (D25) verbatim.
-        text = text.replace(/@?oyedokunken/gi, "");
+        text = text.replace(/@?oyedokunken/gi, "").replace(/[a-z.]*oyedokun\.dev/gi, "");
       }
       expect(text).not.toMatch(/oyedokun|kenny/i);
       const html = await page.content();

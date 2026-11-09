@@ -1,9 +1,8 @@
 "use client";
 
 import { CalendarClock, Lock, Mic, Users, Video } from "lucide-react";
-import { LANGUAGE_LABELS, type DiscoverRoom } from "@gistroom/shared";
+import { LANGUAGE_LABELS, roomCountLabel, type DiscoverRoom } from "@gistroom/shared";
 import { RoomLink } from "@/components/call-window/room-link";
-import { roomCountLabel } from "@/components/rooms/room-detail";
 import { RoomAction } from "@/components/rooms/room-action";
 import { useRoomSelection } from "@/components/rooms/room-selection";
 import { Avatar } from "@/components/ui/avatar";

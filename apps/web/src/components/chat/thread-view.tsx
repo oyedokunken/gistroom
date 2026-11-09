@@ -489,7 +489,7 @@ export function ThreadView({
         <Link
           href="/app/chats"
           aria-label={chat.back}
-          className="flex size-11 items-center justify-center rounded-full text-text hover:bg-surface-2 md:hidden"
+          className="flex size-11 shrink-0 items-center justify-center rounded-full text-text hover:bg-surface-2 md:hidden"
         >
           <ChevronLeft aria-hidden className="size-6" />
         </Link>

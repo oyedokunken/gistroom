@@ -30,7 +30,8 @@ test.describe("settings, one by one", () => {
     // The username and the email can be read but never changed.
     await expect(page.getByLabel("Username")).toHaveValue(`@${me.user.username}`);
     await expect(page.getByLabel("Username")).toHaveAttribute("readonly", "");
-    await expect(page.getByLabel("Email", { exact: true })).toHaveAttribute("readonly", "");
+    await expect(page.getByText(me.email)).toBeVisible();
+    await expect(page.getByRole("textbox", { name: "Email", exact: true })).toHaveCount(0);
 
     await page.getByRole("button", { name: "Save changes" }).click();
     await expect(page.getByText("Your profile is updated.")).toBeVisible();

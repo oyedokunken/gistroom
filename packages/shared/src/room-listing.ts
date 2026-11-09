@@ -73,6 +73,17 @@ export function countdownText(
   return `${mins}m`;
 }
 
+/** The count that fits the room: people in it when live, people who put their name down when upcoming. */
+export function roomCountLabel(room: {
+  status: "LIVE" | "SCHEDULED" | "ENDED";
+  listeners: number;
+  attending: number;
+}): string {
+  return room.status === "LIVE"
+    ? attendanceLabel("LIVE", room.listeners)
+    : attendanceLabel(room.status === "ENDED" ? "ENDED" : "SCHEDULED", room.attending);
+}
+
 export type RoomCardAction = "START" | "JOIN" | "SIGN_IN" | "COUNTDOWN";
 
 /**

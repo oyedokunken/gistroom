@@ -133,6 +133,23 @@ export async function readHead(
   return { head: buf.slice(0, bytes), size };
 }
 
+/** Copies a stored file to a new key inside one bucket, so a forwarded file has a reference of its own. */
+export async function copyObject(
+  bucket: string,
+  fromPath: string,
+  toPath: string,
+): Promise<boolean> {
+  const c = config();
+  const res = await fetch(`${c.url}/storage/v1/object/copy`, {
+    method: "POST",
+    headers: headers(c, { "Content-Type": "application/json" }),
+    body: JSON.stringify({ bucketId: bucket, sourceKey: fromPath, destinationKey: toPath }),
+  });
+  if (res.status === 404 || res.status === 400) return false;
+  await call(res);
+  return true;
+}
+
 export async function removeObjects(bucket: string, paths: string[]): Promise<void> {
   if (paths.length === 0) return;
   const c = config();

@@ -4,8 +4,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, NotebookPen, Phone, Settings, Video } from "lucide-react";
-import { LIMITS, receiptStatus, type ConversationDto, type MessageDto } from "@gistroom/shared";
+import { ChevronLeft, Forward, NotebookPen, Phone, Settings, Video, X } from "lucide-react";
+import {
+  FORWARD_MAX_MESSAGES,
+  FORWARDABLE_TYPES,
+  LIMITS,
+  receiptStatus,
+  type ConversationDto,
+  type ForwardResult,
+  type MessageDto,
+} from "@gistroom/shared";
 import { useFeedback } from "@/components/feedback/feedback-provider";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -32,6 +40,7 @@ import { AnniversaryCard } from "./anniversary-card";
 import { ChatBubble } from "./chat-bubble";
 import { ChatSettings, ReportDialog, StarredDialog } from "./chat-dialogs";
 import { Composer } from "./composer";
+import { ForwardModal } from "./forward-modal";
 import { session } from "@/content/session";
 import { useOffline } from "@/lib/session/use-offline";
 import { MessageList } from "./message-list";
@@ -59,7 +68,7 @@ export function ThreadView({
   const offline = useOffline();
   const queryClient = useQueryClient();
   const realtime = useRealtime();
-  const { confirm, showError, showInfo } = useFeedback();
+  const { confirm, showError, showInfo, showSuccess } = useFeedback();
   const conv = useConversation(conversationId);
   const messages = useMessages(conversationId);
   const outbox = useOutbox((s) => s.queue);
@@ -69,6 +78,11 @@ export function ThreadView({
   const [notesOpen, setNotesOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [starredOpen, setStarredOpen] = useState(false);
+  /** Messages ticked while choosing what to forward. Null when not choosing. */
+  const [selected, setSelected] = useState<string[] | null>(null);
+  /** Messages in the destination picker. Null when it is closed. */
+  const [forwarding, setForwarding] = useState<string[] | null>(null);
+  const [selectNote, setSelectNote] = useState<string | null>(null);
 
   const conversation = conv.data?.conversation;
   const peer = conversation?.peer;
@@ -88,6 +102,8 @@ export function ThreadView({
   useEffect(() => {
     setReplyTo(null);
     setEditing(null);
+    setSelected(null);
+    setForwarding(null);
   }, [conversationId]);
 
   const flat = useMemo(
@@ -353,6 +369,47 @@ export function ThreadView({
   const loadError =
     conv.isError && conv.error instanceof ApiClientError && conv.error.status === 404;
 
+  function toggleSelected(id: string) {
+    setSelected((cur) => {
+      if (!cur) return cur;
+      if (cur.includes(id)) return cur.filter((x) => x !== id);
+      if (cur.length >= FORWARD_MAX_MESSAGES) {
+        setSelectNote(chat.forward.limitMessages);
+        return cur;
+      }
+      setSelectNote(null);
+      return [...cur, id];
+    });
+  }
+
+  function forwarded(result: ForwardResult) {
+    setForwarding(null);
+    setSelected(null);
+    setSelectNote(null);
+    const names = (ids: string[]) =>
+      ids
+        .map((id) => friendName(id))
+        .filter(Boolean)
+        .join(", ") || chat.you;
+    const failed = result.outcomes.filter((o) => o.error).map((o) => o.userId);
+    const tail = result.skipped > 0 ? ` ${chat.forward.skipped(result.skipped)}` : "";
+    if (failed.length > 0) {
+      showInfo(`${chat.forward.partialBody(names(failed))}${tail}`, chat.forward.partialTitle);
+    } else {
+      showSuccess(
+        `${chat.forward.doneBody(names(result.outcomes.map((o) => o.userId)))}${tail}`,
+        chat.forward.doneTitle,
+      );
+    }
+  }
+
+  function friendName(userId: string): string {
+    const friends = queryClient.getQueryData<{ friends: { user: { id: string; name: string } }[] }>(
+      ["friends"],
+    );
+    return friends?.friends.find((f) => f.user.id === userId)?.user.name ?? "";
+  }
+
   function renderMessage(row: Extract<Row, { kind: "message" }>) {
     const m = row.message;
     const meta = m.meta as { kind?: string; years?: number } | null;
@@ -371,7 +428,24 @@ export function ThreadView({
         peerName={peer?.name ?? ""}
         canDeleteEveryone={settled && age < DELETE_WINDOW_MS}
         canEdit={settled && live && m.type === "TEXT" && age < EDIT_WINDOW_MS}
+        selection={
+          selected
+            ? {
+                selected: selected.includes(m.id),
+                selectable:
+                  !row.pending &&
+                  !m.deletedForEveryone &&
+                  (FORWARDABLE_TYPES as readonly string[]).includes(m.type),
+                onToggle: () => toggleSelected(m.id),
+              }
+            : null
+        }
         actions={{
+          onForward: () => setForwarding([m.id]),
+          onSelect: () => {
+            setSelectNote(null);
+            setSelected([m.id]);
+          },
           onReply: () =>
             setReplyTo({
               id: m.id,
@@ -536,6 +610,33 @@ export function ThreadView({
             {chat.blockedByMe.unblock}
           </Button>
         </div>
+      ) : selected ? (
+        <div className="flex min-h-16 flex-col justify-center gap-1 border-t border-border px-3 py-2 md:px-6">
+          {selectNote ? (
+            <p role="status" className="text-sm text-text-muted">
+              {selectNote}
+            </p>
+          ) : null}
+          <div className="flex items-center gap-2">
+            <IconButton label={chat.forward.cancel} onClick={() => setSelected(null)}>
+              <X aria-hidden className="size-5" />
+            </IconButton>
+            <span
+              role="status"
+              aria-live="polite"
+              className="tabular flex-1 font-semibold text-text"
+            >
+              {chat.forward.selectedCount(selected.length)}
+            </span>
+            <Button
+              disabled={selected.length === 0 || offline}
+              onClick={() => setForwarding(selected)}
+            >
+              <Forward aria-hidden className="size-4" />
+              {chat.actions.forward}
+            </Button>
+          </div>
+        </div>
       ) : (
         <Composer
           conversationId={conversationId}
@@ -587,6 +688,15 @@ export function ThreadView({
           onClear={() => void clearChat()}
         />
       ) : null}
+      <ForwardModal
+        open={forwarding !== null}
+        onOpenChange={(o) => {
+          if (!o) setForwarding(null);
+        }}
+        messageIds={forwarding ?? []}
+        fromConversationId={conversationId}
+        onDone={forwarded}
+      />
       <ReportDialog
         open={reportOpen}
         onOpenChange={setReportOpen}

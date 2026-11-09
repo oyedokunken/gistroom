@@ -6,6 +6,8 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ### Added
 
+- Forward messages. Choose one message from its menu (Forward) or several (Select), pick up to five friends, recent chats first, and send. Text, photos, videos, voice notes and files can be forwarded. Each copy is a new message from you with a new client id, marked Forwarded, with no original sender or time carried over, and files are copied to a path inside the destination chat so media access stays with that chat. A retry of the same request never creates a second copy. `POST /api/messages/forward`.
+
 - Notification delivery trail and retry. Every stage a notification passes through (created, claimed, sent to a tab, pushed, rejected, skipped with a reason, retried, dropped) is recorded in `NotificationDelivery` and shown at `GET /api/notifications/deliveries`. A scheduled job that fails is put back with a growing wait and dropped after five tries, instead of being lost after the claim. Registered people can switch the 15 minute and live now reminders off for a room, and the room page shows the next reminder.
 
 - Gistroom now lives at `https://gistroom.oyedokun.dev`. The old `gistroom.vercel.app` address redirects to it (pages only, API routes stay), canonical URLs, Open Graph and the README use the new address, and the Render blueprint allows it as a realtime origin next to `gistroom.ng` (D93).

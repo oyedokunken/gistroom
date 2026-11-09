@@ -17,6 +17,7 @@ function sampleData(extra: { friends?: number; messages?: number } = {}) {
     body: `Message number ${i} with some words (and brackets)`,
     sentAt: "2026-10-12T18:26:00.000Z",
     editedAt: null,
+    forwarded: false,
   }));
   return {
     exportedAt: "2026-10-12T18:26:00.000Z",

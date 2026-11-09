@@ -86,6 +86,7 @@ export function messageDto(row: MessageRow, viewerId: string): MessageDto {
     createdAt: row.createdAt.toISOString(),
     deletedForEveryone: deleted,
     editedAt: deleted ? null : (row.editedAt?.toISOString() ?? null),
+    forwarded: deleted ? false : (row.meta as { forwarded?: unknown } | null)?.forwarded === true,
     attachments,
     reactions: deleted ? [] : reactionsFor(row.reactions, viewerId),
     starred: row.stars.length > 0,

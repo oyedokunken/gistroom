@@ -54,3 +54,27 @@ export type ReportInput = z.infer<typeof reportSchema>;
 
 export const starSchema = z.object({ on: z.boolean() });
 export const openChatSchema = z.object({ userId: z.string().trim().min(1).max(64) });
+
+/** Message types a person may forward. Room invites, call records and system lines stay where they are. */
+export const FORWARDABLE_TYPES = ["TEXT", "IMAGE", "VIDEO", "VOICE", "FILE"] as const;
+export const FORWARD_MAX_MESSAGES = 10;
+export const FORWARD_MAX_DESTINATIONS = 5;
+
+const objectId = z.string().trim().min(1).max(64);
+const unique = (items: string[]) => new Set(items).size === items.length;
+
+/**
+ * Forward one or more messages to one or more friends. The batch id is made by the browser once per attempt, so a retry
+ * of the same request creates no second copy (every copy has a clientId derived from it).
+ */
+export const forwardSchema = z.object({
+  batchId: z
+    .string()
+    .trim()
+    .min(8)
+    .max(40)
+    .regex(/^[A-Za-z0-9_-]+$/),
+  messageIds: z.array(objectId).min(1).max(FORWARD_MAX_MESSAGES).refine(unique),
+  userIds: z.array(objectId).min(1).max(FORWARD_MAX_DESTINATIONS).refine(unique),
+});
+export type ForwardInput = z.infer<typeof forwardSchema>;

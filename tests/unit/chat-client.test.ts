@@ -32,6 +32,7 @@ const msg = (id: string, at: string, over: Partial<MessageDto> = {}): MessageDto
   createdAt: at,
   deletedForEveryone: false,
   editedAt: null,
+  forwarded: false,
   attachments: [],
   reactions: [],
   starred: false,

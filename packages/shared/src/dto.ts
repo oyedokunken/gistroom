@@ -36,6 +36,8 @@ export interface MessageDto {
   deletedForEveryone: boolean;
   /** Set when the sender edited the text inside the edit window. */
   editedAt: string | null;
+  /** True for a copy that was forwarded. It never says who wrote the original, and a forward of a forward reads the same. */
+  forwarded: boolean;
   attachments: AttachmentDto[];
   reactions: ReactionDto[];
   starred: boolean;
@@ -45,6 +47,21 @@ export interface MessageDto {
  * OK: chat as normal. BLOCKED_BY_ME: you blocked them, you can unblock. UNAVAILABLE: they blocked you or the
  * account is gone; the chat just shows as unavailable and never says why.
  */
+export interface ForwardOutcome {
+  userId: string;
+  conversationId: string | null;
+  /** How many messages reached this person. */
+  sent: number;
+  /** Plain reason when nothing was sent, for example the chat is unavailable. */
+  error: string | null;
+}
+
+export interface ForwardResult {
+  outcomes: ForwardOutcome[];
+  /** Chosen messages that could not be forwarded (deleted, hidden, or not a forwardable type). */
+  skipped: number;
+}
+
 export type ChatAvailability = "OK" | "BLOCKED_BY_ME" | "UNAVAILABLE";
 
 export interface ConversationDto {

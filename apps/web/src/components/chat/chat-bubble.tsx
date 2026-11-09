@@ -3,9 +3,12 @@
 import * as Menu from "@radix-ui/react-dropdown-menu";
 import { motion } from "motion/react";
 import {
+  Check,
   ChevronDown,
   Copy,
   CornerUpLeft,
+  Forward,
+  ListChecks,
   Pencil,
   SmilePlus,
   Star,
@@ -13,7 +16,7 @@ import {
   Trash,
 } from "lucide-react";
 import { useState } from "react";
-import type { ReceiptStatus } from "@gistroom/shared";
+import { FORWARDABLE_TYPES, type ReceiptStatus } from "@gistroom/shared";
 import {
   DropdownContent,
   DropdownItem,
@@ -31,11 +34,17 @@ import { cn } from "@/lib/cn";
 import { formatClock, formatFull } from "@/lib/time";
 import type { Row } from "@/lib/chat/rows";
 
+const FORWARDABLE: ReadonlySet<string> = new Set(FORWARDABLE_TYPES);
+
 /** How far a bubble is dragged to the right before it counts as a reply. */
 export const SWIPE_REPLY_PX = 56;
 
 export interface BubbleActions {
   onReply: () => void;
+  /** Start forwarding with this message chosen. */
+  onForward: () => void;
+  /** Start choosing several messages, with this one ticked. */
+  onSelect: () => void;
   onCopy: () => void;
   onStar: () => void;
   onReact: (emoji: string) => void;
@@ -54,6 +63,8 @@ export interface ChatBubbleProps {
   canDeleteEveryone: boolean;
   canEdit: boolean;
   actions: BubbleActions;
+  /** Set while choosing messages to forward. Null otherwise. */
+  selection?: { selected: boolean; selectable: boolean; onToggle: () => void } | null;
 }
 
 export function ChatBubble({
@@ -63,6 +74,7 @@ export function ChatBubble({
   canDeleteEveryone,
   canEdit,
   actions,
+  selection = null,
 }: ChatBubbleProps) {
   const { message, mine, groupStart, groupEnd, pending } = row;
   const [moreOpen, setMoreOpen] = useState(false);
@@ -88,9 +100,17 @@ export function ChatBubble({
       : chat.deletedMessage
     : (message.body ?? "");
   const hasMedia = !message.deletedForEveryone && message.attachments.length > 0;
+  const forwardable =
+    !local && !failed && !message.deletedForEveryone && FORWARDABLE.has(message.type);
 
   const content = (
     <>
+      {message.forwarded && !message.deletedForEveryone ? (
+        <span className="mb-1 flex items-center gap-1 text-xs font-medium italic opacity-90">
+          <Forward aria-hidden className="size-3" />
+          {chat.forwarded}
+        </span>
+      ) : null}
       {message.replyPreview ? (
         <span
           className={cn(
@@ -155,7 +175,33 @@ export function ChatBubble({
           groupStart ? "mt-3" : "mt-0.5",
         )}
       >
-        {failed ? (
+        {selection ? (
+          <button
+            type="button"
+            role="checkbox"
+            aria-checked={selection.selected}
+            aria-label={chat.forward.selectMessage}
+            disabled={!selection.selectable}
+            onClick={selection.onToggle}
+            className={cn(
+              "flex w-full min-h-11 items-center gap-3 text-left disabled:opacity-50",
+              mine ? "flex-row-reverse" : "flex-row",
+            )}
+          >
+            <span
+              aria-hidden
+              className={cn(
+                "flex size-6 shrink-0 items-center justify-center rounded-full border-2",
+                selection.selected
+                  ? "border-green-600 bg-green-600 text-white"
+                  : "border-border bg-surface text-transparent",
+              )}
+            >
+              <Check className="size-4" />
+            </span>
+            <span className={bubbleClass}>{content}</span>
+          </button>
+        ) : failed ? (
           <>
             <button
               type="button"
@@ -234,6 +280,16 @@ export function ChatBubble({
                 <DropdownItem icon={Pencil} onSelect={actions.onEdit}>
                   {chat.edit.action}
                 </DropdownItem>
+              ) : null}
+              {forwardable ? (
+                <>
+                  <DropdownItem icon={Forward} onSelect={actions.onForward}>
+                    {chat.actions.forward}
+                  </DropdownItem>
+                  <DropdownItem icon={ListChecks} onSelect={actions.onSelect}>
+                    {chat.actions.select}
+                  </DropdownItem>
+                </>
               ) : null}
               <DropdownItem icon={Copy} onSelect={actions.onCopy}>
                 {chat.actions.copy}

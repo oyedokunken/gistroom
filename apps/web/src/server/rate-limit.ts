@@ -21,6 +21,7 @@ export const policies = {
   friendRequestHour: { name: "fr-hour", limit: 10, windowSec: 3600 },
   friendRequestDay: { name: "fr-day", limit: 30, windowSec: 86_400 },
   messages: { name: "msg", limit: 60, windowSec: 60 },
+  forward: { name: "forward", limit: 10, windowSec: 60 },
   mediaSign: { name: "media-sign", limit: 30, windowSec: 60 },
   roomCreate: { name: "room-create", limit: 10, windowSec: 3600 },
   callStart: { name: "call-start", limit: 10, windowSec: 60 },

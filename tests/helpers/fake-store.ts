@@ -168,6 +168,7 @@ export class FakeStore implements Store {
       createdAt: new Date().toISOString(),
       deletedForEveryone: false,
       editedAt: null,
+      forwarded: false,
       attachments: [],
       reactions: [],
       starred: false,

@@ -30,6 +30,7 @@ const make = (
   createdAt: iso(minutesAgo),
   deletedForEveryone: false,
   editedAt: null,
+  forwarded: false,
   attachments: [],
   reactions: [],
   starred: false,
@@ -98,6 +99,8 @@ export function ChatPreview() {
               }
               actions={{
                 onReply: noop,
+                onForward: noop,
+                onSelect: noop,
                 onCopy: noop,
                 onStar: noop,
                 onReact: noop,

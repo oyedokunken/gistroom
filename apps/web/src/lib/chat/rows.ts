@@ -34,6 +34,7 @@ export function pendingToMessage(item: OutboxItem, senderId: string): MessageDto
     createdAt: item.createdAt,
     deletedForEveryone: false,
     editedAt: null,
+    forwarded: false,
     attachments: [],
     reactions: [],
     starred: false,

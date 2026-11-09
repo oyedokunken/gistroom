@@ -45,6 +45,7 @@ All notable changes to Gistroom. Format follows Keep a Changelog.
 
 ### Changed
 
+- Upgraded Next.js from 16.4.3 to 16.4.5 (latest patched stable), pinned exactly in `apps/web`. No code changes were needed.
 - The voice note player uses explicit token styles for rest, hover, focus and disabled on both bubble colours, so white text can no longer land on a white or pale background. A unit test checks every pairing against WCAG AA in light and dark.
 
 - The friends test world now writes all activity timestamps at or after the seed time, schedules every Room in the future, removes visible test labels from bios, and includes Chelsea Banter, FUTA Alumni Connect and Anime Lovers Room.
